@@ -49,6 +49,7 @@ from .automations import AutomationHandler
 from .ext_websockets import (
     async_setup_ext,
     async_setup_ext_platforms,
+    async_backup_before_remove,
     async_unload_ext_platforms,
 )
 
@@ -126,6 +127,8 @@ async def async_unload_entry(hass, entry):
 
 async def async_remove_entry(hass, entry):
     """Remove Alarmo config entry."""
+    # ext: back up the configuration before Alarmo wipes it (deleting the integration is easy to do by mistake)
+    await async_backup_before_remove(hass)
     async_unregister_panel(hass)
     coordinator = hass.data[const.DOMAIN]["coordinator"]
     await coordinator.async_delete_config()

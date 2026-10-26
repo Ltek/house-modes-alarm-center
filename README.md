@@ -1,6 +1,6 @@
 # House Modes & Alarm Center
 
-> **Ext build v1.10.19+ext.28** · full history in [CHANGELOG.md](CHANGELOG.md)
+> **Ext build v1.10.19+ext.29** · full history in [CHANGELOG.md](CHANGELOG.md)
 
 A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber: one place for
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via

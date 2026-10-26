@@ -3,6 +3,15 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v1.10.19+ext.29 — 2026-10-26
+
+- **Backup before the integration is deleted.** Deleting Alarmo under *Settings → Devices & services* wipes
+  `alarmo.storage` (partitions, zones, users, actions). The configuration and the ext settings are now backed up
+  first, as `…_before-integration-removed` in `/config/alarmo/backups/`. After adding the integration again, restore
+  it from the Backup tab. If that backup fails, the raw storage files are copied to
+  `backups/raw-before-remove_<time>/` instead.
+- Installing through HACS as a custom repository (installs from `main`).
+
 ## v1.10.19+ext.28 — 2026-10-26
 
 - **Vista Quick Bypass: the panel's own list decides.**

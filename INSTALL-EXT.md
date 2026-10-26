@@ -113,6 +113,11 @@ The YAML export also carries the ext settings in an `extras:` block. Restoring b
 current House Mode, its timers and history. Backups from ext.10 and older have no ext settings; restoring them
 leaves the current ext settings alone.
 
+**Deleting the integration** (Settings → Devices & services → Alarmo → Delete) wipes `alarmo.storage`. Since ext.29 a
+backup named `…_before-integration-removed` is made first; after adding the integration again, restore it from the
+Backup tab. Switching between this build and upstream Alarmo never needs the integration deleted — only the files
+in `custom_components/alarmo` change.
+
 ## 4. Rolling back to upstream
 
 1. Replace the files: copy `/config/alarmo_rollback/alarmo/` back to `/config/custom_components/alarmo/`

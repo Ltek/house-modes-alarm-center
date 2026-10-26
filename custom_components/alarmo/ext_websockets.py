@@ -15,6 +15,7 @@ Service:
 
 from __future__ import annotations
 
+import os
 import logging
 from typing import Any
 
@@ -56,6 +57,7 @@ EXT_VERSION_SUFFIX = "ext.1"
 LABEL_SENSOR_TABLE = "sensor-table"
 LABEL_PRE_IMPORT = "pre-import"
 LABEL_MANUAL = "manual"
+LABEL_BEFORE_REMOVE = "before-integration-removed"
 
 
 class ExtManager:
@@ -604,6 +606,43 @@ async def async_setup_ext(hass: HomeAssistant, store) -> None:
         _LOGGER.exception(
             "Alarmo ext features failed to start; core Alarmo is unaffected"
         )
+
+
+async def async_backup_before_remove(hass: HomeAssistant) -> None:
+    """Deleting the Alarmo integration wipes alarmo.storage: make a backup first. Never raises.
+
+    The backup (configuration + ext settings) lands in /config/alarmo/backups/ and can be restored from the Backup
+    tab after adding the integration again. If the ext backup fails, the raw storage files are copied instead.
+    """
+    try:
+        ext = hass.data.get(DATA_EXT)
+        if ext is not None:
+            info = await ext.backups.async_create(LABEL_BEFORE_REMOVE)
+            _LOGGER.warning(
+                "Alarmo integration removed: its configuration was backed up first as %s "
+                "(restore it from the Backup tab after adding the integration again)",
+                info["name"],
+            )
+            return
+    except Exception:
+        _LOGGER.exception("Alarmo: backup before removal failed; copying the storage files instead")
+    try:
+        import shutil  # noqa: PLC0415
+
+        stamp = yaml_io.dt_util.now().strftime("%Y-%m-%d_%H%M%S")
+        dst = hass.config.path("alarmo", "backups", f"raw-before-remove_{stamp}")
+
+        def _copy() -> None:
+            os.makedirs(dst, exist_ok=True)
+            for name in ("alarmo.storage", "alarmo_extras"):
+                src = hass.config.path(".storage", name)
+                if os.path.isfile(src):
+                    shutil.copy2(src, os.path.join(dst, name))
+
+        await hass.async_add_executor_job(_copy)
+        _LOGGER.warning("Alarmo integration removed: storage files copied to %s", dst)
+    except Exception:
+        _LOGGER.exception("Alarmo: could not copy the storage files before removal")
 
 
 EXT_PLATFORMS = ["binary_sensor", "select"]

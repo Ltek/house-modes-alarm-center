@@ -6,7 +6,7 @@ A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfab
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via
 Envisalink), **users and Z-Wave lock codes**, and an **activity log** of everything that happens.
 
-> **Status: private test build.** It still uses Alarmo's domain (`alarmo`), so it **replaces** Alarmo when installed
+> **Status: test build.** It still uses Alarmo's domain (`alarmo`), so it **replaces** Alarmo when installed
 > (it cannot run next to it) and reads Alarmo's existing configuration. A rename to its own domain, with a one-time
 > import, is planned. Your `alarmo.storage` stays loadable by upstream Alarmo until then — see
 > [INSTALL-EXT.md](INSTALL-EXT.md) for rolling back.
@@ -53,12 +53,20 @@ quiet. Daily files, filters, download, a summary with panel timings. Only observ
 **Housekeeping** — date-stamped backups (configuration + ext settings) with retention, YAML export/import with a
 preview, a status strip on every page, pages laid out to one design.
 
-## Install (manual, private build)
+## Install
 
-1. Make a rollback copy: [INSTALL-EXT.md](INSTALL-EXT.md) § 1.
-2. Copy `custom_components/alarmo` from the release ZIP over `/config/custom_components/alarmo`, restart Home
-   Assistant, reload the browser.
-3. Moving from several partitions to one, or from template mirrors: [MIGRATION.md](MIGRATION.md).
+**HACS (custom repository)**
+
+1. Remove upstream Alarmo from HACS first if it is installed (*HACS → Alarmo → Remove*; do **not** delete the Alarmo
+   integration under *Settings → Devices & services* — that wipes Alarmo's configuration). Both use
+   `custom_components/alarmo`.
+2. *HACS → ⋮ → Custom repositories* → `Ltek/house-modes-alarm-center`, type **Integration** → download.
+3. Restart Home Assistant and reload the browser. The existing Alarmo configuration is used as it is.
+
+**Manual:** copy `custom_components/alarmo` from a release ZIP over `/config/custom_components/alarmo` and restart.
+
+Before either: make a rollback copy ([INSTALL-EXT.md](INSTALL-EXT.md) § 1). Moving from several partitions to one, or
+from template mirrors: [MIGRATION.md](MIGRATION.md).
 
 ## Documentation
 

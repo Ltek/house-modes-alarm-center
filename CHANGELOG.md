@@ -3,6 +3,14 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.10.26.30 — 2026-10-26
+
+- **New version numbers: `YYYY.MM.DD.BUILD`**, the build date (UTC) plus a running build number that never resets.
+  It continues the old counter: `1.10.19+ext.29` was build 29, so this is build 30. The Alarmo release it is based on
+  is in the README and in every export (`based_on_alarmo: 1.10.19`).
+- Release ZIPs are named `house-modes-alarm-center-v<version>.zip`.
+- Includes ext.29 (backup before the integration is deleted).
+
 ## v1.10.19+ext.29 — 2026-10-26
 
 - **Backup before the integration is deleted.** Deleting Alarmo under *Settings → Devices & services* wipes

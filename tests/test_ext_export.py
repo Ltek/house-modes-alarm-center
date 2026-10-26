@@ -38,12 +38,15 @@ async def test_export_round_trips_store_data(
     doc = yaml.safe_load(text)
     assert doc["alarmo_export_version"] == 1
     assert doc["storage_version"] == "6.3"
-    assert doc["alarmo_version"].startswith("1.10.19")
+    from custom_components.alarmo import const  # noqa: PLC0415
+
+    assert doc["alarmo_version"] == const.VERSION and doc["based_on_alarmo"] == "1.10.19"
     assert doc["data"] == env["data"]
     # key order is stable: header first, then sections in storage order
     assert list(doc) == [
         "alarmo_export_version",
         "alarmo_version",
+        "based_on_alarmo",
         "storage_version",
         "exported_at",
         "data",

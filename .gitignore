@@ -21,3 +21,4 @@ ROADMAP.md
 PLAN-*.md
 HANDOFF*.md
 *.zip
+.pytest_cache/

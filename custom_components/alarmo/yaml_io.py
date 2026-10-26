@@ -49,6 +49,8 @@ from .sensors import SENSOR_TYPES
 _LOGGER = logging.getLogger(__name__)
 
 EXPORT_VERSION = 1
+# the upstream Alarmo release this build is based on (its storage format is kept)
+UPSTREAM_ALARMO = "1.10.19"
 SECTIONS = ("config", "areas", "sensors", "users", "automations", "sensor_groups")
 RECORD_SECTIONS = ("areas", "sensors", "users", "automations", "sensor_groups")
 ID_FIELD = {
@@ -110,6 +112,7 @@ def build_export(store, extras: dict | None = None) -> dict[str, Any]:
     doc = {
         "alarmo_export_version": EXPORT_VERSION,
         "alarmo_version": ext_version(),
+        "based_on_alarmo": UPSTREAM_ALARMO,
         "storage_version": f"{STORAGE_VERSION_MAJOR}.{STORAGE_VERSION_MINOR}",
         "exported_at": dt_util.now().isoformat(timespec="seconds"),
         "data": current_data(store),

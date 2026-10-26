@@ -1,6 +1,6 @@
 # House Modes & Alarm Center
 
-> **Ext build v1.10.19+ext.29** · full history in [CHANGELOG.md](CHANGELOG.md)
+> **Current build: v2026.10.26.30** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
 
 A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber: one place for
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via
@@ -82,7 +82,8 @@ from template mirrors: [MIGRATION.md](MIGRATION.md).
 
 - Python: `uv run pytest -q`, `uv run ruff check custom_components/alarmo tests tools`.
 - Frontend (`custom_components/alarmo/frontend`): `npm ci`, `npm run build`, `npm test`.
-- Build a release: `bash tools/package.sh 1.10.19+ext.N` (version bump, build, tests, ZIP in `release/`).
+- Build a release: write the `## v<version>` CHANGELOG entry (`bash tools/package.sh --print` shows the next version,
+  `YYYY.MM.DD.BUILD`), then `bash tools/package.sh` (version bump, build, tests, ZIP in `release/`).
 - `upstream` remote: [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo) (base commit `47b31a6`). Upstream is not
   merged any more; files may differ freely.
 

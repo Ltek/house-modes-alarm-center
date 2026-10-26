@@ -6,16 +6,16 @@
     "notify"
   ],
   "codeowners": [
-    "@nielsfaber"
+    "@Ltek"
   ],
   "config_flow": true,
   "dependencies": [
     "http",
     "panel_custom"
   ],
-  "documentation": "https://github.com/nielsfaber/alarmo",
+  "documentation": "https://github.com/Ltek/house-modes-alarm-center",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/nielsfaber/alarmo/issues",
+  "issue_tracker": "https://github.com/Ltek/house-modes-alarm-center/issues",
   "requirements": [],
   "version": "1.10.19+ext.28"
 }

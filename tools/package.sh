@@ -44,7 +44,7 @@ for z in "$ROOT"/release/alarmo-v*.zip /shared/user/alarmo-v*.zip; do
 done
 find "$ROOT/custom_components" -name __pycache__ -type d -prune -exec rm -rf {} +
 rm -f "$OUT"
-EXTRA=""; [ -d "$ROOT/blueprints" ] && EXTRA="blueprints"
+EXTRA=""; [ -d "$ROOT/blueprints" ] && EXTRA="blueprints"; [ -d "$ROOT/docs" ] && EXTRA="$EXTRA docs"
 (cd "$ROOT" && zip -qr "$OUT" custom_components/alarmo CHANGELOG.md INSTALL-EXT.md HOUSE-MODES.md MIGRATION.md README.md LICENSE hacs.json $EXTRA \
   -x 'custom_components/alarmo/frontend/node_modules/*' -x 'custom_components/alarmo/frontend/test/*' \
   -x '*/__pycache__/*' -x '*.pyc' -x '*/package-lock.json' -x '*.DS_Store')

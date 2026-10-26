@@ -11,6 +11,47 @@ Envisalink), **users and Z-Wave lock codes**, and an **activity log** of everyth
 > import, is planned. Your `alarmo.storage` stays loadable by upstream Alarmo until then — see
 > [INSTALL-EXT.md](INSTALL-EXT.md) for rolling back.
 
+## Screenshots
+
+Rendered from a demo house (made-up names) — see *Development* for how they are made.
+
+<!-- SCREENSHOTS:START -->
+<table>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/01-house-modes.png"><img src="screenshots/01-house-modes.png" width="100%" alt="House modes"></a><br><sub>House modes</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/02-zone-assignments.png"><img src="screenshots/02-zone-assignments.png" width="100%" alt="Zone assignments"></a><br><sub>Zone assignments</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/03-zone-editor.png"><img src="screenshots/03-zone-editor.png" width="100%" alt="Zone editor"></a><br><sub>Zone editor</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/04-physical-panel.png"><img src="screenshots/04-physical-panel.png" width="100%" alt="Physical panel"></a><br><sub>Physical panel</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/05-users-codes-keypads.png"><img src="screenshots/05-users-codes-keypads.png" width="100%" alt="Users codes keypads"></a><br><sub>Users codes keypads</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/06-arm-check.png"><img src="screenshots/06-arm-check.png" width="100%" alt="Arm check"></a><br><sub>Arm check</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/07-activity.png"><img src="screenshots/07-activity.png" width="100%" alt="Activity"></a><br><sub>Activity</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/08-backup.png"><img src="screenshots/08-backup.png" width="100%" alt="Backup"></a><br><sub>Backup</sub>
+    </td>
+  </tr>
+</table>
+<!-- SCREENSHOTS:END -->
+
 ## What it adds to Alarmo
 
 **House Modes** — Away, Stay, Sleep, Guest, Spa, … ([HOUSE-MODES.md](HOUSE-MODES.md))
@@ -84,6 +125,9 @@ from template mirrors: [MIGRATION.md](MIGRATION.md).
 - Frontend (`custom_components/alarmo/frontend`): `npm ci`, `npm run build`, `npm test`.
 - Build a release: write the `## v<version>` CHANGELOG entry (`bash tools/package.sh --print` shows the next version,
   `YYYY.MM.DD.BUILD`), then `bash tools/package.sh` (version bump, build, tests, ZIP in `release/`).
+- Screenshots (demo data, no real house): `ALARMO_SCREENSHOT_DEMO=1 uv run pytest -q tests/test_screenshot_demo.py`
+  then `node tools/screenshots/capture.mjs` (needs `playwright-core` and Chromium) → `screenshots/*.png`. Pushing
+  them runs the *Update Screenshot Grid* workflow, which rebuilds the gallery above.
 - `upstream` remote: [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo) (base commit `47b31a6`). Upstream is not
   merged any more; files may differ freely.
 

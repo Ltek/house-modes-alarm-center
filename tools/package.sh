@@ -47,7 +47,7 @@ node /shared/user/code/_tests/probe.mjs "$FE/dist/alarm-panel.js" alarm-panel al
   alarm-view-actions alarm-view-sensors alarm-view-sensor-table alarm-view-backup alarm-view-codes \
   alarm-view-panel alarm-view-house alarm-view-mirrors alarm-view-connections alarm-view-ha-zones | head -1
 (cd "$FE" && npm test 2>&1 | grep -E "^ℹ (pass|fail)")
-(cd "$ROOT" && uv run ruff check custom_components/alarmo tests tools | tail -1)
+(cd "$ROOT" && uv run ruff check custom_components/alarmo tests tools scripts | tail -1)
 # failures get one rerun: upstream's test_ready_to_arm_modes_changed_event_on_sensor_state_change is flaky
 (cd "$ROOT" && { uv run pytest -q 2>&1 | tail -1 | grep -v failed || uv run pytest -q --lf 2>&1 | tail -1 | grep -v failed; })
 

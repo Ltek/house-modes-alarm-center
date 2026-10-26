@@ -88,7 +88,7 @@ Alarmo consists of 3 parts:
 
 ### Preview
 
-![](https://raw.githubusercontent.com/nielsfaber/alarmo/main/screenshots/Preview.png)
+![](alarmo-screenshots/Preview.png)
 
 
 ## Installation
@@ -174,7 +174,7 @@ In the <code>custom_components</code> directory, remove the 'alarmo' folder.
 ### Alarm functionality
 The following diagram describes the operational states of the alarm and provides a simplified overview of the functionality.
 
-![](https://raw.githubusercontent.com/nielsfaber/alarmo/main/screenshots/states.png)
+![](alarmo-screenshots/states.png)
 
 
 ### Arm modes
@@ -611,7 +611,7 @@ For using this, you first need to install the HA app on your iOS or Android devi
 
 Example of the notification editor:
 
-<img src="https://raw.githubusercontent.com/nielsfaber/alarmo/main/screenshots/notification_gui.png">
+<img src="alarmo-screenshots/notification_gui.png">
 
 ##### Wildcards
 The alarmo notifications editor contains some wildcards which can be used to provide adaptive info to your push message.
@@ -632,7 +632,7 @@ Alarmo has built-in support for actionable push notification with the 'failed to
 
 Example:
 
-<img src="https://raw.githubusercontent.com/nielsfaber/alarmo/main/screenshots/actionable_push_message.png" width="400">
+<img src="alarmo-screenshots/actionable_push_message.png" width="400">
 
 **Available actions**
 

@@ -10,7 +10,8 @@
     "babel": "./node_modules/.bin/babel dist/alarm-panel.js --out-file dist/alarm-panel.js",
     "lint": "eslint src/**/*.ts --fix",
     "lint:check": "eslint src/**/*.ts",
-    "start": "rollup -c --watch"
+    "start": "rollup -c --watch",
+    "test": "node --test test/*.test.mjs"
   },
   "repository": {
     "type": "git",

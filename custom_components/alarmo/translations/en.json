@@ -6,7 +6,7 @@
       "fields": {
         "entity_id": {
           "name": "Entity ID",
-          "description": "Alarm entity that should be armed."
+          "description": "Alarm entity (partition) that should be armed."
         },
         "code": {
           "name": "Code",
@@ -14,7 +14,7 @@
         },
         "mode": {
           "name": "Mode",
-          "description": "Mode to arm the alarm in."
+          "description": "Alarm panel mode to arm the partition in."
         },
         "skip_delay": {
           "name": "Skip Delay",
@@ -22,7 +22,7 @@
         },
         "force": {
           "name": "Force",
-          "description": "Automatically bypass all sensors that prevent the arming operation."
+          "description": "Automatically bypass all zones that prevent the arming operation."
         }
       }
     },
@@ -32,7 +32,7 @@
       "fields": {
         "entity_id": {
           "name": "Entity ID",
-          "description": "Alarm entity that should be disarmed."
+          "description": "Alarm entity (partition) that should be disarmed."
         },
         "code": {
           "name": "Code",
@@ -67,6 +67,34 @@
         "name": {
           "name": "Name",
           "description": "Name of the user to disable."
+        }
+      }
+    },
+    "create_backup": {
+      "name": "Create backup",
+      "description": "Write a date-stamped backup of the Alarmo configuration (an exact copy of .storage/alarmo.storage plus a YAML export) to /config/alarmo/backups. The files contain hashed user codes.",
+      "fields": {
+        "label": {
+          "name": "Label",
+          "description": "Optional short label added to the file name, for example 'nightly'."
+        }
+      }
+    },
+    "set_house_mode": {
+      "name": "Set House Mode",
+      "description": "Change the Alarmo House Mode. Alarmo checks who may change the mode (source), whether zones are ready, arms/disarms the partitions and retries; lifestyle actions stay in your automations (trigger on alarmo_house_mode_changed or select.alarmo_house_mode).",
+      "fields": {
+        "mode": {
+          "name": "Mode",
+          "description": "Name or id of the House Mode."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Who is asking, for the permission table: schedule, presence_away, presence_home, lock, ... Default: manual if a user called it, else automation."
+        },
+        "force": {
+          "name": "Force",
+          "description": "Ignore the permission table and readiness checks."
         }
       }
     }

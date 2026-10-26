@@ -15,6 +15,7 @@ import { localize } from '../../../localize/localize';
 import { handleError, prettyPrint, filterState, commandToState, Assign, navigate } from '../../helpers';
 import { AlarmStates, AlarmCommands } from '../../const';
 import { exportPath } from '../../common/navigation';
+import { roleChip, sectionHead } from '../ext/page-intro';
 
 @customElement('mqtt-config-card')
 export class MqttConfigCard extends SubscribeMixin(LitElement) {
@@ -51,6 +52,7 @@ export class MqttConfigCard extends SubscribeMixin(LitElement) {
       <ha-card>
         <div class="card-header">
           <div class="name">${localize('panels.general.cards.mqtt.title', this.hass.language)}</div>
+          ${roleChip('settings')}
           <ha-icon-button .path=${mdiClose} @click=${this.cancelClick}></ha-icon-button>
         </div>
         <div class="card-content">${localize('panels.general.cards.mqtt.description', this.hass.language)}</div>

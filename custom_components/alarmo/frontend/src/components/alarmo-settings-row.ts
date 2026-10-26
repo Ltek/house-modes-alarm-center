@@ -36,6 +36,9 @@ export class AlarmoSettingsRow extends LitElement {
         padding: 0px 16px;
         align-items: center;
         min-height: 72px;
+        /* ext: control right beside its label (CARD_DESIGN_SYSTEM §2), not pushed to the far right */
+        justify-content: flex-start;
+        gap: 24px;
       }
       :host([large]) {
         align-items: normal;
@@ -74,7 +77,9 @@ export class AlarmoSettingsRow extends LitElement {
         padding: 16px 0;
       }
       .info {
-        flex: 1 0 60px;
+        flex: 0 1 auto;
+        min-width: 60px;
+        max-width: 640px;
         margin-bottom: 4px;
       }
       :host([large]) .info,

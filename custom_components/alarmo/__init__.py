@@ -46,6 +46,11 @@ from .sensors import (
 )
 from .websockets import async_register_websockets
 from .automations import AutomationHandler
+from .ext_websockets import (
+    async_setup_ext,
+    async_setup_ext_platforms,
+    async_unload_ext_platforms,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -95,6 +100,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     # Register custom services
     register_services(hass)
 
+    # Sensor table, backups and YAML import/export (never raises)
+    await async_setup_ext(hass, store)
+    await async_setup_ext_platforms(hass, entry)
+
     return True
 
 
@@ -107,6 +116,7 @@ async def async_unload_entry(hass, entry):
     )
     if not unload_ok:
         return False
+    await async_unload_ext_platforms(hass, entry)
 
     async_unregister_panel(hass)
     coordinator = hass.data[const.DOMAIN]["coordinator"]

@@ -15,6 +15,7 @@ import { exportPath } from '../../common/navigation';
 
 import '../../components/alarmo-table';
 import { mdiHelpCircleOutline } from '@mdi/js';
+import { roleChip, sectionHead } from '../ext/page-intro';
 
 const noArea = 'no_area';
 
@@ -70,7 +71,7 @@ export class SensorsOverviewCard extends SubscribeMixin(LitElement) {
     if (!this.hass || !this.areas || !this.sensors) return html``;
 
     return html`
-      <ha-card header="${localize('panels.sensors.title', this.hass.language)}">
+      <ha-card>${sectionHead(localize('panels.sensors.title', this.hass.language), 'legacy')}
         <div class="card-content">
           ${localize('panels.sensors.cards.sensors.description', this.hass.language)}
         </div>

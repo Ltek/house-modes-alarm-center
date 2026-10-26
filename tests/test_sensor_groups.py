@@ -235,7 +235,7 @@ async def test_two_sensors_in_group_trigger_within_timeout_triggers_alarm(
 async def test_two_sensors_in_group_trigger_outside_timeout_does_not_trigger(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """Test that two sensors in a group triggering outside timeout don't trigger the alarm."""  # noqa E501
+    """Test that two sensors in a group triggering outside timeout don't trigger the alarm."""
     area = AreaFactory.create_area(area_id="area_1", name="Test Area 1")
     sensors = [
         SensorFactory.create_door_sensor(

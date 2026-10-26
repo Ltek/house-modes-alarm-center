@@ -31,7 +31,7 @@ EVENT DATA STRUCTURE (per README):
 - armed_vacation: boolean indicating readiness for vacation mode
 - armed_custom_bypass: boolean indicating readiness for custom bypass mode
 
-"""  # noqa E501
+"""
 
 from typing import Any
 
@@ -61,7 +61,7 @@ IMMEDIATE_ARMING = 0
 async def test_ready_to_arm_modes_changed_event_on_sensor_state_change(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """Test that ready_to_arm_modes_changed events are fired when sensor states affect available arm modes."""  # noqa E501
+    """Test that ready_to_arm_modes_changed events are fired when sensor states affect available arm modes."""
     backend_events: list[dict[str, Any]] = []
 
     def capture_backend_event(
@@ -126,7 +126,7 @@ async def test_ready_to_arm_modes_changed_event_on_sensor_state_change(
             if e["event_type"] == const.EVENT_READY_TO_ARM_MODES_CHANGED
         ]
         assert len(ready_events) >= EXPECTED_SINGLE_EVENT, (
-            f"Expected at least {EXPECTED_SINGLE_EVENT} ready_to_arm_modes_changed event"  # noqa E501
+            f"Expected at least {EXPECTED_SINGLE_EVENT} ready_to_arm_modes_changed event"
         )
 
         # Verify the event details
@@ -179,7 +179,7 @@ async def test_ready_to_arm_modes_changed_event_on_sensor_state_change(
 async def test_ready_to_arm_modes_changed_event_with_door_sensor_multiple_modes(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """Test ready_to_arm_modes_changed event with door sensor affecting multiple modes."""  # noqa E501
+    """Test ready_to_arm_modes_changed event with door sensor affecting multiple modes."""
     backend_events: list[dict[str, Any]] = []
 
     def capture_backend_event(
@@ -242,7 +242,7 @@ async def test_ready_to_arm_modes_changed_event_with_door_sensor_multiple_modes(
         print(f"DEBUG: Alarm entity: {alarm_entity}")
         print(f"DEBUG: Ready to arm modes before: {alarm_entity._ready_to_arm_modes}")
         print(
-            f"DEBUG: Sensor manager config: {hass.data[const.DOMAIN]['sensor_handler']._config}"  # noqa E501
+            f"DEBUG: Sensor manager config: {hass.data[const.DOMAIN]['sensor_handler']._config}"
         )
 
         # Trigger door sensor - this should affect both arm modes
@@ -254,7 +254,7 @@ async def test_ready_to_arm_modes_changed_event_with_door_sensor_multiple_modes(
 
         # Debug: Print state after sensor change
         print(
-            f"DEBUG: Ready to arm modes after sensor trigger: {alarm_entity._ready_to_arm_modes}"  # noqa E501
+            f"DEBUG: Ready to arm modes after sensor trigger: {alarm_entity._ready_to_arm_modes}"
         )
         print(
             f"DEBUG: All captured events: {[e['event_type'] for e in backend_events]}"
@@ -986,7 +986,7 @@ async def test_home_assistant_event_bus_ready_to_arm_event(
 
     This tests the case described in the documentation where users create template entities
     that listen to the HA event bus for 'alarmo_ready_to_arm_modes_updated' events.
-    """  # noqa E501
+    """
     ha_events: list[dict[str, Any]] = []
 
     def capture_ha_event(event) -> None:

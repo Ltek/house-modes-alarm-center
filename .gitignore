@@ -11,3 +11,13 @@ custom_components/alarmo/__pycache__/*
 *.pyc
 .coverage
 htmlcov/
+release/
+archive/
+logs/
+_automations/
+# ext build: private / generated (never commit)
+configs/
+ROADMAP.md
+PLAN-*.md
+HANDOFF*.md
+*.zip

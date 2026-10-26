@@ -216,7 +216,7 @@ async def test_backward_compatibility_no_override(
 async def test_sensor_group_with_no_entry_delay_triggers_immediately(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """Test that sensor groups respect individual sensor's use_entry_delay=False setting."""  # noqa E501
+    """Test that sensor groups respect individual sensor's use_entry_delay=False setting."""
     area = AreaFactory.create_area(area_id="area_1", name="Test Area 1")
     sensors = [
         SensorFactory.create_door_sensor(
@@ -310,7 +310,7 @@ async def test_sensor_group_with_no_entry_delay_triggers_immediately(
 async def test_sensor_group_mixed_immediate_and_delayed_triggers_immediately(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """If any member is immediate (use_entry_delay=False), group trigger is immediate."""  # noqa E501
+    """If any member is immediate (use_entry_delay=False), group trigger is immediate."""
     area = AreaFactory.create_area(area_id="area_1", name="Test Area 1")
 
     door_immediate = SensorFactory.create_door_sensor(
@@ -386,7 +386,7 @@ async def test_sensor_group_mixed_immediate_and_delayed_triggers_immediately(
 async def test_sensor_group_two_delayed_members_fall_back_to_area_default(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """When no group override and all members use entry delay, fall back to area default (30s)."""  # noqa E501
+    """When no group override and all members use entry delay, fall back to area default (30s)."""
     area = AreaFactory.create_area(
         area_id="area_1",
         name="Test Area 1",

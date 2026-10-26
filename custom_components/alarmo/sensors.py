@@ -51,7 +51,8 @@ ATTR_NEW_ENTITY_ID = "new_entity_id"
 ATTR_ENTRY_DELAY = "entry_delay"
 ATTR_DELAY_ON = "delay_on"
 
-SENSOR_STATES_OPEN = [STATE_ON, STATE_OPEN, LockState.UNLOCKED]
+# ext: a cover (garage door, gate) that is opening or closing is not shut
+SENSOR_STATES_OPEN = [STATE_ON, STATE_OPEN, LockState.UNLOCKED, "opening", "closing"]
 SENSOR_STATES_CLOSED = [STATE_OFF, STATE_CLOSED, LockState.LOCKED]
 
 
@@ -773,7 +774,7 @@ class SensorHandler:
                 #   (open or unavailable when it shouldn't be)
                 # Simulate a state change to trigger standard processing
                 _LOGGER.info(
-                    "Sensor %s is %s on startup while alarm is %s - simulating state change for evaluation",  # noqa: E501
+                    "Sensor %s is %s on startup while alarm is %s - simulating state change for evaluation",
                     entity_id,
                     sensor_state,
                     alarm_entity.state,

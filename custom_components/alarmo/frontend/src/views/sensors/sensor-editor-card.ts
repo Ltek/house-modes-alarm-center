@@ -20,6 +20,7 @@ import '../../components/alarmo-duration-picker';
 
 import { exportPath } from '../../common/navigation';
 import { fireEvent } from '../../fire_event';
+import { roleChip, sectionHead } from '../ext/page-intro';
 @customElement('sensor-editor-card')
 export class SensorEditorCard extends SubscribeMixin(LitElement) {
   @property()
@@ -88,6 +89,7 @@ export class SensorEditorCard extends SubscribeMixin(LitElement) {
       <ha-card>
         <div class="card-header">
           <div class="name">${localize('panels.sensors.cards.editor.title', this.hass.language)}</div>
+          ${roleChip('legacy')}
           <ha-icon-button .path=${mdiClose} @click=${this.cancelClick}></ha-icon-button>
         </div>
         <div class="card-content">

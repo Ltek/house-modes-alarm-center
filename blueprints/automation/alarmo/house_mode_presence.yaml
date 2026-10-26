@@ -1,0 +1,57 @@
+blueprint:
+  name: Alarmo House Mode on presence
+  description: >-
+    When everyone has left, ask Alarmo for one House Mode (source "presence_away");
+    when someone comes home, ask for another (source "presence_home"). Alarmo decides
+    whether that is allowed from the current mode (e.g. Local or Guest block presence
+    arming) - set that on the House Modes tab.
+  domain: automation
+  input:
+    people:
+      name: People
+      selector:
+        entity:
+          domain: person
+          multiple: true
+    away_mode:
+      name: House Mode when everyone is away
+      selector:
+        text: {}
+    home_mode:
+      name: House Mode when someone comes home
+      selector:
+        text: {}
+    away_for:
+      name: Everyone away for at least
+      default: {hours: 0, minutes: 0, seconds: 30}
+      selector:
+        duration: {}
+triggers:
+  - trigger: state
+    entity_id: !input people
+    id: changed
+variables:
+  people: !input people
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ people | select('is_state', 'home') | list | count == 0 }}"
+        sequence:
+          - delay: !input away_for
+          - condition: template
+            value_template: "{{ people | select('is_state', 'home') | list | count == 0 }}"
+          - action: alarmo.set_house_mode
+            data:
+              mode: !input away_mode
+              source: presence_away
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state == 'home' and trigger.from_state.state != 'home' }}"
+        sequence:
+          - action: alarmo.set_house_mode
+            data:
+              mode: !input home_mode
+              source: presence_home
+mode: restart

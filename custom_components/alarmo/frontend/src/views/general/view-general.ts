@@ -10,6 +10,7 @@ import { loadHaForm } from '../../load-ha-elements';
 import { AlarmoConfig, Dictionary, AlarmoArea, AlarmoAutomation, HomeAssistant } from '../../types';
 import { commonStyle } from '../../styles';
 import { exportPath, Path } from '../../common/navigation';
+import { fetchExtInfo, setExtUi } from '../../data/ext-websockets';
 
 import './alarm-mode-card';
 import './mqtt-config-card.ts';
@@ -18,6 +19,7 @@ import '../../components/alarmo-settings-row';
 import '../../dialogs/edit-master-dialog.ts';
 import '../../dialogs/confirm-delete-dialog.ts';
 import { fireEvent } from '../../fire_event';
+import { roleChip, sectionHead } from '../ext/page-intro';
 
 @customElement('alarm-view-general')
 export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
@@ -25,11 +27,17 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
   @property() narrow!: boolean;
   @property() path!: Path;
 
+  /** ext: show one section only (undefined = upstream: all three) */
+  @property() section?: 'general' | 'partitions' | 'modes';
+
   @property() data?: Partial<AlarmoConfig>;
 
   @property() config?: AlarmoConfig;
   @property() areas: Dictionary<AlarmoArea> = {};
   @property() automations: Dictionary<AlarmoAutomation> = {};
+
+  /** ext: show the Zones (legacy) tab */
+  @property() showLegacy = false;
 
   public hassSubscribe(): Promise<UnsubscribeFunc>[] {
     this._fetchData();
@@ -44,6 +52,11 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
     this.areas = await fetchAreas(this.hass);
     this.automations = await fetchAutomations(this.hass);
     this.data = pick(this.config, ['trigger_time', 'disarm_after_trigger', 'ignore_blocking_sensors_after_trigger', 'mqtt', 'master']);
+    try {
+      this.showLegacy = !!(await fetchExtInfo(this.hass)).ui?.show_legacy_zones;
+    } catch (_e) {
+      /* ext settings unavailable */
+    }
   }
 
   firstUpdated() {
@@ -67,8 +80,16 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
         ></area-editor-card>
       `;
     } else {
+      // ext: one section per tab
+      if (this.section == 'modes')
+        return html`<alarm-mode-card .hass=${this.hass} .narrow=${this.narrow}></alarm-mode-card>`;
+      if (this.section == 'partitions')
+        // ext.20: Partitions & Arm Modes on one tab
+        return html`<area-config-card .hass=${this.hass} .narrow=${this.narrow}></area-config-card>
+          <alarm-mode-card .hass=${this.hass} .narrow=${this.narrow}></alarm-mode-card>`;
+      const showAll = this.section === undefined;
       return html`
-        <ha-card header="${localize('panels.general.title', this.hass.language)}">
+        <ha-card>${sectionHead(localize('panels.general.title', this.hass.language), 'settings')}
           <div class="card-content">
             ${localize('panels.general.cards.general.description', this.hass.language)}
           </div>
@@ -105,6 +126,22 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
             ></ha-switch>
           </alarmo-settings-row>
           ` : ''}
+
+          <alarmo-settings-row .narrow=${this.narrow}>
+            <span slot="heading">Show the Zones (legacy) tab</span>
+            <span slot="description">
+              Upstream Alarmo's original zone page. Zone Assignments does the same and more, so it is hidden unless you
+              turn this on.
+            </span>
+            <ha-switch
+              ?checked=${this.showLegacy}
+              @change=${async (ev: Event) => {
+          this.showLegacy = (ev.target as HTMLInputElement).checked;
+          await setExtUi(this.hass!, { show_legacy_zones: this.showLegacy });
+          window.dispatchEvent(new CustomEvent('alarmo-ext-ui-changed'));
+        }}
+            ></ha-switch>
+          </alarmo-settings-row>
 
           <alarmo-settings-row .narrow=${this.narrow}>
             <span slot="heading">
@@ -166,9 +203,13 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
           : ''}
         </ha-card>
 
-        <alarm-mode-card .hass=${this.hass} .narrow=${this.narrow}></alarm-mode-card>
+        ${showAll
+          ? html`
+              <alarm-mode-card .hass=${this.hass} .narrow=${this.narrow}></alarm-mode-card>
 
-        <area-config-card .hass=${this.hass} .narrow=${this.narrow}></area-config-card>
+              <area-config-card .hass=${this.hass} .narrow=${this.narrow}></area-config-card>
+            `
+          : ''}
       `;
     }
   }

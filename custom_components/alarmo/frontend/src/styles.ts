@@ -12,6 +12,44 @@ export const commonStyle = css`
     display: flex;
     justify-content: space-between;
   }
+  /* ext: role chip on every section title */
+  .sec-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 16px 8px;
+  }
+  .sec-head h2 {
+    margin: 0;
+    font-size: var(--ha-card-header-font-size, 24px);
+    font-weight: 400;
+    line-height: 32px;
+    color: var(--ha-card-header-color, var(--primary-text-color));
+  }
+  .sec-side {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .role {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 18px;
+    --mdc-icon-size: 14px;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    white-space: nowrap;
+  }
+  .card-header .role {
+    margin-left: auto;
+  }
   .card-header .name {
     white-space: nowrap;
     overflow: hidden;

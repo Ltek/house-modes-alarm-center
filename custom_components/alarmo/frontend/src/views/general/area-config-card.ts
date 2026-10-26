@@ -18,6 +18,7 @@ import { fetchAreas, fetchSensors, fetchAutomations } from '../../data/websocket
 import { TableData, TableColumn } from '../../components/alarmo-table';
 import { exportPath } from '../../common/navigation';
 import { fireEvent } from '../../fire_event';
+import { roleChip, sectionHead } from '../ext/page-intro';
 
 @customElement('area-config-card')
 export class AreaConfigCard extends SubscribeMixin(LitElement) {
@@ -74,18 +75,25 @@ export class AreaConfigCard extends SubscribeMixin(LitElement) {
             e => e.triggers?.map(e => e.area).includes(item.area_id) || !e.triggers?.map(e => e.area).length
           ).length
           : Object.values(this.automations).filter(e => e.triggers?.map(e => e.area).includes(item.area_id)).length;
-      const summary_sensors = `<a href="${exportPath('sensors', { filter: { area: item.area_id } })}">${localize(
+      // ext: link to the Zones / Notifications / Actions tabs (not the legacy pages)
+      const summary_sensors = `<a href="${exportPath('zones', { filter: { area: item.area_id } })}">${localize(
         'panels.general.cards.areas.table.summary_sensors',
         this.hass!.language,
         'number',
         sensors
       )}</a>`;
-      const summary_automations = `<a href="${exportPath('actions', { filter: { area: item.area_id } })}">${localize(
-        'panels.general.cards.areas.table.summary_automations',
-        this.hass!.language,
-        'number',
-        automations
-      )}</a>`;
+      const ofArea = (type: string) =>
+        Object.values(this.automations).filter(
+          e =>
+            e.type == type &&
+            (e.triggers?.map(e => e.area).includes(item.area_id) ||
+              (Object.values(areas).length == 1 && !e.triggers?.map(e => e.area).length))
+        ).length;
+      const plural = (n: number, word: string) => `${n} ${word}${n == 1 ? '' : 's'}`;
+      const summary_automations = automations
+        ? `<a href="${exportPath('notifications', { filter: { area: item.area_id } })}">${plural(ofArea('notification'), 'notification')}</a>` +
+          ` and <a href="${exportPath('actions', { filter: { area: item.area_id } })}">${plural(ofArea('action'), 'action')}</a>`
+        : localize('panels.general.cards.areas.table.summary_automations', this.hass!.language, 'number', 0);
       const output: TableData = {
         id: item.area_id,
         actions: html`
@@ -107,19 +115,19 @@ export class AreaConfigCard extends SubscribeMixin(LitElement) {
     });
 
     return html`
-      <ha-card header="${localize('panels.general.cards.areas.title', this.hass.language)}">
+      <ha-card>${sectionHead(localize('panels.general.cards.areas.title', this.hass.language), 'settings')}
         <div class="card-content">
           ${localize('panels.general.cards.areas.description', this.hass.language)}
+        </div>
+        <div class="card-actions" style="border-top:none;border-bottom:1px solid var(--divider-color)">
+          <ha-button appearance="plain" @click=${this.addClick}>
+            ${localize('panels.general.cards.areas.actions.add', this.hass.language)}
+          </ha-button>
         </div>
 
         <alarmo-table .columns=${columns} .data=${data}>
           ${localize('panels.general.cards.areas.no_items', this.hass.language)}
         </alarmo-table>
-        <div class="card-actions">
-          <ha-button appearance="plain" @click=${this.addClick}>
-            ${localize('panels.general.cards.areas.actions.add', this.hass.language)}
-          </ha-button>
-        </div>
       </ha-card>
     `;
   }

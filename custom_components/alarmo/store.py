@@ -601,6 +601,8 @@ class AlarmoStorage:
     def async_create_user(self, data: dict) -> UserEntry:
         """Create a new UserEntry."""
         user_id = str(int(time.time()))
+        while user_id in self.users:  # ext: several users in one second (lock import)
+            user_id = str(int(user_id) + 1)
         new_user = UserEntry(**data, user_id=user_id)
         self.users[user_id] = new_user
         self.async_schedule_save()

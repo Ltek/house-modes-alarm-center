@@ -15,6 +15,7 @@ import '../../components/alarmo-select';
 import '../../components/alarmo-collapsible';
 
 import { exportPath } from '../../common/navigation';
+import { roleChip, sectionHead } from '../ext/page-intro';
 
 @customElement('alarm-mode-card')
 export class AlarmModeCard extends SubscribeMixin(LitElement) {
@@ -70,6 +71,7 @@ export class AlarmModeCard extends SubscribeMixin(LitElement) {
           <div class="name">
             ${localize('panels.general.cards.modes.title', this.hass.language)}
           </div>
+          ${roleChip('settings')}
 
           ${Object.keys(this.areas).length > 1
         ? html`
@@ -100,7 +102,7 @@ export class AlarmModeCard extends SubscribeMixin(LitElement) {
                       ${this.data[mode]?.enabled
                 ? html`
                             ${localize('common.enabled', this.hass.language)},
-                            <a href="${exportPath('sensors', { filter: { area: this.selectedArea, mode: mode } })}">
+                            <a href="${exportPath('zones', { filter: { area: this.selectedArea, mode: mode } })}">
                               ${localize(
                   'panels.general.cards.modes.number_sensors_active',
                   this.hass!.language,

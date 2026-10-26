@@ -211,7 +211,7 @@ async def test_last_triggered_attribute_persists_across_states(
 async def test_last_triggered_attribute_updated_on_multiple_triggers(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """Test that last_triggered attribute is properly managed across multiple triggers."""  # noqa E501
+    """Test that last_triggered attribute is properly managed across multiple triggers."""
     alarm_entity = "alarm_control_panel.test_area_1"
     trigger_sensor = "binary_sensor.test_door"
 

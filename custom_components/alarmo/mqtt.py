@@ -124,7 +124,7 @@ class MqttHandler:
 
             if event == const.EVENT_ARM:
                 payload = {
-                    "event": f"{event.upper()}_{args['arm_mode'].split('_', 1).pop(1).upper()}",  # noqa: E501
+                    "event": f"{event.upper()}_{args['arm_mode'].split('_', 1).pop(1).upper()}",
                     "delay": args["delay"],
                 }
             elif event == const.EVENT_TRIGGER:

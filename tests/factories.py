@@ -357,20 +357,20 @@ class SensorFactory:
     def create_all_sensors() -> dict[str, dict[str, Any]]:
         """Create all sensors with optional defaults."""
         return {
-            "binary_sensor.generic_area_1_door_sensor": SensorFactory.create_door_sensor(),  # noqa: E501
-            "binary_sensor.generic_area_1_window_sensor": SensorFactory.create_window_sensor(),  # noqa: E501
-            "binary_sensor.generic_area_1_motion_sensor": SensorFactory.create_motion_sensor(),  # noqa: E501
-            "binary_sensor.generic_area_2_door_sensor": SensorFactory.create_door_sensor(  # noqa: E501
+            "binary_sensor.generic_area_1_door_sensor": SensorFactory.create_door_sensor(),
+            "binary_sensor.generic_area_1_window_sensor": SensorFactory.create_window_sensor(),
+            "binary_sensor.generic_area_1_motion_sensor": SensorFactory.create_motion_sensor(),
+            "binary_sensor.generic_area_2_door_sensor": SensorFactory.create_door_sensor(
                 entity_id="binary_sensor.generic_area_2_door_sensor",
                 name="Generic Area 2 Door",
                 area="area_2",
             ),
-            "binary_sensor.generic_area_2_window_sensor": SensorFactory.create_window_sensor(  # noqa: E501
+            "binary_sensor.generic_area_2_window_sensor": SensorFactory.create_window_sensor(
                 entity_id="binary_sensor.generic_area_2_window_sensor",
                 name="Generic Area 2 Window",
                 area="area_2",
             ),
-            "binary_sensor.generic_area_2_motion_sensor": SensorFactory.create_motion_sensor(  # noqa: E501
+            "binary_sensor.generic_area_2_motion_sensor": SensorFactory.create_motion_sensor(
                 entity_id="binary_sensor.generic_area_2_motion_sensor",
                 name="Generic Area 2 Motion",
                 area="area_2",

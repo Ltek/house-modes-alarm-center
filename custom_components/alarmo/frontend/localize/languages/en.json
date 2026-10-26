@@ -41,34 +41,34 @@
               "description": "Automatically disarm the alarm rather than returning to the armed state."
             },
             "ignore_blocking_sensors_after_trigger": {
-              "heading": "Ignore blocking sensors when re-arming",
-              "description": "Return to armed state without checking for sensors that may still be active."
+              "heading": "Ignore blocking zones when re-arming",
+              "description": "Return to armed state without checking for zones that may still be active."
             },
             "enable_mqtt": {
               "heading": "Enable MQTT",
               "description": "Allow the alarm panel to be controlled through MQTT."
             },
             "enable_master": {
-              "heading": "Enable alarm master",
-              "description": "Creates an entity for controlling all areas simultaneously."
+              "heading": "Enable 'All partitions' panel",
+              "description": "Creates an alarm entity for controlling all partitions simultaneously."
             }
           },
           "actions": {
             "setup_mqtt": "MQTT Configuration",
-            "setup_master": "Master Configuration"
+            "setup_master": "'All partitions' configuration"
           }
         },
         "modes": {
-          "title": "Modes",
-          "description": "This panel can be used to set up the arm modes of the alarm.",
+          "title": "Alarmo Arm Modes",
+          "description": "Alarmo's arm modes (Away, Home/Stay, Night, Vacation, Custom): which ones each Alarmo partition offers, and Alarmo's exit and entry delays for each. With a physical panel, its own delays still apply to its own zones.",
           "modes": {
-            "armed_away": "Armed away will be used when all people left the house. All doors and windows allowing access to the house will be guarded, as well as motion sensors inside the house.",
-            "armed_home": "Armed home (also known as armed stay) will be used when setting the alarm while people are in the house. All doors and windows allowing access to the house will be guarded, but not motion sensors inside the house.",
-            "armed_night": "Armed night will be used when setting the alarm before going to sleep. All doors and windows allowing access to the house will be guarded, and selected motion sensors (downstairs) in the house.",
+            "armed_away": "Armed away will be used when all people left the house. All doors and windows allowing access to the house will be guarded, as well as motion zones inside the house.",
+            "armed_home": "Armed home (also known as armed stay) will be used when setting the alarm while people are in the house. All doors and windows allowing access to the house will be guarded, but not motion zones inside the house.",
+            "armed_night": "Armed night will be used when setting the alarm before going to sleep. All doors and windows allowing access to the house will be guarded, and selected motion zones (downstairs) in the house.",
             "armed_vacation": "Armed vacation can be used as an extension to the armed away mode in case of absence for longer duration. The delay times and trigger responses can be adapted (as desired) to being distant from home.",
             "armed_custom_bypass": "An extra mode for defining your own security perimeter."
           },
-          "number_sensors_active": "{number} {number, plural,\n  one {sensor}\n  other {sensors}\n} active",
+          "number_sensors_active": "{number} {number, plural,\n  one {zone}\n  other {zones}\n} active",
           "fields": {
             "status": {
               "heading": "Status",
@@ -76,11 +76,11 @@
             },
             "exit_delay": {
               "heading": "Exit delay",
-              "description": "When arming the alarm, within this time period the sensors will not trigger the alarm yet."
+              "description": "When arming the alarm, within this time period the zones will not trigger the alarm yet."
             },
             "entry_delay": {
               "heading": "Entry delay",
-              "description": "Delay time until the alarm is triggered after one of the sensors is activated."
+              "description": "Delay time until the alarm is triggered after one of the zones is activated."
             },
             "trigger_time": {
               "heading": "Trigger time",
@@ -119,13 +119,13 @@
           }
         },
         "areas": {
-          "title": "Areas",
-          "description": "Areas can be used for dividing your alarm system into multiple compartments.",
-          "no_items": "There are no areas defined yet.",
+          "title": "Partitions",
+          "description": "Partitions divide the alarm system into parts that are armed separately (for example a detached garage). Each has its own alarm entity, alarm_control_panel.<partition name>; most homes need one.",
+          "no_items": "There are no partitions defined yet.",
           "table": {
             "remarks": "Remarks",
-            "summary": "This area contains {summary_sensors} and {summary_automations}.",
-            "summary_sensors": "{number} {number, plural,\n  one {sensor}\n  other {sensors}\n}",
+            "summary": "This partition contains {summary_sensors}, {summary_automations}.",
+            "summary_sensors": "{number} {number, plural,\n  one {zone}\n  other {zones}\n}",
             "summary_automations": "{number} {number, plural,\n  one {automation}\n  other {automations}\n}"
           },
           "actions": {
@@ -135,43 +135,43 @@
       },
       "dialogs": {
         "create_area": {
-          "title": "New area",
+          "title": "New partition",
           "fields": {
             "copy_from": "Copy settings from"
           }
         },
         "edit_area": {
-          "title": "Editing area ''{area}''",
+          "title": "Editing partition ''{area}''",
           "name_warning": "Note: changing the name will change the entity ID"
         },
         "remove_area": {
-          "title": "Remove area?",
-          "description": "Are you sure you want to remove this area? This area contains {sensors} sensors and {automations} automations, which will be removed as well."
+          "title": "Remove partition?",
+          "description": "Are you sure you want to remove this partition? This partition contains {sensors} zones and {automations} automations, which will be removed as well."
         },
         "edit_master": {
-          "title": "Master configuration"
+          "title": "'All partitions' configuration"
         },
         "disable_master": {
-          "title": "Disable master?",
-          "description": "Are you sure you want to remove the alarm master? This area contains {automations} automations, which will be removed with this action."
+          "title": "Disable 'All partitions'?",
+          "description": "Are you sure you want to remove the 'All partitions' alarm entity? It has {automations} automations, which will be removed with this action."
         }
       }
     },
     "sensors": {
-      "title": "Sensors",
+      "title": "Zones",
       "cards": {
         "sensors": {
-          "description": "Currently configured sensors. Click on an item to make changes.",
+          "description": "Currently configured zones. Click on an item to make changes.",
           "table": {
-            "no_items": "There are no sensors to be displayed here.",
-            "no_area_warning": "Sensor is not assigned to any area.",
+            "no_items": "There are no zones to be displayed here.",
+            "no_area_warning": "Zone is not assigned to any partition.",
             "arm_modes": "Arm Modes",
             "always_on": "(Always)"
           }
         },
         "add_sensors": {
-          "title": "Add Sensors",
-          "description": "Add more sensors. Make sure that your sensors have a suitable name, so you can identify them.",
+          "title": "Add Zones",
+          "description": "Add more zones. Make sure that your zones have a suitable name, so you can identify them.",
           "no_items": "There are no available HA entities that can be configured for the alarm. Make sure to include entities of the type binary_sensor.",
           "table": {
             "type": "Detected type"
@@ -182,24 +182,24 @@
           }
         },
         "editor": {
-          "title": "Edit Sensor",
-          "description": "Configuring the sensor settings of ''{entity}''.",
+          "title": "Edit Zone",
+          "description": "Configuring the zone settings of ''{entity}''.",
           "fields": {
             "entity": {
               "heading": "Entity",
-              "description": "Entity associated with this sensor"
+              "description": "Entity associated with this zone"
             },
             "area": {
-              "heading": "Area",
-              "description": "Select an area which contains this sensor."
+              "heading": "Partition",
+              "description": "Select the partition which contains this zone."
             },
             "group": {
-              "heading": "Group",
-              "description": "Group with other sensors for combined triggering."
+              "heading": "Cross-zone group",
+              "description": "Cross-zone with other zones: several must trigger before the alarm does."
             },
             "device_type": {
-              "heading": "Device Type",
-              "description": "Choose a device type to automatically apply appropriate settings.",
+              "heading": "Zone type",
+              "description": "Choose a zone type to automatically apply appropriate settings.",
               "choose": {
                 "door": {
                   "name": "Door",
@@ -228,95 +228,95 @@
             },
             "always_on": {
               "heading": "Always on",
-              "description": "Sensor should always trigger the alarm."
+              "description": "Zone should always trigger the alarm."
             },
             "modes": {
-              "heading": "Enabled modes",
-              "description": "Alarm modes in which this sensor is active."
+              "heading": "Arm Modes",
+              "description": "Arm modes in which this zone is active."
             },
             "arm_on_close": {
               "heading": "Arm after closing",
-              "description": "After deactivation of this sensor, the remaining exit delay will automatically be skipped."
+              "description": "After deactivation of this zone, the remaining exit delay will automatically be skipped."
             },
             "use_exit_delay": {
               "heading": "Use exit delay",
-              "description": "Sensor is allowed to be active when the exit delay starts."
+              "description": "Zone is allowed to be active when the exit delay starts."
             },
             "use_entry_delay": {
               "heading": "Use entry delay",
-              "description": "Sensor activation triggers the alarm after the entry delay rather than directly."
+              "description": "Zone activation triggers the alarm after the entry delay rather than directly."
             },
             "entry_delay": {
               "heading": "Entry delay",
-              "description": "Override the entry delay (as configured for the arm mode) with a delay specific to the sensor."
+              "description": "Override the entry delay (as configured for the arm mode) with a delay specific to the zone."
             },
             "delay_on": {
               "heading": "Delay on",
-              "description": "Sensor must remain active for this duration before triggering. Resets if sensor deactivates."
+              "description": "Zone must remain active for this duration before triggering. Resets if zone deactivates."
             },
             "allow_open": {
               "heading": "Allow open initially",
-              "description": "Open state while arming is ignored (subsequent sensor activation will trigger alarm)."
+              "description": "Open state while arming is ignored (subsequent zone activation will trigger alarm)."
             },
             "auto_bypass": {
               "heading": "Bypass automatically",
-              "description": "Exclude this sensor from the alarm if it is open while arming.",
-              "modes": "Modes in which sensor may be bypassed"
+              "description": "Exclude this zone from the alarm if it is open while arming.",
+              "modes": "Modes in which the zone may be bypassed"
             },
             "trigger_unavailable": {
               "heading": "Trigger when unavailable",
-              "description": "When the sensor state becomes 'unavailable', this will activate the sensor."
+              "description": "When the zone state becomes 'unavailable', this will activate the zone."
             }
           },
           "actions": {
             "toggle_advanced": "Advanced settings",
             "remove": "Remove",
-            "setup_groups": "Setup groups"
+            "setup_groups": "Set up cross-zone groups"
           },
           "errors": {
             "description": "Please correct the following errors:",
-            "no_area": "No area is selected",
-            "no_modes": "No modes are selected for which the sensor should be active",
-            "no_auto_bypass_modes": "No modes are selected for the sensor may be automatically bypassed"
+            "no_area": "No partition is selected",
+            "no_modes": "No arm modes are selected in which the zone should be active",
+            "no_auto_bypass_modes": "No modes are selected in which the zone may be automatically bypassed"
           }
         }
       },
       "dialogs": {
         "manage_groups": {
-          "title": "Manage sensor groups",
-          "description": "In a sensor group multiple sensors must be activated within a time period before the alarm is triggered.",
-          "no_items": "No groups yet",
+          "title": "Manage cross-zone groups",
+          "description": "In a cross-zone group several zones must trigger within a time period before the alarm is triggered.",
+          "no_items": "No cross-zone groups yet",
           "actions": {
-            "new_group": "New group"
+            "new_group": "New cross-zone group"
           }
         },
         "create_group": {
-          "title": "New sensor group",
+          "title": "New cross-zone group",
           "fields": {
             "name": {
               "heading": "Name",
-              "description": "Name for sensor group"
+              "description": "Name for the cross-zone group"
             },
             "timeout": {
               "heading": "Time-out",
-              "description": "Time period during which consecutive sensor activations triggers the alarm."
+              "description": "Time period during which consecutive zone activations triggers the alarm."
             },
             "event_count": {
               "heading": "Count",
-              "description": "Amount of different sensors that need to be activated to trigger the alarm."
+              "description": "Amount of different zones that need to be activated to trigger the alarm."
             },
             "sensors": {
-              "heading": "Sensors",
-              "description": "Select the sensors which are contained by this group."
+              "heading": "Zones",
+              "description": "Select the zones which are contained by this group."
             }
           },
           "errors": {
             "invalid_name": "Invalid name provided.",
-            "insufficient_sensors": "At least 2 sensors need to be selected."
+            "insufficient_sensors": "At least 2 zones need to be selected."
           }
         },
         "edit_group": {
-          "title": "Edit sensor group ''{name}''"
+          "title": "Edit cross-zone group ''{name}''"
         }
       }
     },
@@ -383,8 +383,8 @@
               "description": "Entering this code will arm the alarm in force"
             },
             "area_limit": {
-              "heading": "Restricted areas",
-              "description": "Limit user to control only the selected areas"
+              "heading": "Restricted partitions",
+              "description": "Limit user to control only the selected partitions"
             }
           },
           "errors": {
@@ -413,7 +413,7 @@
           "description": "Using this panel, you can manage notifications to be sent when a certain alarm event occurs.",
           "table": {
             "no_items": "There are no notifications created yet.",
-            "no_area_warning": "Action is not assigned to any area."
+            "no_area_warning": "Action is not assigned to any partition."
           },
           "actions": {
             "new_notification": "New notification"
@@ -457,7 +457,7 @@
                 },
                 "arm_failure": {
                   "name": "Failed to arm",
-                  "description": "The arming of the alarm failed due to one or more open sensors"
+                  "description": "The arming of the alarm failed due to one or more open zones"
                 },
                 "arming": {
                   "name": "Exit delay started",
@@ -470,7 +470,7 @@
               }
             },
             "mode": {
-              "heading": "Mode",
+              "heading": "Arm Mode",
               "description": "Limit the action to specific arm modes (optional)"
             },
             "title": {
@@ -493,7 +493,7 @@
             },
             "open_sensors_format": {
               "heading": "Format for open_sensors wildcard",
-              "description": "Choose which sensor information is inserted in the message",
+              "description": "Choose which zone information is inserted in the message",
               "options": {
                 "default": "Names and states",
                 "short": "Names only"
@@ -542,11 +542,11 @@
               "description": "When should the action be executed"
             },
             "area": {
-              "heading": "Area",
-              "description": "Alarm area for which the event applies."
+              "heading": "Partition",
+              "description": "Alarm partition for which the event applies."
             },
             "mode": {
-              "heading": "Mode",
+              "heading": "Arm Mode",
               "description": "Limit the action to specific arm modes (optional)"
             },
             "entity": {
@@ -574,6 +574,51 @@
           }
         }
       }
+    },
+    "sensor_table": {
+      "title": "Zone Assignments"
+    },
+    "backup": {
+      "title": "Backup"
+    },
+    "partitions": {
+      "title": "Partitions & Arm Modes"
+    },
+    "modes": {
+      "title": "Alarmo Arm Modes"
+    },
+    "notifications": {
+      "title": "Notifications"
+    },
+    "zones": {
+      "title": "Zone Assignments"
+    },
+    "zones_legacy": {
+      "title": "Zones (legacy)"
+    },
+    "panel": {
+      "title": "Physical Panel"
+    },
+    "house": {
+      "title": "House Modes"
+    },
+    "why": {
+      "title": "Arm Check"
+    },
+    "activity": {
+      "title": "Activity"
+    },
+    "users_codes": {
+      "title": "Users, Codes, Keypads"
+    },
+    "mirrors": {
+      "title": "Zone Mirrors"
+    },
+    "ha_zones": {
+      "title": "Zone Actions"
+    },
+    "connections": {
+      "title": "Keypads"
     }
   }
 }

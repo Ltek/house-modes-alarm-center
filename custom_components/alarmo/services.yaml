@@ -75,3 +75,37 @@ disable_user:
       required: true
       selector:
         text:
+create_backup:
+  fields:
+    label:
+      example: "nightly"
+      required: false
+      selector:
+        text:
+set_house_mode:
+  fields:
+    mode:
+      example: "Away"
+      required: true
+      selector:
+        text:
+    source:
+      example: "presence_away"
+      required: false
+      selector:
+        select:
+          options:
+            - manual
+            - automation
+            - schedule
+            - presence_away
+            - presence_home
+            - lock
+            - panel_keypad
+            - timer
+    force:
+      example: false
+      required: false
+      default: false
+      selector:
+        boolean:

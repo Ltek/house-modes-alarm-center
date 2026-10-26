@@ -17,7 +17,7 @@ from tests.factories import AreaFactory, SensorFactory
 async def test_auto_bypass_true_integration(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """Test that a sensor with auto_bypass true and correct mode is bypassed and alarm arms."""  # noqa E501
+    """Test that a sensor with auto_bypass true and correct mode is bypassed and alarm arms."""
     alarm_entity = "alarm_control_panel.test_area_1"
     bypass_sensor = "binary_sensor.generic_area_1_door_sensor"
     block_sensor = "binary_sensor.generic_area_1_motion_sensor"
@@ -99,7 +99,7 @@ async def test_auto_bypass_true_integration(
 async def test_auto_bypass_false_single_sensor(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """Test that a single sensor with auto_bypass false blocks arming if open (area_1 only)."""  # noqa E501
+    """Test that a single sensor with auto_bypass false blocks arming if open (area_1 only)."""
     alarm_entity = "alarm_control_panel.test_area_1"
     bypass_sensor = "binary_sensor.generic_area_1_door_sensor"
     block_sensor = "binary_sensor.generic_area_1_motion_sensor"
@@ -236,7 +236,7 @@ async def test_auto_bypass_false_multiple_areas_exit_delay(
 async def test_auto_bypass_modes_not_matched(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """Test that a sensor with auto_bypass=True but arming in a mode NOT in auto_bypass_modes doesn't get bypassed."""  # noqa E501
+    """Test that a sensor with auto_bypass=True but arming in a mode NOT in auto_bypass_modes doesn't get bypassed."""
     alarm_entity = "alarm_control_panel.test_area_1"
     bypass_sensor = "binary_sensor.generic_area_1_door_sensor"
     area_1 = AreaFactory.create_area(
@@ -285,7 +285,7 @@ async def test_auto_bypass_modes_not_matched(
 async def test_auto_bypass_multiple_modes(
     hass: Any, enable_custom_integrations: Any
 ) -> None:
-    """Test that a sensor with multiple modes in auto_bypass_modes gets bypassed in each specified mode."""  # noqa E501
+    """Test that a sensor with multiple modes in auto_bypass_modes gets bypassed in each specified mode."""
     alarm_entity = "alarm_control_panel.test_area_1"
     bypass_sensor = "binary_sensor.generic_area_1_door_sensor"
     area_1 = AreaFactory.create_area(

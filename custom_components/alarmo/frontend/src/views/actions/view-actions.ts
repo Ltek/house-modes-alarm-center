@@ -19,6 +19,7 @@ import '../../components/alarmo-settings-row';
 import { EAutomationTypes } from '../../const';
 import { getAreaOptions, computeAreaDisplay } from '../../data/actions';
 import { exportPath, Path } from '../../common/navigation';
+import { roleChip, sectionHead } from '../ext/page-intro';
 
 const noArea = 'no_area';
 
@@ -48,6 +49,10 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
   @property()
   selectedArea?: string;
 
+  /** ext: show one list only (undefined = upstream: both) */
+  @property()
+  section?: 'notifications' | 'actions';
+
   public hassSubscribe(): Promise<UnsubscribeFunc>[] {
     this._fetchData();
     return [this.hass!.connection.subscribeMessage(() => this._fetchData(), { type: 'alarmo_config_updated' })];
@@ -73,29 +78,27 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
   render() {
     if (!this.hass || !this.automations || !this.config) return html``;
 
-    if (this.path.subpage == 'new_notification') {
-      return html`
-        <notification-editor-card .hass=${this.hass} .narrow=${this.narrow}></notification-editor-card>
-      `;
-    } else if (this.path.params.edit_notification) {
-      const config = this.automations.find(
-        e => e.automation_id == this.path.params.edit_notification && e.type == EAutomationTypes.Notification
-      );
-      return html`
-        <notification-editor-card .hass=${this.hass} .narrow=${this.narrow} .item=${config}></notification-editor-card>
-      `;
-    } else if (this.path.subpage == 'new_action') {
-      return html`
-        <automation-editor-card .hass=${this.hass} .narrow=${this.narrow}></automation-editor-card>
-      `;
-    } else if (this.path.params.edit_action) {
-      const config = this.automations.find(
-        e => e.automation_id == this.path.params.edit_action && e.type == EAutomationTypes.Action
-      );
-      return html`
-        <automation-editor-card .hass=${this.hass} .narrow=${this.narrow} .item=${config}></automation-editor-card>
-      `;
-    } else {
+    // ext: editors open in place, under their section header (not instead of the page)
+    const editor = (() => {
+      if (this.path.subpage == 'new_notification')
+        return html`<notification-editor-card .hass=${this.hass} .narrow=${this.narrow}></notification-editor-card>`;
+      if (this.path.params.edit_notification) {
+        const config = this.automations!.find(
+          e => e.automation_id == this.path.params.edit_notification && e.type == EAutomationTypes.Notification
+        );
+        return html`<notification-editor-card .hass=${this.hass} .narrow=${this.narrow} .item=${config}></notification-editor-card>`;
+      }
+      if (this.path.subpage == 'new_action')
+        return html`<automation-editor-card .hass=${this.hass} .narrow=${this.narrow}></automation-editor-card>`;
+      if (this.path.params.edit_action) {
+        const config = this.automations!.find(
+          e => e.automation_id == this.path.params.edit_action && e.type == EAutomationTypes.Action
+        );
+        return html`<automation-editor-card .hass=${this.hass} .narrow=${this.narrow} .item=${config}></automation-editor-card>`;
+      }
+      return null;
+    })();
+    {
       const warningTooltip = () => html`
         <paper-tooltip animation-delay="0">
           ${localize('panels.actions.cards.notifications.table.no_area_warning', this.hass!.language)}
@@ -165,13 +168,23 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
           })
         );
 
+      const showNotifications = this.section !== 'actions';
+      const showActions = this.section !== 'notifications';
       return html`
-        <ha-card header="${localize('panels.actions.cards.notifications.title', this.hass.language)}">
+        ${showNotifications ? html`
+        <ha-card>${sectionHead(localize('panels.actions.cards.notifications.title', this.hass.language), 'settings')}
           <div class="card-content">
             ${localize('panels.actions.cards.notifications.description', this.hass.language)}
           </div>
+          <div class="card-actions" style="border-top:none;border-bottom:1px solid var(--divider-color)">
+            <ha-button appearance="plain" ?disabled=${!!editor} @click=${this.addNotificationClick}>
+              ${localize('panels.actions.cards.notifications.actions.new_notification', this.hass.language)}
+            </ha-button>
+          </div>
+          ${editor ? html`<div style="padding:0 8px 8px">${editor}</div>` : ''}
 
           <alarmo-table
+            style=${editor ? 'display:none' : ''}
             .hass=${this.hass}
             ?selectable=${true}
             .columns=${columns}
@@ -183,17 +196,21 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
             ${localize('panels.actions.cards.notifications.table.no_items', this.hass.language)}
           </alarmo-table>
 
-          <div class="card-actions">
-            <ha-button appearance="plain" @click=${this.addNotificationClick}>
-              ${localize('panels.actions.cards.notifications.actions.new_notification', this.hass.language)}
+        </ha-card>
+        ` : ''}
+
+        ${showActions ? html`
+        <ha-card>${sectionHead(localize('panels.actions.title', this.hass.language), 'settings')}
+          <div class="card-content">${localize('panels.actions.cards.actions.description', this.hass.language)}</div>
+          <div class="card-actions" style="border-top:none;border-bottom:1px solid var(--divider-color)">
+            <ha-button appearance="plain" ?disabled=${!!editor} @click=${this.addActionClick}>
+              ${localize('panels.actions.cards.actions.actions.new_action', this.hass.language)}
             </ha-button>
           </div>
-        </ha-card>
-
-        <ha-card header="${localize('panels.actions.title', this.hass.language)}">
-          <div class="card-content">${localize('panels.actions.cards.actions.description', this.hass.language)}</div>
+          ${editor ? html`<div style="padding:0 8px 8px">${editor}</div>` : ''}
 
           <alarmo-table
+            style=${editor ? 'display:none' : ''}
             .hass=${this.hass}
             ?selectable=${true}
             .columns=${columns}
@@ -205,12 +222,8 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
             ${localize('panels.actions.cards.actions.table.no_items', this.hass.language)}
           </alarmo-table>
 
-          <div class="card-actions">
-            <ha-button appearance="plain" @click=${this.addActionClick}>
-              ${localize('panels.actions.cards.actions.actions.new_action', this.hass.language)}
-            </ha-button>
-          </div>
         </ha-card>
+        ` : ''}
       `;
     }
   }

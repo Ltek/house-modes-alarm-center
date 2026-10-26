@@ -12,6 +12,7 @@ import { AlarmoArea, AlarmoSensor, Dictionary, EArmModes, HomeAssistant } from '
 
 import '../../components/alarmo-table.ts';
 import { ESensorTypes } from '../../const';
+import { roleChip, sectionHead } from '../ext/page-intro';
 
 type SensorItem = {
   id: string;
@@ -105,7 +106,7 @@ export class AddSensorsCard extends SubscribeMixin(LitElement) {
     });
 
     return html`
-      <ha-card header="${localize('panels.sensors.cards.add_sensors.title', this.hass.language)}">
+      <ha-card>${sectionHead(localize('panels.sensors.cards.add_sensors.title', this.hass.language), 'picker')}
         <div class="card-content">
           ${localize('panels.sensors.cards.add_sensors.description', this.hass.language)}
         </div>

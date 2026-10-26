@@ -1,4 +1,9 @@
 # Alarmo
+
+> **Ext build v1.10.19+ext.28** — adds House Modes (with timers), a link to physical alarm panels (Envisalink), a Zones page (table) with zone rules (assign zones from Home Assistant labels, areas and floors), industry terminology (Partitions, Zones, Arm Modes) with a tab per section, garage doors and locks as zones, date-stamped backups, YAML export/import and the `alarmo.create_backup` service, while keeping `alarmo.storage` fully compatible with upstream. See [CHANGELOG.md](CHANGELOG.md), [INSTALL-EXT.md](INSTALL-EXT.md), [MIGRATION.md](MIGRATION.md) and [HOUSE-MODES.md](HOUSE-MODES.md).
+
+> **Panel link and monitored alarms:** when a zone the physical panel does not watch (a Home Assistant sensor) triggers the alarm, the ext build by default also sets off the alarm. If your panel is **professionally monitored**, a flaky sensor could then cause a real police/fire dispatch. Tick *The panel is professionally monitored* on the Physical Panel tab: those zones then only notify, unless you choose otherwise per zone.
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 
 This is an alarm system integration for Home Assistant. It provides a user interface for setting up your own alarm system completely from the browser.

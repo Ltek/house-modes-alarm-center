@@ -927,7 +927,7 @@ class AlarmoAreaEntity(AlarmoBaseEntity):
             if open_sensors and not skip_validation:
                 # there where errors -> abort the arm
                 _LOGGER.warning(
-                    "Cannot transition from state %s to state %s, there are open sensors",  # noqa: E501
+                    "Cannot transition from state %s to state %s, there are open sensors",
                     self._state,
                     arm_mode,
                 )
@@ -1018,7 +1018,7 @@ class AlarmoAreaEntity(AlarmoBaseEntity):
     def async_trigger(  # noqa PLR0912, PLR0915
         self, entry_delay: int | None = None, open_sensors: dict[str, str] | None = None
     ):
-        """Trigger request. Can be called multiple times for timer shortening or immediate triggers."""  # noqa: E501
+        """Trigger request. Can be called multiple times for timer shortening or immediate triggers."""
         if not self.arm_mode:
             effective_entry_delay = 0
         else:

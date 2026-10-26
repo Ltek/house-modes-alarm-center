@@ -1,0 +1,36 @@
+blueprint:
+  name: Alarmo House Mode on a schedule
+  description: >-
+    At a time of day, ask Alarmo to change the House Mode (source "schedule").
+    Alarmo decides whether that is allowed from the current mode (e.g. not while in
+    Vacation, or delayed while in Spa) - set that on the House Modes tab.
+  domain: automation
+  input:
+    at_time:
+      name: Time
+      selector:
+        time: {}
+    mode:
+      name: House Mode
+      description: Name of the House Mode (as on the House Modes tab).
+      selector:
+        text: {}
+    weekdays:
+      name: Days
+      default: [mon, tue, wed, thu, fri, sat, sun]
+      selector:
+        select:
+          multiple: true
+          options: [mon, tue, wed, thu, fri, sat, sun]
+triggers:
+  - trigger: time
+    at: !input at_time
+conditions:
+  - condition: time
+    weekday: !input weekdays
+actions:
+  - action: alarmo.set_house_mode
+    data:
+      mode: !input mode
+      source: schedule
+mode: single

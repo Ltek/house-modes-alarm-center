@@ -21,7 +21,7 @@ dev = [
 required-version = ">=0.8.0"
 
 [tool.ruff]
-line-length = 88         # Matches black
+line-length = 120        # ext build: no upstream merges any more (was 88)
 show-fixes = true
 target-version = "py313"
 

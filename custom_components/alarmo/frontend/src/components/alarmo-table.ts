@@ -301,7 +301,8 @@ export class AlarmoTable extends LitElement {
     div.table-row {
       display: flex;
       width: 100%;
-      height: 52px;
+      /* ext: rows grow with their content (was a fixed 52px, which broke multi-line cells) */
+      min-height: 52px;
       border-top: 1px solid var(--divider-color);
       flex-direction: row;
       position: relative;
@@ -319,6 +320,7 @@ export class AlarmoTable extends LitElement {
     div.table-cell.grow {
       flex-grow: 1;
       flex-shrink: 1;
+      min-width: 160px; /* ext: never squeeze the name to "Na…" */
     }
 
     div.table-cell > ha-switch {

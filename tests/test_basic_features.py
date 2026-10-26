@@ -447,7 +447,7 @@ async def test_arm_blocked_with_triggered_sensor_and_no_allow_open(
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("expected_lingering_timers")
 async def test_sensor_trigger_unavailable(hass: Any, enable_custom_integrations: Any):
-    """Test that a sensor with trigger_unavailable, True triggers the alarm when unavailable."""  # noqa E501
+    """Test that a sensor with trigger_unavailable, True triggers the alarm when unavailable."""
     sensor = get_generic_sensor()
     armed_away_exit_time = 0
 

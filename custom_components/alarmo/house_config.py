@@ -46,6 +46,20 @@ TIMER_SCHEMA = vol.Schema(
     }
 )
 
+STEP_SCHEMA = vol.Schema(
+    {
+        # a native HA scene (scene.turn_on) or script (script.turn_on with the House Mode variables)
+        vol.Required("entity_id"): vol.Match(r"^(scene|script)\.[a-z0-9_]+$"),
+        vol.Optional("when", default="enter"): vol.In(("enter", "leave")),
+        # before: before the partitions are armed/disarmed; after: once the change succeeded
+        vol.Optional("phase", default="after"): vol.In(("before", "after")),
+        # only when coming from (enter) / going to (leave) these modes; empty = any
+        vol.Optional("modes", default=[]): [str],
+        # scripts: wait until the script has finished before going on (max 5 min)
+        vol.Optional("wait", default=False): bool,
+    }
+)
+
 MODE_SCHEMA = vol.Schema(
     {
         vol.Required("id"): vol.Match(r"^[a-z0-9_]{1,32}$"),
@@ -66,6 +80,7 @@ MODE_SCHEMA = vol.Schema(
         ),
         vol.Optional("on_failure", default="undo"): vol.In(FAILURE),
         vol.Optional("timers", default=[]): [TIMER_SCHEMA],
+        vol.Optional("steps", default=[]): [STEP_SCHEMA],
     }
 )
 
@@ -210,4 +225,26 @@ def timers_for(mode: dict, previous: str | None, now: dt.time) -> list[dict]:
         if not in_window(now, t.get("window_start"), t.get("window_end")):
             continue
         out.append(t)
+    return out
+
+
+def steps_for(
+    leaving: dict | None, entering: dict | None, phase: str
+) -> list[tuple[dict, dict]]:
+    """Steps to run for a change, in order: the old mode's "leave" steps, then the new mode's "enter" steps.
+
+    Returns [(mode, step)]. Filters: an enter step's ``modes`` = previous modes it applies to; a leave step's ``modes``
+    = next modes it applies to (empty = any).
+    """
+    out: list[tuple[dict, dict]] = []
+    if leaving:
+        for st in leaving.get("steps", []):
+            if st["when"] == "leave" and st["phase"] == phase:
+                if not st["modes"] or (entering and entering["id"] in st["modes"]):
+                    out.append((leaving, st))
+    if entering:
+        for st in entering.get("steps", []):
+            if st["when"] == "enter" and st["phase"] == phase:
+                if not st["modes"] or (leaving and leaving["id"] in st["modes"]):
+                    out.append((entering, st))
     return out

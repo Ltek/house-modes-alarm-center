@@ -1,6 +1,6 @@
 # House Modes & Alarm Center
 
-> **Current build: v2026.10.26.30** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
+> **Current build: v2026.10.29.31** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
 
 A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber: one place for
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via
@@ -22,31 +22,39 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
       <a href="screenshots/01-house-modes.png"><img src="screenshots/01-house-modes.png" width="100%" alt="House modes"></a><br><sub>House modes</sub>
     </td>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/02-zone-assignments.png"><img src="screenshots/02-zone-assignments.png" width="100%" alt="Zone assignments"></a><br><sub>Zone assignments</sub>
+      <a href="screenshots/02-house-mode-actions.png"><img src="screenshots/02-house-mode-actions.png" width="100%" alt="House mode actions"></a><br><sub>House mode actions</sub>
     </td>
   </tr>
   <tr>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/03-zone-editor.png"><img src="screenshots/03-zone-editor.png" width="100%" alt="Zone editor"></a><br><sub>Zone editor</sub>
+      <a href="screenshots/03-scenes.png"><img src="screenshots/03-scenes.png" width="100%" alt="Scenes"></a><br><sub>Scenes</sub>
     </td>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/04-physical-panel.png"><img src="screenshots/04-physical-panel.png" width="100%" alt="Physical panel"></a><br><sub>Physical panel</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" valign="top" width="50%">
-      <a href="screenshots/05-users-codes-keypads.png"><img src="screenshots/05-users-codes-keypads.png" width="100%" alt="Users codes keypads"></a><br><sub>Users codes keypads</sub>
-    </td>
-    <td align="center" valign="top" width="50%">
-      <a href="screenshots/06-arm-check.png"><img src="screenshots/06-arm-check.png" width="100%" alt="Arm check"></a><br><sub>Arm check</sub>
+      <a href="screenshots/04-zone-assignments.png"><img src="screenshots/04-zone-assignments.png" width="100%" alt="Zone assignments"></a><br><sub>Zone assignments</sub>
     </td>
   </tr>
   <tr>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/07-activity.png"><img src="screenshots/07-activity.png" width="100%" alt="Activity"></a><br><sub>Activity</sub>
+      <a href="screenshots/05-zone-editor.png"><img src="screenshots/05-zone-editor.png" width="100%" alt="Zone editor"></a><br><sub>Zone editor</sub>
     </td>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/08-backup.png"><img src="screenshots/08-backup.png" width="100%" alt="Backup"></a><br><sub>Backup</sub>
+      <a href="screenshots/06-physical-panel.png"><img src="screenshots/06-physical-panel.png" width="100%" alt="Physical panel"></a><br><sub>Physical panel</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/07-users-codes-keypads.png"><img src="screenshots/07-users-codes-keypads.png" width="100%" alt="Users codes keypads"></a><br><sub>Users codes keypads</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/08-arm-check.png"><img src="screenshots/08-arm-check.png" width="100%" alt="Arm check"></a><br><sub>Arm check</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/09-activity.png"><img src="screenshots/09-activity.png" width="100%" alt="Activity"></a><br><sub>Activity</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/10-backup.png"><img src="screenshots/10-backup.png" width="100%" alt="Backup"></a><br><sub>Backup</sub>
     </td>
   </tr>
 </table>

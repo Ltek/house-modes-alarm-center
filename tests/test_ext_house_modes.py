@@ -383,3 +383,41 @@ async def test_notify_several_services_and_old_setting(hass: Any, hass_storage: 
     assert len(a) == 1 and len(b) == 1
 
     assert normalize({"notify_service": "notify.x"})["notify_services"] == ["notify.x"]
+
+
+async def test_house_mode_steps(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """Scenes/scripts run in order: leave-before, enter-before, (arming), leave-after, enter-after; filters apply."""
+    calls: list[tuple[str, str, dict]] = []
+
+    async def _rec(call):
+        calls.append((call.domain, call.service, dict(call.data)))
+
+    for dom, svc in (("scene", "turn_on"), ("script", "turn_on")):
+        hass.services.async_register(dom, svc, _rec)
+    modes = _modes()
+    stay = next(m for m in modes if m["id"] == "stay")
+    stay["steps"] = [
+        {"entity_id": "scene.lock_up", "when": "enter", "phase": "before"},
+        {"entity_id": "script.lights_evening", "when": "enter", "phase": "after", "modes": ["disarmed"]},
+        {"entity_id": "scene.never", "when": "enter", "phase": "after", "modes": ["away"]},
+        {"entity_id": "scene.stay_ends", "when": "leave", "phase": "after"},
+    ]
+    env = load_fixture_envelope()
+    env["data"]["areas"][0]["modes"]["armed_custom_bypass"]["enabled"] = True
+    await setup_real_alarmo(hass, hass_storage, tmp_path, env)
+    mgr = hass.data["alarmo_ext"].house
+    await mgr.async_save_settings({"enabled": True, "modes": modes})
+    await _settle(hass)
+    await advance_time(hass, 5)
+    await mgr.async_set_mode("disarmed", "manual", force=True)
+    await _settle(hass)
+    calls.clear()
+    await mgr.async_set_mode("stay", "manual")
+    await _settle(hass)
+    assert calls[0] == ("scene", "turn_on", {"entity_id": "scene.lock_up"})
+    assert ("script", "turn_on", {"entity_id": "script.lights_evening", "variables": {"from_mode": "Disarmed", "to_mode": "Stay", "source": "manual"}}) in calls
+    assert all(c[2]["entity_id"] != "scene.never" for c in calls)
+    calls.clear()
+    await mgr.async_set_mode("disarmed", "manual")
+    await _settle(hass)
+    assert calls == [("scene", "turn_on", {"entity_id": "scene.stay_ends"})]

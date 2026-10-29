@@ -32,15 +32,35 @@ if (!chromium) {
 // page path, file name, optional action before the shot
 const SHOTS = [
   ['/alarmo/house', '01-house-modes'],
-  ['/alarmo/zones', '02-zone-assignments'],
-  ['/alarmo/zones', '03-zone-editor', async (p) => {
+  ['/alarmo/house_actions', '02-house-mode-actions'],
+  ['/alarmo/house_actions', '03-scenes', async (p) => {
+    await p.evaluate(() => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house-actions');
+      const ed = v.shadowRoot.querySelector('alarmo-ext-scene-editor');
+      ed.startNew();
+      ed.draft = { id: 'demo', name: 'Evening lights', icon: 'mdi:weather-sunset',
+        entities: { 'light.living_room': { state: 'on', brightness: 153, color_temp_kelvin: 2700 },
+                    'light.kitchen': { state: 'on', brightness: 77, rgb_color: [255, 170, 80] },
+                    'cover.living_room_blinds': { state: 'open', current_position: 40 },
+                    'lock.front_door_lock': { state: 'locked' } } };
+      ed.draftModes = ['Stay'];
+      ed.scrollIntoView();
+    });
+    await p.evaluate(() => window.scrollTo(0, 0));
+    await p.evaluate(() => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house-actions');
+      v.shadowRoot.querySelector('ha-card').style.display = 'none';
+    });
+  }],
+  ['/alarmo/zones', '04-zone-assignments'],
+  ['/alarmo/zones', '05-zone-editor', async (p) => {
     await p.evaluate(() => {
       const t = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-sensor-table');
       t.expanded = ['binary_sensor.back_door'];
     });
   }],
-  ['/alarmo/panel', '04-physical-panel'],
-  ['/alarmo/codes', '05-users-codes-keypads', async (p) => {
+  ['/alarmo/panel', '06-physical-panel'],
+  ['/alarmo/codes', '07-users-codes-keypads', async (p) => {
     await p.evaluate(() => {
       const c = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-codes');
       const k = c && c.shadowRoot.querySelector('alarm-view-connections');
@@ -48,15 +68,15 @@ const SHOTS = [
       if (d) d.open = true;
     });
   }],
-  ['/alarmo/why', '06-arm-check'],
-  ['/alarmo/activity', '07-activity', async (p) => {
+  ['/alarmo/why', '08-arm-check'],
+  ['/alarmo/activity', '09-activity', async (p) => {
     await p.evaluate(() => {
       const a = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-activity');
       const d = a && a.shadowRoot.querySelector('details.collapse');
       if (d) d.open = true;
     });
   }],
-  ['/alarmo/backup', '08-backup'],
+  ['/alarmo/backup', '10-backup'],
 ];
 
 const MAX_HEIGHT = 1500;

@@ -116,6 +116,13 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
     for eid, (name, dc) in NAMES.items():
         st = hass.states.get(eid)
         hass.states.async_set(eid, st.state if st else "off", {"friendly_name": name, **({"device_class": dc} if dc else {})})
+    for eid, st, attrs in (
+        ("light.living_room", "on", {"friendly_name": "Living Room Lights", "brightness": 153, "color_mode": "color_temp",
+                                     "color_temp_kelvin": 2700, "supported_color_modes": ["color_temp", "hs"], "min_color_temp_kelvin": 2000, "max_color_temp_kelvin": 6500}),
+        ("light.kitchen", "on", {"friendly_name": "Kitchen Lights", "brightness": 77, "color_mode": "hs", "rgb_color": [255, 170, 80]}),
+        ("cover.living_room_blinds", "open", {"friendly_name": "Living Room Blinds", "current_position": 40}),
+    ):
+        hass.states.async_set(eid, st, attrs)
     hass.states.async_set("binary_sensor.gf_window_3", "on", {"friendly_name": "Living Room Window 1", "device_class": "window"})
     hass.states.async_set("binary_sensor.kitchen_motion", "on", {"friendly_name": "Kitchen Motion", "device_class": "motion"})
 
@@ -231,6 +238,42 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
     await hass.async_block_till_done()
     await hass.async_block_till_done()
 
+    # native automations / scripts / scenes related to House Modes (labels)
+    from homeassistant.setup import async_setup_component  # noqa: PLC0415
+
+    hm = "select.alarmo_house_mode"
+    autos = [
+        ("a1", "Lock up and close curtains", ["Away", "Stay", "Sleep"]),
+        ("a2", "Lights off when leaving or going to bed", ["Away", "Sleep"]),
+        ("a3", "Entry light 10 % at night", ["Sleep"]),
+        ("a4", "Cameras on when armed", ["Away", "Stay"]),
+        ("a5", "Kitchen light when coming home after dark", ["Disarmed"]),
+        ("a6", "Guest Wi-Fi on", ["Guest"]),
+        ("a7", "Notify on every House Mode change", []),
+    ]
+    assert await async_setup_component(hass, "automation", {"automation": [
+        {"id": i, "alias": n, "triggers": [{"trigger": "state", "entity_id": hm, **({"to": m} if m else {})}], "actions": []}
+        for i, n, m in autos
+    ]})
+    assert await async_setup_component(hass, "script", {"script": {
+        "spa_evening": {"alias": "Spa evening", "sequence": [{"condition": "state", "entity_id": hm, "state": "Guest"}]},
+    }})
+    await hass.async_block_till_done()
+    for sid, name in (("1001", "Evening lights"), ("1002", "Lock up"), ("1003", "Spa"), ("1004", "Good morning")):
+        eid = "scene." + name.lower().replace(" ", "_")
+        reg.async_get_or_create("scene", "homeassistant", sid, suggested_object_id=eid.split(".")[1])
+        hass.states.async_set(eid, "2026-10-26T20:30:00+00:00", {"friendly_name": name, "id": sid})
+    from custom_components.alarmo.ext_house_actions import set_modes  # noqa: PLC0415
+
+    set_modes(hass, "scene.evening_lights", ["Stay"])
+    set_modes(hass, "scene.lock_up", ["Away", "Stay", "Sleep"])
+    set_modes(hass, "scene.spa", ["Guest"])
+
+    for i, _n, m in autos[:5]:
+        set_modes(hass, next(st.entity_id for st in hass.states.async_all("automation") if st.attributes.get("id") == i), m)
+    hass.states.async_set("automation.lock_up_and_close_curtains", "on", {**hass.states.get("automation.lock_up_and_close_curtains").attributes,
+                          "last_triggered": "2026-10-26T21:30:00+00:00"})
+
     client = await hass_ws_client(hass)
     store = ext.coordinator.store
     ws: dict[str, Any] = {
@@ -245,7 +288,7 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
     i = 1
     for t in [
         "alarmo/ext/info", "alarmo/ext/status", "alarmo/ext/why", "alarmo/ext/house/get", "alarmo/ext/house/locks",
-        "alarmo/ext/panel/get", "alarmo/ext/panel/log", "alarmo/ext/rules/list", "alarmo/ext/rules/preview",
+        "alarmo/ext/panel/get", "alarmo/ext/panel/log", "alarmo/ext/house_actions/get", "alarmo/ext/rules/list", "alarmo/ext/rules/preview",
         "alarmo/ext/backup/list", "alarmo/ext/locks/get", "alarmo/ext/locks/legacy", "alarmo/ext/activity/get",
         "config/area_registry/list", "config/floor_registry/list", "config/label_registry/list",
     ]:

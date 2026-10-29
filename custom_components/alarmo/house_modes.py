@@ -27,6 +27,7 @@ from .house_config import (
     slug,
     find_mode,
     normalize,
+    steps_for,
     permission,
     timers_for,
     derive_mode,
@@ -184,6 +185,8 @@ class HouseModeManager:
                 await self._notify(f"{target['name']}: not ready", f"Open: {names}")
 
         async with self._lock:
+            prev = find_mode(settings, settings["current"])
+            await self._run_steps(prev, target, "before", source)
             return await self._apply(target, source)
 
     def _name(self, entity_id: str) -> str:
@@ -345,6 +348,46 @@ class HouseModeManager:
                 )
         self._event(EVENT_CHANGED, mode, source, previous=prev, result=result)
         self._mirror_to_select(mode)
+        if mode_id != prev and result in ("changed", "external"):
+            self.hass.async_create_task(
+                self._run_steps(find_mode(data, prev), mode, "after", source), "alarmo_house_steps"
+            )
+
+    async def _run_steps(self, leaving: dict | None, entering: dict | None, phase: str, source: str) -> None:
+        """Run the House Mode steps (native scenes / scripts) for this change and phase. Never raises."""
+        steps = steps_for(leaving, entering, phase)
+        if not steps:
+            return
+        variables = {
+            "from_mode": leaving["name"] if leaving else None,
+            "to_mode": entering["name"] if entering else None,
+            "source": source,
+        }
+        rec = getattr(self.ext, "recorder", None)
+        for mode, st in steps:
+            eid = st["entity_id"]
+            what = f"{mode['name']} · {'leaving' if st['when'] == 'leave' else 'entering'} · {phase}: {eid}"
+            try:
+                if eid.startswith("scene."):
+                    await self.hass.services.async_call("scene", "turn_on", {"entity_id": eid}, blocking=True)
+                elif st["wait"]:
+                    await asyncio.wait_for(
+                        self.hass.services.async_call(
+                            "script", eid.split(".", 1)[1], variables, blocking=True
+                        ),
+                        300,
+                    )
+                else:
+                    await self.hass.services.async_call(
+                        "script", "turn_on", {"entity_id": eid, "variables": variables}, blocking=False
+                    )
+                if rec is not None:
+                    rec.add("house", f"House Mode step ran: {what}")
+            except Exception as err:  # a failing step must not stop the change or the other steps
+                _LOGGER.warning("House Mode step %s failed: %s", what, err)
+                if rec is not None:
+                    rec.add("house", f"House Mode step failed: {what}: {err}", level="error")
+                await self._notify("House Mode step failed", f"{what}: {err}")
 
     def _event(
         self, event_type: str, mode: dict | None, source: str, **extra: Any

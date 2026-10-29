@@ -45,7 +45,7 @@ grep -q "$VER" "$FE/dist/alarm-panel.js"
 node --check "$FE/dist/alarm-panel.js"
 node /shared/user/code/_tests/probe.mjs "$FE/dist/alarm-panel.js" alarm-panel alarm-view-general \
   alarm-view-actions alarm-view-sensors alarm-view-sensor-table alarm-view-backup alarm-view-codes \
-  alarm-view-panel alarm-view-house alarm-view-mirrors alarm-view-connections alarm-view-ha-zones | head -1
+  alarm-view-panel alarm-view-house alarm-view-house-actions alarm-view-mirrors alarm-view-connections alarm-view-ha-zones | head -1
 (cd "$FE" && npm test 2>&1 | grep -E "^ℹ (pass|fail)")
 (cd "$ROOT" && uv run ruff check custom_components/alarmo tests tools scripts | tail -1)
 # failures get one rerun: upstream's test_ready_to_arm_modes_changed_event_on_sensor_state_change is flaky

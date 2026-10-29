@@ -33,6 +33,15 @@ export type HouseMode = {
   readiness: { entities: string[]; labels: string[]; action: 'block' | 'warn' };
   on_failure: 'undo' | 'keep' | 'previous';
   timers: HouseTimer[];
+  steps?: HouseStep[];
+};
+/** A native scene or script the House Mode runs when entering / leaving it, before arming or after the change. */
+export type HouseStep = {
+  entity_id: string;
+  when: 'enter' | 'leave';
+  phase: 'before' | 'after';
+  modes: string[];
+  wait: boolean;
 };
 export type HouseSettings = {
   enabled: boolean;
@@ -105,6 +114,7 @@ export const newMode = (name: string, existing: HouseMode[]): HouseMode => {
     readiness: { entities: [], labels: [], action: 'warn' },
     on_failure: 'undo',
     timers: [],
+    steps: [],
   };
 };
 
@@ -142,3 +152,14 @@ export const removeMode = (s: HouseSettings, id: string): HouseSettings => ({
   }),
   current: s.current === id ? null : s.current,
 });
+
+/** Short description of a step, e.g. "Entering · after the change · only from Away". */
+export const describeStep = (st: HouseStep, modeName: (id: string) => string): string =>
+  [
+    st.when === 'enter' ? 'Entering' : 'Leaving',
+    st.phase === 'before' ? 'before arming' : 'after the change',
+    st.modes.length ? `${st.when === 'enter' ? 'only from' : 'only to'} ${st.modes.map(modeName).join(', ')}` : '',
+    st.wait && st.entity_id.startsWith('script.') ? 'waits for it' : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');

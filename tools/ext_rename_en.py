@@ -99,6 +99,9 @@ EXT_KEYS = {
     ("panels", "house", "title"): "House Modes",
     ("panels", "why", "title"): "Arm Check",
     ("panels", "activity", "title"): "Activity",
+    ("panels", "house_actions", "title"): "House Mode Actions",
+    # 2026-10-29: the Actions tab runs actions on alarm events (armed, triggered, failed)
+    ("panels", "actions", "title"): "Alarm Events",
     ("panels", "users_codes", "title"): "Users, Codes, Keypads",
     ("panels", "mirrors", "title"): "Zone Mirrors",
     ("panels", "ha_zones", "title"): "Zone Actions",

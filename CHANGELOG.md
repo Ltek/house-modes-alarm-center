@@ -3,6 +3,37 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.10.29.31 — 2026-10-29
+
+- **New House Mode Actions tab.** One overview of every native Home Assistant automation, script and scene that
+  belongs to a House Mode, as a grid with one row per item and one column per House Mode, so overlaps show.
+  - "Belongs to" is a native **HA label**, `House Mode: <mode>`. One item can belong to several modes, and HA's own
+    automation, script and scene lists can be filtered by the same labels.
+  - **Suggestions:** automations and scripts that use the House Mode (its `input_select`, the House Mode select or
+    the `alarmo_house_mode_changed` event) and name a mode are marked; "Use N suggestions" labels them in one go.
+  - Unlock to edit, then tick or untick a mode per item; Save applies the labels. Other labels are kept.
+  - Click a name to open it in HA's editor. Automations get an enable switch; every item gets *Run now*. Last run is
+    shown.
+  - The modes come from the House Modes tab or, while none are defined there, from the House Mode `input_select`.
+- **Inside each House Mode** (House Modes tab → open a mode): its automations, scripts and scenes, with links, and
+  suggestions marked.
+- **Scenes and scripts on House Modes** (House Modes tab → a mode → *Scenes and scripts*):
+  - each mode can run native scenes and scripts when **entering** or **leaving** it, **before arming** (e.g. lock up)
+    or **after the change** (once it succeeded), optionally only when coming from / going to certain modes;
+  - order: the old mode's leaving steps, then the new mode's entering steps;
+  - scripts get `from_mode`, `to_mode` and `source`, and can be waited for (up to 5 min);
+  - a failing step is notified and logged on the Activity tab, and never stops the change;
+  - they run only while House Modes are on in the integration.
+- **Scene editor** (House Mode Actions tab → *Scenes*), ported from the Color Light & Scene Manager card:
+  - create native HA scenes by capturing entities as they are, then fine-tune each one (lights: on/off, brightness,
+    colour or colour temperature, effect, fade; covers, fans, climate, media, locks, switches, selects…);
+  - edit, capture again, delete, activate, or open in HA's own scene editor;
+  - tick House Modes to label the scene.
+
+- The **Actions** tab is renamed **Alarm Events** (actions on armed, triggered, failed, …). Notifications stays its
+  own tab.
+- README screenshots: new House Mode Actions shot.
+
 ## v2026.10.26.30 — 2026-10-26
 
 - **New version numbers: `YYYY.MM.DD.BUILD`**, the build date (UTC) plus a running build number that never resets.

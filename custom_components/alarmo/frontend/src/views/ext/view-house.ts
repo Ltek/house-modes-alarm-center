@@ -21,8 +21,18 @@ import {
   setHouseMode,
 } from '../../data/house';
 import { extStyles } from './ext-styles';
+import { HouseActionsInfo, editorPath, fetchHouseActions, itemsForMode } from '../../data/house-actions';
+
+/** HA editor path for a scene/script entity (scenes need their config id). */
+const editorPathFor = (entityId: string, hass: HomeAssistant): string | null => {
+  const [domain, obj] = entityId.split('.');
+  if (domain === 'script') return `/config/script/edit/${obj}`;
+  const id = hass.states[entityId]?.attributes.id;
+  return domain === 'scene' && id ? `/config/scene/edit/${id}` : null;
+};
 import './slider-field';
-import { roleChip, sectionHead } from './page-intro';
+import { roleChip, sectionHead, entityBadge } from './page-intro';
+import { navigate } from '../../helpers';
 import './multi-picker';
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
@@ -46,6 +56,7 @@ export class AlarmViewHouse extends LitElement {
   @property({ type: Boolean }) narrow = false;
   @property({ attribute: false }) path?: Path;
 
+  @state() private actions?: HouseActionsInfo;
   @state() private info?: HouseInfo;
   @state() private draft?: HouseSettings;
   @state() private open: string[] = [];
@@ -55,6 +66,9 @@ export class AlarmViewHouse extends LitElement {
 
   firstUpdated() {
     this.refresh();
+    fetchHouseActions(this.hass)
+      .then(a => (this.actions = a))
+      .catch(() => (this.actions = { modes: [], modes_source: 'none', label_prefix: '', items: [] }));
   }
 
   private async refresh(resetDraft = false) {
@@ -317,7 +331,83 @@ export class AlarmViewHouse extends LitElement {
           <button class="link" @click=${() => upd(x => x.timers.splice(i, 1))}>Remove</button>
         </div>`)}
         <span class="secondary" style="display:block">Timers start when this mode begins, survive restarts, and are cancelled when the mode changes. A timer only switches if the target mode allows the "House Mode timers" source.</span>
+        ${this.renderSteps(m, other)}
+        ${this.renderRelated(m)}
       </div>
+    `;
+  }
+
+  /** The native scenes and scripts this mode runs (when entering / leaving, before arming / after the change). */
+  private renderSteps(m: HouseMode, other: HouseMode[]) {
+    const upd = (fn: (x: HouseMode) => void) => this.setMode(m.id, fn);
+    const steps = m.steps || [];
+    const choices = Object.keys(this.hass.states).filter(e => e.startsWith('scene.') || e.startsWith('script.')).sort();
+    const name = (e: string) => (this.hass.states[e]?.attributes.friendly_name as string) || e;
+    return html`
+      <h4 class="subhead" style="margin:10px 0 4px">Scenes and scripts</h4>
+      <button class="link" ?disabled=${!choices.length}
+        @click=${() => upd(x => (x.steps = [...(x.steps || []), { entity_id: choices[0], when: 'enter', phase: 'after', modes: [], wait: false }]))}>
+        + Add scene or script</button>
+      ${steps.map((st, i) => html`<div class="detail-grid step-row">
+        <label>Run
+          <select @change=${(e: any) => upd(x => (x.steps![i].entity_id = e.target.value))}>
+            ${choices.includes(st.entity_id) ? nothing : html`<option value=${st.entity_id} selected>${st.entity_id} (missing)</option>`}
+            ${choices.map(c => html`<option value=${c} ?selected=${c === st.entity_id}>${c.startsWith('scene.') ? 'Scene' : 'Script'}: ${name(c)}</option>`)}
+          </select></label>
+        <label>when
+          <select @change=${(e: any) => upd(x => (x.steps![i].when = e.target.value))}>
+            <option value="enter" ?selected=${st.when === 'enter'}>entering ${m.name}</option>
+            <option value="leave" ?selected=${st.when === 'leave'}>leaving ${m.name}</option>
+          </select></label>
+        <label>
+          <select aria-label="Phase" @change=${(e: any) => upd(x => (x.steps![i].phase = e.target.value))}>
+            <option value="before" ?selected=${st.phase === 'before'}>before arming</option>
+            <option value="after" ?selected=${st.phase === 'after'}>after the change</option>
+          </select></label>
+        <alarmo-ext-multi-picker
+          .label=${st.when === 'enter' ? 'only when coming from' : 'only when going to'}
+          .placeholder=${'any mode'}
+          .options=${other.map(o => ({ value: o.id, label: o.name }))}
+          .value=${st.modes}
+          @value-changed=${(e: CustomEvent) => upd(x => (x.steps![i].modes = e.detail.value))}
+        ></alarmo-ext-multi-picker>
+        ${st.entity_id.startsWith('script.')
+          ? html`<label title="Wait until the script has finished before the next step (at most 5 minutes)"><input type="checkbox" .checked=${st.wait}
+              @change=${(e: any) => upd(x => (x.steps![i].wait = e.target.checked))} /> wait for it</label>`
+          : nothing}
+        ${editorPathFor(st.entity_id, this.hass)
+          ? html`<button class="link" @click=${() => navigate(this, editorPathFor(st.entity_id, this.hass)!)}>open</button>`
+          : nothing}
+        <button class="link" @click=${() => upd(x => x.steps!.splice(i, 1))}>Remove</button>
+      </div>`)}
+      ${!steps.length ? html`<span class="secondary" style="display:block">None. Scenes and scripts stay native Home Assistant scenes and
+        scripts; build them in Home Assistant (or on the Scenes card below the modes).</span>` : nothing}
+      <span class="secondary" style="display:block">Order: the old mode's "leaving" steps, then the new mode's "entering" steps.
+        <em>Before arming</em> runs before the partitions change (e.g. lock up); <em>after the change</em> once it succeeded.
+        Scripts get <code>from_mode</code>, <code>to_mode</code> and <code>source</code>. A failing step is logged on the Activity
+        tab and does not stop the change.</span>
+    `;
+  }
+
+  /** Native automations / scripts / scenes labelled with this mode (and suggestions), linking to HA's editor. */
+  private renderRelated(m: HouseMode) {
+    const items = this.actions ? itemsForMode(this.actions.items, m.name, true) : [];
+    return html`
+      <h4 class="subhead" style="margin:10px 0 4px">Automations, scripts and scenes</h4>
+      ${!this.actions
+        ? html`<span class="secondary" style="display:block">Loading…</span>`
+        : items.length
+          ? html`<div class="related-list">${items.map(i => {
+              const p = editorPath(i);
+              const sug = !i.labels.includes(m.name);
+              return html`<div class="field-row">
+                ${entityBadge(this.hass, i.entity_id)}
+                ${p ? html`<button class="link" title="Open in Home Assistant's editor" @click=${() => navigate(this, p)}>${i.name}</button>` : html`<span>${i.name}</span>`}
+                <span class="secondary" style="display:inline">${i.kind}${sug ? ' · suggested (no label yet)' : ''}${i.labels.length > 1 ? ` · also ${i.labels.filter(x => x !== m.name).join(', ')}` : ''}</span>
+              </div>`;
+            })}</div>`
+          : html`<span class="secondary" style="display:block">None yet.</span>`}
+      <span class="secondary" style="display:block">Relate them on the <a href="/alarmo/house_actions">House Mode Actions</a> tab (Home Assistant label <em>House Mode: ${m.name}</em>).</span>
     `;
   }
 

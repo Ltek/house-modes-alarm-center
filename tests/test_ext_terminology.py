@@ -21,6 +21,7 @@ EXT_ADDED_KEYS = {
     "panels.house.title",
     "panels.why.title",
     "panels.activity.title",
+    "panels.house_actions.title",
     "panels.users_codes.title",
     "panels.mirrors.title",
     "panels.ha_zones.title",

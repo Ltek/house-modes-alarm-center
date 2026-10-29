@@ -626,4 +626,7 @@ export const extStyles = css`
     color: var(--secondary-text-color);
     --mdc-icon-size: 16px;
   }
+  .related-list .field-row {
+    min-height: 32px;
+  }
 `;

@@ -6,7 +6,7 @@ import { TABS, tabForPath, isEditorPath } from '../src/data/ext-tabs.ts';
 test('tab order and sections', () => {
   assert.deepEqual(
     TABS.map(t => t.id),
-    ['general', 'house', 'why', 'partitions', 'zones', 'zones_legacy', 'codes', 'notifications', 'actions', 'panel', 'activity', 'backup']
+    ['general', 'house', 'house_actions', 'why', 'partitions', 'zones', 'zones_legacy', 'codes', 'notifications', 'actions', 'panel', 'activity', 'backup']
   );
   assert.equal(TABS.find(t => t.id === 'partitions').view, 'general');
   assert.equal(TABS.find(t => t.id === 'notifications').section, 'notifications');

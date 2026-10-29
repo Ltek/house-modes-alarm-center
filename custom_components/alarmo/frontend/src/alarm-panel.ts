@@ -27,6 +27,7 @@ import { fetchExtInfo } from './data/ext-websockets';
 import './views/ext/status-strip';
 import './views/ext/view-why';
 import './views/ext/view-activity';
+import './views/ext/view-house-actions';
 
 // ext: where the Notifications / Actions editors return to (upstream editors go to /alarmo/actions)
 const ACTIONS_RETURN_KEY = 'alarmo-ext-actions-tab';
@@ -139,6 +140,10 @@ export class MyAlarmPanel extends LitElement {
       case 'sensor_table':
         return html`
           <alarm-view-sensor-table .hass=${this.hass} .narrow=${this.narrow} .path=${path}></alarm-view-sensor-table>
+        `;
+      case 'house_actions':
+        return html`
+          <alarm-view-house-actions .hass=${this.hass} .narrow=${this.narrow} .path=${path}></alarm-view-house-actions>
         `;
       case 'activity':
         return html`

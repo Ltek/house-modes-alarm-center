@@ -6,6 +6,7 @@ export type TabId =
   | 'house'
   | 'why'
   | 'activity'
+  | 'house_actions'
   | 'partitions'
   | 'modes'
   | 'zones'
@@ -19,13 +20,14 @@ export type TabId =
   | 'connections'
   | 'backup';
 
-export type TabView = 'general' | 'house' | 'why' | 'activity' | 'sensor_table' | 'ha_zones' | 'sensors' | 'codes' | 'actions' | 'panel' | 'mirrors' | 'connections' | 'backup';
+export type TabView = 'general' | 'house' | 'house_actions' | 'why' | 'activity' | 'sensor_table' | 'ha_zones' | 'sensors' | 'codes' | 'actions' | 'panel' | 'mirrors' | 'connections' | 'backup';
 
 export type TabDef = { id: TabId; view: TabView; section?: string; titleKey: string };
 
 export const TABS: TabDef[] = [
   { id: 'general', view: 'general', section: 'general', titleKey: 'panels.general.title' },
   { id: 'house', view: 'house', titleKey: 'panels.house.title' },
+  { id: 'house_actions', view: 'house_actions', titleKey: 'panels.house_actions.title' },
   { id: 'why', view: 'why', titleKey: 'panels.why.title' },
   { id: 'partitions', view: 'general', section: 'partitions', titleKey: 'panels.partitions.title' },
   { id: 'zones', view: 'sensor_table', titleKey: 'panels.zones.title' },

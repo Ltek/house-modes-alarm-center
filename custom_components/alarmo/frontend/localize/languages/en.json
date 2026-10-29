@@ -406,7 +406,7 @@
       }
     },
     "actions": {
-      "title": "Actions",
+      "title": "Alarm Events",
       "cards": {
         "notifications": {
           "title": "Notifications",
@@ -619,6 +619,9 @@
     },
     "connections": {
       "title": "Keypads"
+    },
+    "house_actions": {
+      "title": "House Mode Actions"
     }
   }
 }

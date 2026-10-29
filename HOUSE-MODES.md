@@ -7,6 +7,18 @@ locks, curtains, cameras and the water main stay in your own automations.
 
 ## 1. Create the modes
 
+**Quickest: detect them.** House Modes tab → *Modes* → **Detect from your input_selects**:
+
+- it finds your selector (manual choice), current-mode and previous-mode input_selects (change them in the drop-downs);
+- one House Mode per option; the partitions come from the Activity log (what Alarmo was set to each time your
+  current-mode entity changed), or from the mode's name when it never appears there (Away → Away, Sleep → Night, …);
+- *also seen* shows other states the partitions were in for that mode (for example Custom when Stay ran with bypasses);
+- tick the ones you want → **Use**: they go into the draft with the three entities, and House Modes switch to Shadow if
+  they were off. Check them, then **Save**.
+
+Or create them by hand:
+
+
 House Modes tab → **Add starter modes** (Disarmed, Stay, Sleep, Away, Vacation, Guest, Local,
 Spa), add **Late Night** (Arm Mode Home), then adjust:
 
@@ -48,6 +60,10 @@ The results are in the *Shadow comparison* card and, marked `[shadow]`, on the A
 explained, switch to **Live** (the current mode is kept) and disable the automations in step 3.
 
 ## 2. Keep your dashboards working while you migrate
+
+*Current House Mode entity* and *Previous House Mode entity* (e.g. `input_select.house_mode` and
+`input_select.house_mode_last`): in Live, House Modes write the mode names to them (previous first), so automations
+and dashboards that use them keep working; in Shadow they are compared with what House Modes would have set.
 
 **House Modes** tab → *House Mode settings* → **House Mode input_select entity** = `input_select.house_mode_selector`, Save. Changing the
 input_select now goes through Alarmo, and Alarmo writes its mode back to it.

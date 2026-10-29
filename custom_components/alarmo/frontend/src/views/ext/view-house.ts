@@ -15,6 +15,9 @@ import {
   describeTargets,
   fetchHouse,
   fetchShadow,
+  detectHouse,
+  applyDetected,
+  DetectResult,
   runState,
   setRunState,
   ShadowEntry,
@@ -70,6 +73,9 @@ export class AlarmViewHouse extends LitElement {
   @state() private lastBlocked: { mode: string; reason: string } | null = null;
   @state() private shadow?: { log: ShadowEntry[]; summary: ShadowSummary };
   @state() private shadowAll = false;
+  @state() private detect?: DetectResult;
+  @state() private detectPick: string[] = [];
+  @state() private detecting = false;
 
   firstUpdated() {
     this.refresh();
@@ -277,9 +283,11 @@ export class AlarmViewHouse extends LitElement {
             happens if arming fails, and timers. Save at the bottom of the page.</p>
         </div>
         <div class="toolbar">
+          <ha-button appearance="plain" ?disabled=${this.detecting} @click=${() => this.runDetect()}><ha-icon slot="start" icon="mdi:magnify-scan"></ha-icon>Detect from your input_selects</ha-button>
           <ha-button appearance="plain" @click=${this.addMode}><ha-icon slot="start" icon="mdi:plus-circle"></ha-icon>Add House Mode</ha-button>
           ${!d.modes.length ? html`<ha-button appearance="plain" @click=${this.addStarter}><ha-icon slot="start" icon="mdi:auto-fix"></ha-icon>Add starter modes</ha-button>` : nothing}
         </div>
+        ${this.detect ? this.renderDetect() : nothing}
         ${d.modes.map(m => {
           const open = this.open.includes(m.id);
           return html`
@@ -294,6 +302,78 @@ export class AlarmViewHouse extends LitElement {
         })}
       </ha-card>
     `;
+  }
+
+  private async runDetect(ents?: Partial<DetectResult['entities']>) {
+    this.detecting = true;
+    this.error = '';
+    try {
+      const prev = this.detect?.entities;
+      this.detect = await detectHouse(this.hass, ents ? { ...prev, ...ents } : undefined);
+      this.detectPick = this.detect.suggestions.filter(s => s.basis !== 'none').map(s => s.name);
+    } catch (err) {
+      this.error = wsErrorMessage(err);
+    } finally {
+      this.detecting = false;
+    }
+  }
+
+  private renderDetect() {
+    const r = this.detect!;
+    const names: Record<string, string> = {};
+    r.targets.forEach(t => (names[t.key] = t.name));
+    const have = (n: string) => this.draft!.modes.some(m => m.name.toLowerCase() === n.toLowerCase());
+    const ent = (key: 'selector' | 'current' | 'previous', label: string) => html`<label>${label}
+        <select @change=${(e: any) => this.runDetect({ [key]: e.target.value || null })}>
+          <option value="" ?selected=${!r.entities[key]}>none</option>
+          ${r.selects.map(s => html`<option value=${s.entity_id} ?selected=${r.entities[key] === s.entity_id}>${s.name || s.entity_id} (${s.entity_id})</option>`)}
+        </select></label>`;
+    const days = r.span.length ? Math.max(1, Math.round((r.span[1] - r.span[0]) / 86400)) : 0;
+    return html`
+      <div class="editor" style="margin:0 16px 12px;padding:8px 12px;border-left:3px solid var(--primary-color)">
+        <div class="subhead">Detected House Modes</div>
+        <p class="secondary">One House Mode per option of your input_selects. Partitions come from the Activity log (what
+          Alarmo was set to each time your current-mode entity changed: ${r.changes} changes over ${days} days), or from the
+          name when a mode never appears there. Nothing is saved until you press Save.</p>
+        <div class="detail-grid">
+          ${ent('selector', 'Selector (manual choice)')} ${ent('current', 'Current House Mode')} ${ent('previous', 'Previous House Mode')}
+        </div>
+        <div class="table-wrap"><table class="full">
+          <thead><tr><th></th><th>House Mode</th><th>Partitions</th><th>Based on</th><th>Note</th></tr></thead>
+          <tbody>
+            ${r.suggestions.map(sug => {
+              const on = this.detectPick.includes(sug.name);
+              const parts = Object.entries(sug.targets).map(([k, v]) => `${names[k] || k}: ${STATE_LABEL[v] || v}`).join(', ');
+              const basis =
+                sug.basis === 'activity'
+                  ? `seen ${sug.seen}× (${Object.values(sug.share).map(x => Math.round(x * 100) + '%').join(', ') || '—'})`
+                  : sug.basis === 'name' ? 'the name' : '—';
+              return html`<tr>
+                <td><input type="checkbox" .checked=${on} @change=${(e: any) =>
+                  (this.detectPick = e.target.checked ? [...this.detectPick, sug.name] : this.detectPick.filter(n => n !== sug.name))} /></td>
+                <td><ha-icon icon=${sug.icon}></ha-icon> ${sug.name}${have(sug.name) ? html` <span class="secondary" style="display:inline">(updates yours)</span>` : nothing}</td>
+                <td>${parts || html`<span class="secondary">leaves them alone</span>`}</td>
+                <td>${basis}</td>
+                <td><span class="secondary" style="display:inline">${sug.note}</span></td>
+              </tr>`;
+            })}
+          </tbody>
+        </table></div>
+        <div class="toolbar">
+          <ha-button ?disabled=${!this.detectPick.length} @click=${this.useDetected}>Use ${this.detectPick.length} House Mode${this.detectPick.length === 1 ? '' : 's'}</ha-button>
+          <ha-button appearance="plain" @click=${() => (this.detect = undefined)}>Cancel</ha-button>
+        </div>
+      </div>
+    `;
+  }
+
+  private useDetected() {
+    const r = this.detect!;
+    const picked = r.suggestions.filter(s => this.detectPick.includes(s.name));
+    let changes: string[] = [];
+    this.set(d => (changes = applyDetected(d, picked, r.entities)));
+    this.detect = undefined;
+    toast(this, `Detected House Modes added to the draft (${changes.length} changes). Check them, then Save.`);
   }
 
   private addMode() {
@@ -487,8 +567,7 @@ export class AlarmViewHouse extends LitElement {
     const d = this.draft!;
     const selects = Object.keys(this.hass.states).filter(e => e.startsWith('input_select.')).sort();
     const compares = Object.keys(this.hass.states)
-      .filter(e => /^(input_select|select|sensor|input_text)\./.test(e) && e !== 'select.alarmo_house_mode')
-      .filter(e => e.startsWith('input_select.') || /house.?mode/i.test(e) || e === d.compare_entity)
+      .filter(e => /^(input_select|input_text)\./.test(e))
       .sort();
     const notifies = Object.keys(this.hass.services.notify || {}).map(s => ({ value: `notify.${s}`, label: `notify.${s}` }));
     return html`
@@ -499,14 +578,14 @@ export class AlarmViewHouse extends LitElement {
             ${selects.map(s => html`<option value=${s} ?selected=${d.input_select === s}>${this.hass.states[s].attributes.friendly_name || s} (${s})</option>`)}
           </select>
         </label>
-        ${runState(d) === 'shadow'
-          ? html`<label>Compare with (your own House Mode entity)
-              <select @change=${(e: any) => this.set(x => (x.compare_entity = e.target.value || null))}>
-                <option value="" ?selected=${!d.compare_entity}>none</option>
-                ${compares.map(s => html`<option value=${s} ?selected=${d.compare_entity === s}>${this.hass.states[s].attributes.friendly_name || s} (${s})</option>`)}
+        ${(['current_entity', 'previous_entity'] as const).map(
+          key => html`<label>${key === 'current_entity' ? 'Current House Mode entity' : 'Previous House Mode entity'}
+              <select @change=${(e: any) => this.set(x => (x[key] = e.target.value || null))}>
+                <option value="" ?selected=${!d[key]}>none</option>
+                ${compares.map(s => html`<option value=${s} ?selected=${d[key] === s}>${this.hass.states[s].attributes.friendly_name || s} (${s})</option>`)}
               </select>
             </label>`
-          : nothing}
+        )}
         <alarmo-ext-multi-picker
           .label=${'Notifications'}
           .placeholder=${'Add a notify service…'}
@@ -517,6 +596,10 @@ export class AlarmViewHouse extends LitElement {
       </div>
       ${d.input_select && d.modes.length
         ? html`<div class="notice" style="margin:0 16px 12px">Options needed on ${d.input_select}: ${d.modes.map(m => m.name).join(', ')}.</div>`
+        : nothing}
+      ${d.current_entity || d.previous_entity
+        ? html`<div class="secondary" style="margin:0 16px 12px">Current / previous House Mode entities: Live writes the mode
+            names to them (previous first), Shadow compares them with what House Modes would have set.</div>`
         : nothing}
     `;
   }

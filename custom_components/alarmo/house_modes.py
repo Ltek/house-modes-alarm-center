@@ -358,6 +358,7 @@ class HouseModeManager:
                 )
         self._event(EVENT_CHANGED, mode, source, previous=prev, result=result)
         self._mirror_to_select(mode)
+        self._write_mode_entities(mode, find_mode(data, prev) if mode_id != prev else None)
         if mode_id != prev and result in ("changed", "external"):
             self.hass.async_create_task(
                 self._run_steps(find_mode(data, prev), mode, "after", source), "alarmo_house_steps"
@@ -592,6 +593,27 @@ class HouseModeManager:
                 {"entity_id": ent, "option": mode["name"]},
             )
         )
+
+    def _write_mode_entities(self, mode: dict | None, prev: dict | None) -> None:
+        """Live: keep the user's own current / previous House Mode entities up to date."""
+        if self.shadow:
+            return
+        s = self.settings
+        for key, m in (("previous_entity", prev), ("current_entity", mode)):
+            ent = s.get(key)
+            if not ent or m is None:
+                continue
+            st = self.hass.states.get(ent)
+            if st is None or st.state == m["name"]:
+                continue
+            if ent.startswith("input_select."):
+                if m["name"] not in (st.attributes.get("options") or []):
+                    _LOGGER.warning("%s has no option '%s'", ent, m["name"])
+                    continue
+                call = ("input_select", "select_option", {"entity_id": ent, "option": m["name"]})
+            else:
+                call = ("input_text", "set_value", {"entity_id": ent, "value": m["name"]})
+            self.hass.async_create_task(self.hass.services.async_call(*call))
 
     @callback
     def _on_lock(self, event: Event) -> None:

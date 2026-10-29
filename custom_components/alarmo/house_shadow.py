@@ -254,9 +254,10 @@ class HouseShadow:
     # ------------------------------------------------------------ compare with the user's own mode entity
 
     def _compare_later(self, target: dict, delay: int, expect_same: bool = True) -> None:
-        ent = self.mgr.settings.get("compare_entity")
+        ent = self.mgr.settings.get("current_entity")
         if not ent:
             return
+        prev_ent = self.mgr.settings.get("previous_entity")
 
         @callback
         def _check(_now) -> None:
@@ -265,6 +266,13 @@ class HouseShadow:
             same = have.lower() == target["name"].lower()
             if expect_same:
                 self.add("compare", f"{ent} is {have}" + ("" if same else f", House Modes: {target['name']}"), same)
+                prev = find_mode(self.mgr.settings, self.mgr.settings["previous"])
+                if prev_ent and prev:
+                    pst = self.hass.states.get(prev_ent)
+                    phave = pst.state if pst else "missing"
+                    psame = phave.lower() == prev["name"].lower()
+                    tail = "" if psame else f", House Modes: {prev['name']}"
+                    self.add("compare", f"{prev_ent} is {phave}{tail}", psame)
             else:
                 self.add("compare", f"{ent} is {have}" + (f" (House Modes would not have changed to {target['name']})"
                                                            if same else ""), not same)

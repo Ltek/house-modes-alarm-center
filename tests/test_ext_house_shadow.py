@@ -27,7 +27,7 @@ async def _setup(hass, hass_storage, tmp_path, modes=None) -> Any:
     await setup_real_alarmo(hass, hass_storage, tmp_path, env)
     mgr = hass.data["alarmo_ext"].house
     await mgr.async_save_settings(
-        {"enabled": True, "run_mode": "shadow", "modes": modes or _modes(), "input_select": REQ, "compare_entity": CONFIRMED}
+        {"enabled": True, "run_mode": "shadow", "modes": modes or _modes(), "input_select": REQ, "current_entity": CONFIRMED}
     )
     await _settle(hass)
     await advance_time(hass, 5)

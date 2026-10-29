@@ -3,6 +3,17 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.10.29.35 — 2026-10-29
+
+- **Detect House Modes** (House Modes tab → Modes → *Detect from your input_selects*):
+  - finds the selector, current-mode and previous-mode input_selects (changeable);
+  - one House Mode per option, with partitions from the Activity log (majority of what Alarmo was set to each time
+    the current-mode entity changed, until the next change, at most 90 s later) or from the name;
+  - shows how often each mode was seen, the share, and other states seen; nothing is saved until you press Save, and
+    House Modes switch to Shadow if they were off.
+- **Current / Previous House Mode entities** (replace Shadow's *Compare with*, which is carried over): Live writes the
+  mode names to them; Shadow compares both.
+
 ## v2026.10.29.34 — 2026-10-29
 
 - **House Modes: Shadow** (House Modes tab: Off / Shadow / Live). House Modes run next to your own automations and

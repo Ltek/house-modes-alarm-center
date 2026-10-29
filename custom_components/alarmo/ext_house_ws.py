@@ -11,10 +11,11 @@ from homeassistant.components import websocket_api
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.service import async_register_admin_service
 
-from . import const
+from . import const, house_detect
 from .house_modes import HouseModeError
 from .ext_panel_ws import _link_targets
 from .house_config import SOURCES
+from .panel_config import MASTER_KEY
 
 DATA_EXT = "alarmo_ext"
 SERVICE_SET_HOUSE_MODE = "set_house_mode"
@@ -36,6 +37,63 @@ async def ws_house_get(hass, connection, msg):
             "targets": _link_targets(hass),
             "sources": list(SOURCES),
             "shadow": _mgr(hass).shadow_log.summary(),
+        },
+    )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "alarmo/ext/house/detect",
+        vol.Optional("selector"): vol.Any(None, cv.entity_id),
+        vol.Optional("current"): vol.Any(None, cv.entity_id),
+        vol.Optional("previous"): vol.Any(None, cv.entity_id),
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_house_detect(hass, connection, msg):
+    """Suggest House Modes from the user's input_selects and the activity log (nothing is saved)."""
+    selects = [
+        {
+            "entity_id": st.entity_id,
+            "name": st.attributes.get("friendly_name"),
+            "options": st.attributes.get("options") or [],
+        }
+        for st in hass.states.async_all("input_select")
+    ]
+    picked = house_detect.pick_entities(selects)
+    for key in ("selector", "current", "previous"):
+        if key in msg:
+            picked[key] = msg[key]
+    by_id = {s["entity_id"]: s for s in selects}
+    options: list[str] = []
+    for key in ("selector", "current"):
+        options += (by_id.get(picked[key] or "") or {}).get("options", [])
+    names = house_detect.mode_names(options)
+    targets = _link_targets(hass)
+    alarm_entities = {t["entity_id"]: t["key"] for t in targets if t["entity_id"]}
+    areas = [t["key"] for t in targets if t["key"] != MASTER_KEY] or [t["key"] for t in targets]
+    ev = {"modes": {}, "changes": 0, "span": []}
+    if picked["current"]:
+        rec = hass.data[DATA_EXT].recorder
+
+        def _read() -> list[dict]:
+            seqs: list[dict] = []
+            for day in rec.days():
+                seqs += rec.read_day(day)
+            return seqs
+
+        seqs = await hass.async_add_executor_job(_read)
+        ev = house_detect.evidence(seqs, picked["current"], alarm_entities)
+    connection.send_result(
+        msg["id"],
+        {
+            "entities": picked,
+            "selects": [{"entity_id": s["entity_id"], "name": s["name"]} for s in selects],
+            "suggestions": house_detect.suggest(names, ev, areas),
+            "changes": ev["changes"],
+            "span": ev["span"],
+            "targets": targets,
         },
     )
 
@@ -156,7 +214,7 @@ async def ws_house_locks(hass, connection, msg):
     connection.send_result(msg["id"], {"locks": discover_locks(hass)})
 
 
-HOUSE_COMMANDS = (ws_house_get, ws_house_save, ws_house_set, ws_house_locks, ws_house_shadow)
+HOUSE_COMMANDS = (ws_house_get, ws_house_save, ws_house_set, ws_house_locks, ws_house_shadow, ws_house_detect)
 
 
 def register_house_service(hass: HomeAssistant) -> None:

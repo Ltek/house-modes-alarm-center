@@ -122,10 +122,9 @@ SETTINGS_SCHEMA = vol.Schema(
         vol.Optional("lock_keypads", default=[]): [KEYPAD_SCHEMA],
         # shadow: evaluate and compare next to the user's own automations, change nothing
         vol.Optional("run_mode", default="live"): vol.In(("shadow", "live")),
-        # the user's own "confirmed House Mode" entity, compared in shadow mode
-        vol.Optional("compare_entity"): vol.Any(
-            None, vol.Match(r"^(input_select|select|sensor|input_text)\.[a-z0-9_]+$")
-        ),
+        # the user's own current / previous House Mode entities: written in Live, compared in Shadow
+        vol.Optional("current_entity"): vol.Any(None, vol.Match(r"^(input_select|input_text)\.[a-z0-9_]+$")),
+        vol.Optional("previous_entity"): vol.Any(None, vol.Match(r"^(input_select|input_text)\.[a-z0-9_]+$")),
         vol.Optional("notify_services", default=[]): [
             vol.Match(r"^notify\.[a-z0-9_]+$")
         ],
@@ -141,6 +140,10 @@ def normalize(raw: dict | None) -> dict[str, Any]:
     raw = copy.deepcopy(raw or {})
     state = {k: raw.pop(k) for k in STATE_KEYS if k in raw}
     # ext.6/7 stored a single notify_service; it is a list now
+    # v2026.10.29.34 had compare_entity (Shadow only)
+    cmp = raw.pop("compare_entity", None)
+    if cmp and not raw.get("current_entity") and cmp.split(".")[0] in ("input_select", "input_text"):
+        raw["current_entity"] = cmp
     old = raw.pop("notify_service", None)
     if old and not raw.get("notify_services"):
         raw["notify_services"] = [old]

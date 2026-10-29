@@ -46,7 +46,8 @@ export type HouseStep = {
 export type HouseSettings = {
   enabled: boolean;
   run_mode?: 'shadow' | 'live';
-  compare_entity?: string | null;
+  current_entity?: string | null;
+  previous_entity?: string | null;
   modes: HouseMode[];
   input_select?: string | null;
   lock_keypads: LockKeypad[];
@@ -73,6 +74,60 @@ export type HouseInfo = {
   targets: { key: string; entity_id: string; name: string }[];
   shadow?: ShadowSummary;
 };
+export type DetectSuggestion = {
+  name: string;
+  icon: string;
+  targets: Record<string, string>;
+  basis: 'activity' | 'name' | 'none';
+  seen: number;
+  share: Record<string, number>;
+  note: string;
+};
+export type DetectEntities = { selector: string | null; current: string | null; previous: string | null };
+export type DetectResult = {
+  entities: DetectEntities;
+  selects: { entity_id: string; name: string | null }[];
+  suggestions: DetectSuggestion[];
+  changes: number;
+  span: number[];
+  targets: { key: string; entity_id: string; name: string }[];
+};
+export const detectHouse = (hass: HomeAssistant, entities?: Partial<DetectEntities>) =>
+  hass.callWS<DetectResult>({ type: 'alarmo/ext/house/detect', ...(entities || {}) });
+
+/** Put the chosen suggestions and the three entities into the settings draft (nothing is saved). */
+export const applyDetected = (d: HouseSettings, picked: DetectSuggestion[], ents: DetectEntities): string[] => {
+  const changes: string[] = [];
+  if (ents.selector && d.input_select !== ents.selector) {
+    d.input_select = ents.selector;
+    changes.push(`input_select: ${ents.selector}`);
+  }
+  if (ents.current && d.current_entity !== ents.current) d.current_entity = ents.current;
+  if (ents.previous && d.previous_entity !== ents.previous) d.previous_entity = ents.previous;
+  for (const sug of picked) {
+    const have = d.modes.find(m => m.name.toLowerCase() === sug.name.toLowerCase());
+    if (have) {
+      if (sug.basis !== 'none' && JSON.stringify(have.targets) !== JSON.stringify(sug.targets)) {
+        have.targets = { ...sug.targets };
+        changes.push(`${have.name}: partitions updated`);
+      }
+      if (have.icon === 'mdi:home' && sug.icon !== 'mdi:home') have.icon = sug.icon;
+    } else {
+      const m = newMode(sug.name, d.modes);
+      m.icon = sug.icon;
+      m.targets = { ...sug.targets };
+      d.modes.push(m);
+      changes.push(`${m.name}: added`);
+    }
+  }
+  if (!d.enabled) {
+    d.enabled = true;
+    d.run_mode = 'shadow';
+    changes.push('House Modes: Shadow');
+  }
+  return changes;
+};
+
 export const fetchShadow = (hass: HomeAssistant) =>
   hass.callWS<{ log: ShadowEntry[]; summary: ShadowSummary }>({ type: 'alarmo/ext/house/shadow' });
 /** 'off' | 'shadow' | 'live' from the two settings. */

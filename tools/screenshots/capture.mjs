@@ -98,6 +98,30 @@ const SHOTS = [
       await v.updateComplete;
     });
   }],
+  ['/alarmo/house', '13-house-modes-detect', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');
+      const key = v.info.targets.find(t => t.key !== 'master')?.key || v.info.targets[0].key;
+      const sel = [['input_select.house_mode', 'House Mode'], ['input_select.house_mode_last', 'House Mode - Last'],
+                   ['input_select.house_mode_selector', 'House Mode Selector']].map(([e, n]) => ({ entity_id: e, name: n }));
+      const s = (name, icon, t, basis, seen, share, note) => ({ name, icon, targets: t ? { [key]: t } : {}, basis, seen, share: t && share ? { [key]: share } : {}, note });
+      v.detect = {
+        entities: { selector: 'input_select.house_mode_selector', current: 'input_select.house_mode', previous: 'input_select.house_mode_last' },
+        selects: sel, changes: 189, span: [0, 18 * 86400], targets: v.info.targets,
+        suggestions: [
+          s('Disarmed', 'mdi:shield-off-outline', 'disarmed', 'activity', 76, 1, ''),
+          s('Stay', 'mdi:home-lock', 'armed_home', 'activity', 68, 0.75, 'also seen: Custom 16×'),
+          s('Sleep', 'mdi:weather-night', 'armed_home', 'activity', 19, 0.79, 'the activity log disagrees with the name; the log is used'),
+          s('Away', 'mdi:car', 'armed_away', 'activity', 25, 0.72, 'also seen: Disarmed 6×'),
+          s('Vacation', 'mdi:airplane', 'armed_vacation', 'name', 0, 0, ''),
+          s('Guest', 'mdi:account-group', 'disarmed', 'activity', 1, 1, ''),
+        ],
+      };
+      v.detectPick = ['Disarmed', 'Stay', 'Sleep', 'Away', 'Vacation', 'Guest'];
+      await v.updateComplete;
+      v.shadowRoot.querySelector('.subhead').scrollIntoView();
+    });
+  }],
   ['/alarmo/actions', '11-alarm-events-migrate', async (p) => {
     await p.evaluate(async () => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions');

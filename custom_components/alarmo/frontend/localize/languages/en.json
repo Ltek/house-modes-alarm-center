@@ -420,12 +420,12 @@
           }
         },
         "actions": {
-          "description": "This panel can be used to switch a device when the alarm state changes.",
+          "description": "Run native Home Assistant scenes or scripts when the alarm state changes: armed, disarmed, triggered, failed to arm and more.",
           "table": {
             "no_items": "There are no actions created yet."
           },
           "actions": {
-            "new_action": "New action"
+            "new_action": "New Alarm Event"
           }
         },
         "new_notification": {
@@ -535,7 +535,7 @@
         },
         "new_action": {
           "title": "Configure action",
-          "description": "Switch lights or devices (such as sirens) when arming/disarming the alarm, on activation, etc.",
+          "description": "Choose an alarm event, then the scenes or scripts it runs (for example lights on and a siren when triggered).",
           "fields": {
             "event": {
               "heading": "Event",

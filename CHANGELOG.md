@@ -3,6 +3,18 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.10.29.32 — 2026-10-29
+
+- **Alarm Events run native scenes and scripts**, the same single method as House Modes:
+  - a new or migrated Alarm Event picks the scenes and scripts it runs, in order;
+  - scripts get the variables `event`, `area` and `arm_mode`.
+- **Migrate to scenes and scripts** (Alarm Events tab), for setups coming from Alarmo:
+  - shows a plan first: each event becomes a native scene (plain on/off, lock, open/close states) or a native
+    script (extra data, sirens, toggles, notify calls…), with the same trigger;
+  - makes an integration backup before anything is written;
+  - events not yet migrated keep working, and still open with the old controls.
+- "New action" is now **New Alarm Event**.
+
 ## v2026.10.29.31 — 2026-10-29
 
 - **New House Mode Actions tab.** One overview of every native Home Assistant automation, script and scene that

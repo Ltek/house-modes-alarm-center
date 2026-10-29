@@ -20,6 +20,14 @@ SKIP_PREFIXES = ("panels.sensors.cards.editor.fields.device_type.choose.",)
 
 # Exact values for keys where a word swap reads badly.
 EXACT = {
+    "panels.actions.cards.actions.actions.new_action": "New Alarm Event",
+    "panels.actions.cards.actions.description": (
+        "Run native Home Assistant scenes or scripts when the alarm state changes: armed, disarmed, triggered, "
+        "failed to arm and more."
+    ),
+    "panels.actions.cards.new_action.description": (
+        "Choose an alarm event, then the scenes or scripts it runs (for example lights on and a siren when triggered)."
+    ),
     "panels.general.cards.general.fields.enable_master.heading": "Enable 'All partitions' panel",
     "panels.general.cards.general.fields.enable_master.description": (
         "Creates an alarm entity for controlling all partitions simultaneously."

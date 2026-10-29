@@ -20,6 +20,7 @@ import { EAutomationTypes } from '../../const';
 import { getAreaOptions, computeAreaDisplay } from '../../data/actions';
 import { exportPath, Path } from '../../common/navigation';
 import { roleChip, sectionHead } from '../ext/page-intro';
+import '../ext/event-migrate';
 
 const noArea = 'no_area';
 
@@ -207,6 +208,13 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
               ${localize('panels.actions.cards.actions.actions.new_action', this.hass.language)}
             </ha-button>
           </div>
+          ${editor
+          ? ''
+          : html`<alarmo-ext-event-migrate
+                .hass=${this.hass}
+                .events=${this.automations.filter(e => e.type == EAutomationTypes.Action)}
+                @events-migrated=${() => this._fetchData()}
+              ></alarmo-ext-event-migrate>`}
           ${editor ? html`<div style="padding:0 8px 8px">${editor}</div>` : ''}
 
           <alarmo-table

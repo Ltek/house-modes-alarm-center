@@ -137,6 +137,8 @@ class AutomationHandler:
                         and validate_modes(trigger, alarm_entity._arm_mode)
                         and validate_trigger(trigger, new_state, old_state)
                     ):
+                        # ext: read by async_execute_automation before its first await
+                        self._event = trigger.get(const.ATTR_EVENT)
                         await self.async_execute_automation(automation_id, alarm_entity)
 
         self._subscriptions.append(
@@ -168,6 +170,8 @@ class AutomationHandler:
                         and validate_modes(trigger, alarm_entity._arm_mode)
                         and validate_trigger(trigger, EVENT_ARM_FAILURE)
                     ):
+                        # ext: read by async_execute_automation before its first await
+                        self._event = trigger.get(const.ATTR_EVENT)
                         await self.async_execute_automation(automation_id, alarm_entity)
 
         self._subscriptions.append(
@@ -183,6 +187,8 @@ class AutomationHandler:
         self, automation_id: str, alarm_entity: AlarmoBaseEntity
     ):
         """Execute the specified automation."""
+        event = getattr(self, "_event", None)
+        self._event = None
         # automation is a dict of AutomationEntry
         _LOGGER.debug(
             "Executing automation %s",
@@ -205,6 +211,17 @@ class AutomationHandler:
                     )
 
                 domain, service = action[ATTR_SERVICE].split(".")
+
+                # ext: scripts run by Alarm Events get the event as variables
+                if (
+                    action[ATTR_SERVICE] == "script.turn_on"
+                    and "variables" not in service_data
+                ):
+                    service_data["variables"] = {
+                        "event": event,
+                        "area": getattr(alarm_entity, "name", None),
+                        "arm_mode": getattr(alarm_entity, "_arm_mode", None),
+                    }
 
                 await self.hass.async_create_task(
                     self.hass.services.async_call(

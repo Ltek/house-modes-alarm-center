@@ -36,6 +36,7 @@ import {
 import { EAutomationTypes } from '../../const';
 import { exportPath } from '../../common/navigation';
 import { loadHaYamlEditor } from '../../load-ha-elements';
+import { isLegacyEvent, eventTargets, nativeActions } from '../../data/alarm-events';
 
 import '../../components/alarmo-selector';
 import '../../components/alarmo-select';
@@ -75,6 +76,10 @@ export class AutomationEditorCard extends LitElement {
   @property()
   errors: Dictionary<boolean> = {};
 
+  /** ext: an upstream-style event (own list of service calls), edited with the old controls until migrated */
+  @property()
+  legacy = false;
+
   async firstUpdated() {
     await loadHaYamlEditor();
 
@@ -91,7 +96,8 @@ export class AutomationEditorCard extends LitElement {
       else if (area === null) area = 0;
       this._setArea(new CustomEvent('value-changed', { detail: { value: area } }));
 
-      if (this._hasCustomEntities()) this.viewMode = ViewMode.Yaml;
+      this.legacy = isLegacyEvent(this.item);
+      if (this.legacy && this._hasCustomEntities()) this.viewMode = ViewMode.Yaml;
     }
 
     //automatically set area if there is only 1 option
@@ -186,8 +192,14 @@ export class AutomationEditorCard extends LitElement {
       <div class="section-header">${localize('panels.actions.cards.new_notification.action', this.hass.language)}</div>
       <ha-card>
         <div class="card-content">
-          ${this.viewMode == ViewMode.UI
+          ${this.viewMode == ViewMode.UI && !this.legacy
+        ? this.renderRun()
+        : this.viewMode == ViewMode.UI
         ? html`
+                <div class="legacy-note">
+                  This event uses Alarmo's old list of actions. Use <b>Migrate to scenes and scripts</b> above the
+                  Alarm Events list to turn it into a native scene or script.
+                </div>
                 <alarmo-settings-row .narrow=${this.narrow} .large=${true} first>
                   <span slot="heading">
                     ${localize('panels.actions.cards.new_action.fields.entity.heading', this.hass.language)}
@@ -323,6 +335,45 @@ export class AutomationEditorCard extends LitElement {
         </ha-button>
       </div>
     `;
+  }
+
+  /** ext: the one method, run native scenes and scripts */
+  private renderRun() {
+    const all = Object.keys(this.hass.states)
+      .filter(e => e.startsWith('scene.') || e.startsWith('script.'))
+      .sort((a, b) =>
+        String(this.hass.states[a].attributes.friendly_name || a).localeCompare(
+          String(this.hass.states[b].attributes.friendly_name || b)
+        )
+      );
+    const value = eventTargets(this.config);
+    return html`
+      <alarmo-settings-row .narrow=${this.narrow} .large=${true} first>
+        <span slot="heading">Scenes and scripts</span>
+        <span slot="description">
+          Run these native scenes or scripts, in this order. Scripts get the variables <code>event</code>,
+          <code>area</code> and <code>arm_mode</code>. Create scenes on the
+          <a href="/alarmo/house_actions">House Mode Actions</a> tab, scripts in Home Assistant.
+        </span>
+        <alarmo-selector
+          .hass=${this.hass}
+          .items=${computeEntityDisplay([...new Set([...all, ...value])], this.hass)}
+          ?disabled=${!all.length && !value.length}
+          label="Scenes and scripts"
+          .value=${value}
+          @value-changed=${this._setRun}
+          ?invalid=${this.errors.entity_id || this.errors.service}
+          showSearch
+        ></alarmo-selector>
+      </alarmo-settings-row>
+    `;
+  }
+
+  private _setRun(ev: CustomEvent) {
+    ev.stopPropagation();
+    const ids = (ev.detail.value || []) as string[];
+    this.config = { ...this.config, actions: ids.length ? nativeActions(ids) : [{}] };
+    if (Object.keys(this.errors).length) this._validateConfig();
   }
 
   private renderActions() {
@@ -527,6 +578,11 @@ export class AutomationEditorCard extends LitElement {
   }
 
   private _namePlaceholder() {
+    if (!this.legacy && this.viewMode == ViewMode.UI) {
+      const names = computeEntityDisplay(eventTargets(this.config), this.hass).map(e => e.name);
+      const event = this.config.triggers[0].event;
+      return event && names.length ? `${computeEventDisplay(event, this.hass).name}: ${names.join(', ')}` : '';
+    }
     if (!this._validAction) return '';
     const event = this.config.triggers[0].event;
     const entities = this.config.actions.map(e => e.entity_id).filter(isDefined) as string[];
@@ -653,6 +709,12 @@ export class AutomationEditorCard extends LitElement {
         font-size: 24px;
         font-weight: 400;
         letter-spacing: -0.012em;
+      }
+      div.legacy-note {
+        margin: 0 0 12px;
+        padding: 8px 12px;
+        border-left: 3px solid var(--warning-color, #ff9800);
+        background: rgba(255, 152, 0, 0.08);
       }
       span.error-message {
         color: var(--error-color);

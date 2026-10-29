@@ -77,6 +77,18 @@ const SHOTS = [
     });
   }],
   ['/alarmo/backup', '10-backup'],
+  ['/alarmo/actions', '11-alarm-events-migrate', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions');
+      const m = v.shadowRoot.querySelector('alarmo-ext-event-migrate');
+      m.events = [...m.events, { automation_id: 'x', type: 'action', name: 'Siren and hall light on trigger',
+        triggers: [{ event: 'triggered' }],
+        actions: [{ service: 'siren.turn_on', entity_id: 'siren.hall', data: { tone: 'alarm', duration: 300 } },
+                  { service: 'light.turn_on', entity_id: 'light.hall', data: { brightness: 255 } }] }];
+      await m.updateComplete;
+      m.shadowRoot.querySelector('ha-button').click();
+    });
+  }],
 ];
 
 const MAX_HEIGHT = 1500;

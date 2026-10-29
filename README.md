@@ -1,6 +1,6 @@
 # House Modes & Alarm Center
 
-> **Current build: v2026.10.29.32** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
+> **Current build: v2026.10.29.33** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
 
 A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber: one place for
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via
@@ -76,6 +76,8 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 
 **Physical panel link** (Envisalink; other panels via HA services)
 - **Shadow mode** first: logs what it would do next to your own automations; **live** when the log matches.
+- **Start-up check:** after a restart, reload or panel reconnect, Alarmo is compared with the panel once both have
+  settled; if a restored Alarmo state is stale, Alarmo follows the panel and you are told (alarms are never cleared).
 - **Panel-led arming:** Alarmo checks every zone, the panel gets the command at once, Alarmo counts as armed when the
   panel is — one exit delay. Retries, failure policy, learned exit delays and *Match Alarmo's exit times*.
 - **Arming at the panel keypad** is followed from the start (mode read from the keypad text, mapping per mode); zones

@@ -3,6 +3,19 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.10.29.33 — 2026-10-29
+
+- **Panel link start-up check.** After a Home Assistant restart, an integration reload or a panel reconnect, Alarmo
+  and the physical panel are compared once both have reported and stayed unchanged for 30 s:
+  - in step: logged;
+  - the panel is disarmed but Alarmo restored an armed state (seen after an unclean restart): Alarmo is disarmed;
+  - the panel is armed but Alarmo is not: Alarmo arms the same way (no exit delay, open HA-only zones bypassed);
+  - arming, pending or an alarm on either side, or follow-panel off: nothing changes, you are notified;
+  - the panel never reports within 5 minutes: you are notified;
+  - shadow mode only logs. Normal use (arming, disarming) during the wait cancels the check.
+- A restored Alarmo state is no longer sent to the panel as a command, and the panel's first report after
+  reconnecting is no longer followed as a keypad action; both go through the start-up check instead.
+
 ## v2026.10.29.32 — 2026-10-29
 
 - **Alarm Events run native scenes and scripts**, the same single method as House Modes:

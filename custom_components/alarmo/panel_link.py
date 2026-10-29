@@ -48,6 +48,12 @@ QUICK_BYPASS_WINDOW = 90
 BYPASS_CONFIRM_SECONDS = 25
 ARMED = tuple(s for s in SERVICE_FOR if s != "disarmed")
 EXPECT_SECONDS = 60
+# start-up / reconnect check: both sides must be unchanged this long before they are compared
+SETTLE_SECONDS = 30
+# give up waiting for the panel to report after this long
+CHECK_TIMEOUT = 300
+NOT_REPORTING = ("unavailable", "unknown")
+TRANSIENT = ("arming", "pending", "triggered")
 LOG_SIZE = 300
 
 
@@ -435,6 +441,10 @@ class PanelLink:
         self._alarmo_arming_since: float | None = None
         self._task: asyncio.Task | None = None
         self._unsubs: list = []
+        # start-up check (after a restart, reload or panel reconnect)
+        self._check_settle = None
+        self._check_timeout = None
+        self._check_why = "start"
 
     # ---------------------------------------------------------------- start/stop
 
@@ -461,11 +471,133 @@ class PanelLink:
             "info",
             f"started ({self.cfg['mode']}): {alarmo.entity_id} <-> {self.panel}",
         )
+        self._check_start("start")
         return True
+
+    # ---------------------------------------------------------------- start-up check
+    # After a restart Alarmo restores its last saved state, which can be older than the
+    # last change (an unclean shutdown). The panel kept running, so it is the one to trust.
+
+    @property
+    def checking(self) -> bool:
+        """A start-up check is waiting for both sides to settle."""
+        return self._check_timeout is not None
+
+    def _check_start(self, why: str) -> None:
+        if not self.checking:
+            self._check_why = why
+            self._check_timeout = async_call_later(self.hass, CHECK_TIMEOUT, self._check_gave_up)
+        self._check_rearm()
+
+    def _check_rearm(self) -> None:
+        if self._check_settle:
+            self._check_settle()
+        self._check_settle = async_call_later(self.hass, SETTLE_SECONDS, self._check_now)
+
+    def _check_cancel(self) -> None:
+        for name in ("_check_settle", "_check_timeout"):
+            unsub = getattr(self, name)
+            if unsub:
+                unsub()
+            setattr(self, name, None)
+
+    @callback
+    def _check_gave_up(self, _now) -> None:
+        self._check_timeout = None
+        self._check_cancel()
+        panel = self.hass.states.get(self.panel)
+        self._log(
+            "warning",
+            f"{self._check_why} check: physical panel did not report "
+            f"({panel.state if panel else 'missing'}); Alarmo and the panel were not compared",
+        )
+        if self.live:
+            self.hass.async_create_task(
+                self.mgr.async_notify(
+                    "Alarm panel not reporting",
+                    f"The alarm panel has not reported since Home Assistant started, so Alarmo could not check "
+                    f"that both are in the same state. Check {self.panel}.",
+                )
+            )
+
+    @callback
+    def _check_now(self, _now) -> None:
+        self._check_settle = None
+        panel = self.hass.states.get(self.panel)
+        alarmo = self.hass.states.get(self.alarmo_entity_id) if self.alarmo_entity_id else None
+        if panel is None or panel.state in NOT_REPORTING or alarmo is None or alarmo.state in NOT_REPORTING:
+            return  # keep waiting: a report re-arms the settle timer, the timeout gives up
+        why = self._check_why
+        self._check_cancel()
+        self._reconcile(why, alarmo.state, panel.state)
+
+    def _agree(self, alarmo: str, panel: str) -> bool:
+        if alarmo == "disarmed" or panel == "disarmed":
+            return alarmo == panel
+        cmd = (self.cfg.get("commands") or {}).get(alarmo) or {}
+        return panel in (cmd.get("accept") or [alarmo]) or follow_mode(self.cfg, panel) == alarmo
+
+    def _reconcile(self, why: str, astate: str, pstate: str) -> None:  # noqa: PLR0911
+        if self._agree(astate, pstate):
+            self._log("info", f"{why} check: in step (Alarmo {astate}, physical panel {pstate})", ok=True)
+            return
+        if astate in TRANSIENT or pstate in TRANSIENT or (pstate not in SERVICE_FOR):
+            self._log("warning", f"{why} check: Alarmo is {astate}, physical panel is {pstate}; nothing changed")
+            if self.live:
+                self.hass.async_create_task(
+                    self.mgr.async_notify(
+                        "Alarmo and the alarm panel differ",
+                        f"After {why}: Alarmo is {astate}, the alarm panel is {pstate}. "
+                        "Nothing was changed automatically; please check.",
+                    )
+                )
+            return
+        if not self.cfg["follow_panel"]:
+            self._log("warning", f"{why} check: Alarmo is {astate}, physical panel is {pstate} (follow panel is off)")
+            if self.live:
+                self.hass.async_create_task(
+                    self.mgr.async_notify(
+                        "Alarmo and the alarm panel differ",
+                        f"After {why}: Alarmo is {astate}, the alarm panel is {pstate}.",
+                    )
+                )
+            return
+        alarmo = self.mgr.alarmo_entity(self.key)
+        if alarmo is None:
+            return
+        note = " If your House Mode selector still shows the old mode, set it again."
+        if pstate == "disarmed":
+            self._log("warning", f"{why} check: physical panel is disarmed, Alarmo restored {astate} → disarm Alarmo")
+            if not self.live:
+                return
+            self.expect_alarmo = {"target": "disarmed", "deadline": time.monotonic() + EXPECT_SECONDS}
+            self.hass.async_create_task(alarmo.async_alarm_disarm(code=None, skip_code=True))
+            self.hass.async_create_task(
+                self.mgr.async_notify(
+                    "Alarmo disarmed to match the alarm panel",
+                    f"After {why}, Alarmo was {astate} but the alarm panel is disarmed, so Alarmo was disarmed. "
+                    f"Zones only Home Assistant watches are not armed now.{note}",
+                )
+            )
+            return
+        mode = follow_mode(self.cfg, pstate)
+        self._log("warning", f"{why} check: physical panel is {pstate}, Alarmo restored {astate} → arm Alarmo {mode}")
+        if not self.live:
+            return
+        self._follow_arm(mode, pstate, skip_delay=True, notify=False)
+        self.hass.async_create_task(
+            self.mgr.async_notify(
+                "Alarmo armed to match the alarm panel",
+                f"After {why}, Alarmo was {astate} but the alarm panel is {pstate}, so Alarmo was armed "
+                f"{mode.replace('armed_', '')} (no exit delay; open zones the panel does not watch are bypassed)."
+                f"{note}",
+            )
+        )
 
     @callback
     def async_stop(self) -> None:
         """Stop listening and cancel a running command."""
+        self._check_cancel()
         while self._unsubs:
             self._unsubs.pop()()
         if self._task and not self._task.done():
@@ -503,6 +635,12 @@ class PanelLink:
         old = event.data.get("old_state")
         if new is None or (old is not None and old.state == new.state):
             return
+        if old is None or old.state in NOT_REPORTING or new.state in NOT_REPORTING:
+            # restored after a restart/reload, not a command: compare once both sides settle
+            self._check_start("restart")
+            return
+        if self.checking:
+            self._check_cancel()  # normal operation resumed
         state = new.state
         if state == "triggered":
             self.hass.async_create_task(self._handle_trip(), "alarmo_panel_trip")
@@ -749,11 +887,17 @@ class PanelLink:
     # ---------------------------------------------------------------- panel -> Alarmo
 
     @callback
-    def _on_panel(self, event: Event) -> None:
+    def _on_panel(self, event: Event) -> None:  # noqa: PLR0911, PLR0912
         new = event.data.get("new_state")
         old = event.data.get("old_state")
         if new is None or (old is not None and old.state == new.state):
             return
+        if old is None or old.state in NOT_REPORTING or new.state in NOT_REPORTING:
+            # the panel (re)connected: its state is a report, not a keypad action
+            self._check_start("restart" if self.checking else "panel reconnect")
+            return
+        if self.checking:
+            self._check_cancel()  # normal operation resumed
         state = new.state
         now = time.monotonic()
         if state == "arming":
@@ -812,7 +956,7 @@ class PanelLink:
             return
         self._follow_arm(follow_mode(self.cfg, panel_mode), panel_mode, skip_delay=False)
 
-    def _follow_arm(self, mode: str, panel_mode: str, skip_delay: bool) -> None:
+    def _follow_arm(self, mode: str, panel_mode: str, skip_delay: bool, notify: bool = True) -> None:
         alarmo = self.mgr.alarmo_entity(self.key)
         if alarmo is None:
             return
@@ -831,7 +975,7 @@ class PanelLink:
         self.hass.async_create_task(
             alarmo.async_handle_arm_request(mode, skip_code=True, bypass_open_sensors=True, skip_delay=skip_delay)
         )
-        if ha_open:
+        if ha_open and notify:
             self.hass.async_create_task(
                 self.mgr.async_notify(
                     "Armed at the alarm panel",

@@ -589,3 +589,103 @@ async def test_vista_bypas_list_corrects_the_guess(hass: Any, hass_storage: Any,
     await _settle(hass)
     await advance_time(hass, 30)
     assert panel.is_bypassed(WIN) and not panel.is_bypassed(PANEL_ONLY)
+
+
+# ---------------------------------------------------------------- start-up check
+
+
+async def _armed_without_link(hass, hass_storage, tmp_path, mode="home"):
+    """Alarmo armed while no link runs (as restored after a restart)."""
+    calls = await _setup(hass, hass_storage, tmp_path)
+    await _save(hass, **_link("off"))
+    await _arm(hass, mode, force=True)
+    await advance_time(hass, 300)
+    assert hass.states.get(ALARMO_GF).state == f"armed_{mode}"
+    return calls
+
+
+async def test_start_check_disarms_stale_alarmo(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """Alarmo restored armed, the panel is disarmed: Alarmo follows the panel, nothing is sent."""
+    calls = await _armed_without_link(hass, hass_storage, tmp_path)
+    await _save(hass, **_link())
+    await advance_time(hass, 10)
+    assert hass.states.get(ALARMO_GF).state == "armed_home"  # waits for both sides to settle
+    await advance_time(hass, 31)
+    await _settle(hass)
+    assert hass.states.get(ALARMO_GF).state == "disarmed"
+    assert _sent(calls) == 0
+    assert any("Alarmo restored armed_home → disarm Alarmo" in m for m in _log(hass))
+    assert any("disarmed to match" in c.data["title"] for c in calls["notify"])
+
+
+async def test_start_check_arms_alarmo_to_match(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """The panel is armed, Alarmo disarmed: Alarmo arms (no exit delay), nothing is sent back."""
+    calls = await _setup(hass, hass_storage, tmp_path)
+    hass.states.async_set(PANEL, "armed_away")
+    await _settle(hass)
+    await _save(hass, **_link())
+    await advance_time(hass, 31)
+    await _settle(hass)
+    assert hass.states.get(ALARMO_GF).state == "armed_away"
+    await advance_time(hass, 40)
+    assert _sent(calls) == 0
+
+
+async def test_start_check_in_step_and_shadow(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """In step: logged only. Shadow: a difference is logged, Alarmo is not changed."""
+    calls = await _setup(hass, hass_storage, tmp_path)
+    await _save(hass, **_link())
+    await advance_time(hass, 31)
+    assert any("check: in step (Alarmo disarmed, physical panel disarmed)" in m for m in _log(hass))
+    await _save(hass, **_link("off"))
+    await _arm(hass, "home", force=True)
+    await advance_time(hass, 300)
+    await _save(hass, **_link("shadow"))
+    await advance_time(hass, 31)
+    assert hass.states.get(ALARMO_GF).state == "armed_home"
+    assert any("[shadow] start check: physical panel is disarmed" in m for m in _log(hass))
+    assert _sent(calls) == 0
+    assert not calls["notify"]
+
+
+async def test_start_check_waits_for_the_panel(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """Panel unavailable: no comparison; its first report is not a keypad action; never reporting → notify."""
+    calls = await _armed_without_link(hass, hass_storage, tmp_path)
+    hass.states.async_set(PANEL, "unavailable")
+    await _settle(hass)
+    await _save(hass, **_link())
+    await advance_time(hass, 60)
+    assert hass.states.get(ALARMO_GF).state == "armed_home"
+    hass.states.async_set(PANEL, "armed_home")  # reconnects: in step with Alarmo
+    await _settle(hass)
+    await advance_time(hass, 31)
+    assert hass.states.get(ALARMO_GF).state == "armed_home"
+    assert any("in step (Alarmo armed_home, physical panel armed_home)" in m for m in _log(hass))
+    # a later outage that never ends
+    hass.states.async_set(PANEL, "unavailable")
+    await _settle(hass)
+    await advance_time(hass, 301)
+    assert any("did not report" in m for m in _log(hass))
+    assert any("not reporting" in c.data["title"] for c in calls["notify"])
+    assert _sent(calls) == 0
+
+
+async def test_start_check_leaves_alarms_alone(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """Panel in alarm after a restart: nothing is changed, the user is told."""
+    calls = await _setup(hass, hass_storage, tmp_path)
+    hass.states.async_set(PANEL, "triggered")
+    await _settle(hass)
+    await _save(hass, **_link())
+    await advance_time(hass, 31)
+    assert hass.states.get(ALARMO_GF).state == "disarmed"
+    assert any("differ" in c.data["title"] for c in calls["notify"])
+
+
+async def test_normal_use_cancels_the_check(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """Arming right after the link starts is normal operation: the check stands down."""
+    calls = await _setup(hass, hass_storage, tmp_path)
+    await _save(hass, **_link())
+    await _arm(hass)
+    await advance_time(hass, 31)
+    assert not any(" check:" in m for m in _log(hass))
+    assert len(calls["alarm_arm_home"]) == 1

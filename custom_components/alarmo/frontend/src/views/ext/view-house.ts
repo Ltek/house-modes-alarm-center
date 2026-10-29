@@ -14,6 +14,11 @@ import {
   TARGET_STATES,
   describeTargets,
   fetchHouse,
+  fetchShadow,
+  runState,
+  setRunState,
+  ShadowEntry,
+  ShadowSummary,
   modeErrors,
   newMode,
   removeMode,
@@ -63,6 +68,8 @@ export class AlarmViewHouse extends LitElement {
   @state() private error = '';
   @state() private busy = false;
   @state() private lastBlocked: { mode: string; reason: string } | null = null;
+  @state() private shadow?: { log: ShadowEntry[]; summary: ShadowSummary };
+  @state() private shadowAll = false;
 
   firstUpdated() {
     this.refresh();
@@ -74,6 +81,7 @@ export class AlarmViewHouse extends LitElement {
   private async refresh(resetDraft = false) {
     try {
       this.info = await fetchHouse(this.hass);
+      if (runState(this.info.settings) === 'shadow') this.shadow = await fetchShadow(this.hass).catch(() => undefined);
       if (!this.draft || resetDraft) this.draft = clone(this.info.settings);
       else {
         // runtime state always comes from the server
@@ -109,7 +117,7 @@ export class AlarmViewHouse extends LitElement {
     const errors = modeErrors(this.draft.modes);
     return html`
       ${this.error ? html`<div class="notice error" style="white-space:pre-line;margin:0 0 12px">${this.error}</div>` : nothing}
-      ${this.renderCurrent()} ${this.renderModes()}
+      ${this.renderCurrent()} ${this.renderShadow()} ${this.renderModes()}
       <ha-card><div class="toolbar"><ha-icon icon="mdi:history"></ha-icon>House Mode history and every sequence around it are on the <a href="/alarmo/activity">Activity</a> tab.</div></ha-card>
       ${this.dirty
         ? html`<div class="savebar" role="region" aria-label="Unsaved House Mode settings">
@@ -144,14 +152,25 @@ export class AlarmViewHouse extends LitElement {
             actions are on the <a href="/alarmo/codes">Users, Codes, Keypads</a> tab.</p>
         </div>
         <div class="toolbar">
-          <label><input type="checkbox" .checked=${this.draft!.enabled} @change=${(e: any) => this.set(d => (d.enabled = e.target.checked))} />
-            Use House Modes</label>
+          <span>House Modes</span>
+          ${(['off', 'shadow', 'live'] as const).map(
+            v => html`<label><input type="radio" name="hm-run" .checked=${runState(this.draft!) === v}
+                @change=${() => this.set(d => setRunState(d, v))} />${v === 'off' ? 'Off' : v === 'shadow' ? 'Shadow' : 'Live'}</label>`
+          )}
           <span class="grow"></span>
           ${s.enabled
-            ? html`<span>Now: <strong>${cur ? cur.name : 'unknown'}</strong>
+            ? html`<span>${runState(s) === 'shadow' ? 'Would be' : 'Now'}: <strong>${cur ? cur.name : 'unknown'}</strong>
                 ${s.changed_at ? html`<span class="secondary" style="display:inline">since ${formatDate(s.changed_at, this.hass.language)} (${s.source})</span>` : nothing}</span>`
-            : html`<span class="secondary" style="display:inline">Off — save with "Use House Modes" ticked to start.</span>`}
+            : html`<span class="secondary" style="display:inline">Off — choose Shadow or Live and save to start.</span>`}
         </div>
+        ${runState(this.draft!) === 'shadow'
+          ? html`<div class="notice" style="margin:0 16px 12px">
+              <strong>Shadow:</strong> House Modes run next to your own automations and change nothing. Each request
+              (your input_select, the House Mode select, a lock code, a timer) is checked the way Live would handle it,
+              then compared with what your automations really did. Nothing is armed or disarmed, no scene or script
+              runs, no notification is sent, and the input_select is never written.
+            </div>`
+          : nothing}
         ${s.enabled && s.modes.length
           ? html`<div class="toolbar">
               ${s.modes.map(m => html`<ha-button appearance=${m.id === s.current ? 'filled' : 'plain'} ?disabled=${this.busy || this.dirty} @click=${() => this.choose(m.id)}>
@@ -185,6 +204,7 @@ export class AlarmViewHouse extends LitElement {
       else if (res.result === 'not_ready') this.lastBlocked = { mode: id, reason: `Not ready, open: ${(res.open || []).join(', ')}` };
       else if (res.result === 'failed') this.error = `${name} failed: ${(res.failed || []).join(', ')} did not arm.`;
       else if (res.result === 'delayed') toast(this, `${name} in ${res.minutes} min.`);
+      else if (res.result === 'shadow') toast(this, `Shadow: ${name} ${res.would === 'changed' ? 'would be set' : `would be ${res.would}`} (nothing changed)`);
       else toast(this, `House Mode: ${name}`);
       await this.refresh();
     } catch (err) {
@@ -192,6 +212,56 @@ export class AlarmViewHouse extends LitElement {
     } finally {
       this.busy = false;
     }
+  }
+
+  // ------------------------------------------------------------------ shadow
+
+  private renderShadow() {
+    if (runState(this.info!.settings) !== 'shadow') return nothing;
+    const sh = this.shadow;
+    const log = sh ? [...sh.log].reverse() : [];
+    const shown = this.shadowAll ? log : log.slice(0, 30);
+    const icon = (ok: boolean | null) =>
+      ok === true
+        ? html`<ha-icon icon="mdi:check-circle" style="color:var(--success-color,#4caf50)"></ha-icon>`
+        : ok === false
+          ? html`<ha-icon icon="mdi:alert-circle" style="color:var(--error-color)"></ha-icon>`
+          : html`<ha-icon icon="mdi:information-outline" style="color:var(--secondary-text-color)"></ha-icon>`;
+    return html`
+      <ha-card>${sectionHead('Shadow comparison', 'settings')}
+        <div class="card-content desc">
+          <p>What House Modes would have done, next to what your automations did.</p>
+          <ul>
+            <li><strong>✓</strong> your automations ended where House Modes would have;</li>
+            <li><strong>✗</strong> they differ: read the line, then fix the House Mode or your automation;</li>
+            <li>the same lines are on the <a href="/alarmo/activity">Activity</a> tab, marked <em>[shadow]</em>. This list
+              starts again after a restart.</li>
+          </ul>
+        </div>
+        <div class="toolbar">
+          <ha-button appearance="plain" @click=${() => this.refresh()}><ha-icon slot="start" icon="mdi:refresh"></ha-icon>Refresh</ha-button>
+          ${sh
+            ? html`<span>${sh.summary.matched} matched · <strong>${sh.summary.differed} differed</strong>${sh.summary.watching ? ' · watching a change…' : ''}</span>`
+            : nothing}
+        </div>
+        ${shown.length
+          ? html`<div class="table-wrap"><table class="full">
+              <tbody>
+                ${shown.map(
+                  e => html`<tr>
+                    <td style="width:28px">${icon(e.ok)}</td>
+                    <td style="white-space:nowrap" class="secondary">${new Date(e.t * 1000).toLocaleString()}</td>
+                    <td>${e.msg}</td>
+                  </tr>`
+                )}
+              </tbody>
+            </table></div>
+            ${log.length > 30 && !this.shadowAll
+              ? html`<div class="toolbar"><button class="link" @click=${() => (this.shadowAll = true)}>Show all ${log.length}</button></div>`
+              : nothing}`
+          : html`<div class="empty">Nothing yet. Lines appear when the House Mode is requested or the partitions change.</div>`}
+      </ha-card>
+    `;
   }
 
   // ------------------------------------------------------------------ modes
@@ -416,6 +486,10 @@ export class AlarmViewHouse extends LitElement {
   private renderSettingsRow() {
     const d = this.draft!;
     const selects = Object.keys(this.hass.states).filter(e => e.startsWith('input_select.')).sort();
+    const compares = Object.keys(this.hass.states)
+      .filter(e => /^(input_select|select|sensor|input_text)\./.test(e) && e !== 'select.alarmo_house_mode')
+      .filter(e => e.startsWith('input_select.') || /house.?mode/i.test(e) || e === d.compare_entity)
+      .sort();
     const notifies = Object.keys(this.hass.services.notify || {}).map(s => ({ value: `notify.${s}`, label: `notify.${s}` }));
     return html`
       <div class="detail-grid" style="padding:4px 16px 12px;align-items:flex-start">
@@ -425,6 +499,14 @@ export class AlarmViewHouse extends LitElement {
             ${selects.map(s => html`<option value=${s} ?selected=${d.input_select === s}>${this.hass.states[s].attributes.friendly_name || s} (${s})</option>`)}
           </select>
         </label>
+        ${runState(d) === 'shadow'
+          ? html`<label>Compare with (your own House Mode entity)
+              <select @change=${(e: any) => this.set(x => (x.compare_entity = e.target.value || null))}>
+                <option value="" ?selected=${!d.compare_entity}>none</option>
+                ${compares.map(s => html`<option value=${s} ?selected=${d.compare_entity === s}>${this.hass.states[s].attributes.friendly_name || s} (${s})</option>`)}
+              </select>
+            </label>`
+          : nothing}
         <alarmo-ext-multi-picker
           .label=${'Notifications'}
           .placeholder=${'Add a notify service…'}

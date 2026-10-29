@@ -30,6 +30,23 @@ Mode names must match the options of `input_select.house_mode_selector` if you m
   a second timer after 10 min → Sleep, only when coming from Sleep;
 - on *Stay*: after 10 min → Sleep, only when coming from Sleep.
 
+## Try it in shadow first
+
+On the **House Modes** tab choose **Shadow** (instead of Off or Live) and save. House Modes then run next to your own
+automations and change nothing:
+
+- every request (your input_select, `select.alarmo_house_mode`, a lock code, a timer) is checked the way Live would
+  handle it: who may change the mode, readiness, which partitions it would set, which scenes and scripts would run;
+- then it is compared with what your automations really did to the partitions within 3 minutes: **✓** they ended
+  where House Modes would have, **✗** they differ (blocked or not ready but changed anyway, or never got there);
+- partitions changed outside House Modes (keypad, Alarmo card) show which House Mode that would be;
+- *Compare with* (shown in Shadow): your own House Mode entity, e.g. `input_select.house_mode`, is checked too;
+- nothing is armed or disarmed, no scene or script runs, no notification or House Mode event is sent, and the
+  input_select is never written. Timers and delayed requests are only logged (in memory).
+
+The results are in the *Shadow comparison* card and, marked `[shadow]`, on the Activity tab. When the ✗ lines are
+explained, switch to **Live** (the current mode is kept) and disable the automations in step 3.
+
 ## 2. Keep your dashboards working while you migrate
 
 **House Modes** tab → *House Mode settings* → **House Mode input_select entity** = `input_select.house_mode_selector`, Save. Changing the

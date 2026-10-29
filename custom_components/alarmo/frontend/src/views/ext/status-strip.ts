@@ -72,7 +72,7 @@ export class StatusStrip extends LitElement {
     return html`
       <div class="strip" role="status" aria-label="Alarmo status">
         ${i.house.enabled
-          ? this.chip(i.house.icon || 'mdi:home', `House Mode: ${i.house.name || 'unknown'}`, `Changed by ${i.house.source || '—'}`, '/alarmo/house')
+          ? this.chip(i.house.icon || 'mdi:home', `House Mode: ${i.house.name || 'unknown'}${i.house.shadow ? ' · shadow' : ''}`, `Changed by ${i.house.source || '—'}`, '/alarmo/house')
           : nothing}
         ${i.alarms.map(a => {
           const s = st(a.entity_id)?.state;

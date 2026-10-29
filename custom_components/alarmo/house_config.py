@@ -120,6 +120,12 @@ SETTINGS_SCHEMA = vol.Schema(
             None, vol.Match(r"^input_select\.[a-z0-9_]+$")
         ),
         vol.Optional("lock_keypads", default=[]): [KEYPAD_SCHEMA],
+        # shadow: evaluate and compare next to the user's own automations, change nothing
+        vol.Optional("run_mode", default="live"): vol.In(("shadow", "live")),
+        # the user's own "confirmed House Mode" entity, compared in shadow mode
+        vol.Optional("compare_entity"): vol.Any(
+            None, vol.Match(r"^(input_select|select|sensor|input_text)\.[a-z0-9_]+$")
+        ),
         vol.Optional("notify_services", default=[]): [
             vol.Match(r"^notify\.[a-z0-9_]+$")
         ],

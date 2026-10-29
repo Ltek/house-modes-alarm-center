@@ -33,6 +33,7 @@ from .house_config import (
     derive_mode,
     open_entities,
 )
+from .house_shadow import HouseShadow
 
 if TYPE_CHECKING:
     from .ext_websockets import ExtManager
@@ -64,6 +65,13 @@ class HouseModeManager:
         self._own_select_write: str | None = None
         # partition targets on top of the current mode (keypad actions); cleared on a mode change
         self.overrides: dict[str, str] = {}
+        self.shadow_log = HouseShadow(self)
+
+    @property
+    def shadow(self) -> bool:
+        """House Modes run in shadow: evaluate and compare, change nothing."""
+        s = self.settings
+        return s["enabled"] and s.get("run_mode") == "shadow"
 
     # ------------------------------------------------------------ settings/state
 
@@ -152,6 +160,8 @@ class HouseModeManager:
             raise HouseModeError(f"unknown House Mode '{ref}'")
         if settings["current"] == target["id"]:
             return {"result": "same", "mode": target["id"]}
+        if self.shadow:
+            return await self.shadow_log.request(target, source, force=force, replay_delay=replay_delay)
 
         if not force:
             verdict, detail = permission(settings, target, source)
@@ -480,6 +490,7 @@ class HouseModeManager:
         s = self.settings
         if not s["enabled"]:
             return
+        shadow = s.get("run_mode") == "shadow"
         keys = {k for m in s["modes"] for k in m["targets"]}
         ents = [
             e.entity_id
@@ -500,6 +511,9 @@ class HouseModeManager:
             self._unsubs.append(
                 self.hass.bus.async_listen("zwave_js_notification", self._on_lock)
             )
+        if shadow:
+            self.shadow_log.start()
+            return
         for p in s["pending"]:
             self._arm_timer(p)
 
@@ -509,6 +523,7 @@ class HouseModeManager:
         while self._unsubs:
             self._unsubs.pop()()
         self._cancel_timers()
+        self.shadow_log.stop()
 
     @callback
     def _on_alarm_change(self, _event: Event) -> None:
@@ -517,6 +532,9 @@ class HouseModeManager:
             return
         new = _event.data.get("new_state")
         if new is None or new.state in ("arming", "pending", "triggered"):
+            return
+        if self.shadow:
+            self.shadow_log.on_alarm_change()
             return
         s = self.settings
         live = self._live_states(s, self.overrides)
@@ -548,13 +566,17 @@ class HouseModeManager:
             res = await self.async_set_mode(option, source)
         except HouseModeError as err:
             _LOGGER.info("input_select option %s is not a House Mode: %s", option, err)
+            if self.shadow:
+                self.shadow_log.not_a_mode(option)
+            return
+        if self.shadow:
             return
         if res["result"] in ("blocked", "failed", "not_ready"):
             self._mirror_to_select(self.current())
 
     def _mirror_to_select(self, mode: dict | None) -> None:
         ent = self.settings.get("input_select")
-        if not ent or mode is None:
+        if not ent or mode is None or self.shadow:
             return
         st = self.hass.states.get(ent)
         if st is None or st.state == mode["name"]:

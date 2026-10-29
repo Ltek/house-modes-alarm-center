@@ -77,6 +77,27 @@ const SHOTS = [
     });
   }],
   ['/alarmo/backup', '10-backup'],
+  ['/alarmo/house', '12-house-modes-shadow', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');
+      const t0 = Date.parse('2026-10-28T20:30:00');
+      const at = (m) => (t0 + m * 60000) / 1000;
+      v.info = { ...v.info, settings: { ...v.info.settings, run_mode: 'shadow', compare_entity: 'input_select.house_mode' } };
+      v.draft = JSON.parse(JSON.stringify(v.info.settings));
+      v.shadow = { summary: { matched: 9, differed: 2, since: at(0), watching: false }, log: [
+        { t: at(0), kind: 'request', ok: null, msg: 'automation: Disarmed → Stay: would set House Stay; would run scene.lock_up' },
+        { t: at(0.5), kind: 'request', ok: true, msg: 'Stay: your automations got there after 26 s' },
+        { t: at(0.6), kind: 'compare', ok: true, msg: 'input_select.house_mode is Stay' },
+        { t: at(21), kind: 'request', ok: null, msg: 'manual: Stay → Disarmed: would set House Disarmed' },
+        { t: at(21.1), kind: 'request', ok: true, msg: 'Disarmed: your automations got there after 1 s' },
+        { t: at(31), kind: 'request', ok: null, msg: 'automation: Disarmed → Stay: would set House Stay' },
+        { t: at(34), kind: 'request', ok: false, msg: 'Stay: after 180 s the partitions are House Disarmed (live House Modes: failed, on failure undo)' },
+        { t: at(600), kind: 'external', ok: null, msg: 'partitions changed outside House Modes → House Mode would become Disarmed' },
+        { t: at(600.5), kind: 'compare', ok: false, msg: 'input_select.house_mode is Stay, House Modes: Disarmed' },
+      ] };
+      await v.updateComplete;
+    });
+  }],
   ['/alarmo/actions', '11-alarm-events-migrate', async (p) => {
     await p.evaluate(async () => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions');

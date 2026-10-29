@@ -69,6 +69,7 @@ def status_payload(hass: HomeAssistant) -> dict[str, Any]:
     return {
         "house": {
             "enabled": house["enabled"],
+            "shadow": house["enabled"] and house.get("run_mode") == "shadow",
             "current": cur["id"] if cur else None,
             "name": cur["name"] if cur else None,
             "icon": cur["icon"] if cur else None,

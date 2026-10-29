@@ -45,6 +45,8 @@ export type HouseStep = {
 };
 export type HouseSettings = {
   enabled: boolean;
+  run_mode?: 'shadow' | 'live';
+  compare_entity?: string | null;
   modes: HouseMode[];
   input_select?: string | null;
   lock_keypads: LockKeypad[];
@@ -64,7 +66,21 @@ export type DetectedLock = {
   slots: { slot: number; status: string }[] | null;
   configured: boolean;
 };
-export type HouseInfo = { settings: HouseSettings; targets: { key: string; entity_id: string; name: string }[] };
+export type ShadowEntry = { t: number; kind: string; msg: string; ok: boolean | null };
+export type ShadowSummary = { matched: number; differed: number; since: number | null; watching: boolean };
+export type HouseInfo = {
+  settings: HouseSettings;
+  targets: { key: string; entity_id: string; name: string }[];
+  shadow?: ShadowSummary;
+};
+export const fetchShadow = (hass: HomeAssistant) =>
+  hass.callWS<{ log: ShadowEntry[]; summary: ShadowSummary }>({ type: 'alarmo/ext/house/shadow' });
+/** 'off' | 'shadow' | 'live' from the two settings. */
+export const runState = (s: HouseSettings) => (!s.enabled ? 'off' : s.run_mode === 'shadow' ? 'shadow' : 'live');
+export const setRunState = (s: HouseSettings, v: 'off' | 'shadow' | 'live') => {
+  s.enabled = v !== 'off';
+  if (v !== 'off') s.run_mode = v;
+};
 
 export const fetchHouse = (hass: HomeAssistant) => hass.callWS<HouseInfo>({ type: 'alarmo/ext/house/get' });
 export const saveHouse = (hass: HomeAssistant, settings: HouseSettings) =>
@@ -84,7 +100,7 @@ export const slotList = (lock: DetectedLock, kp: LockKeypad | undefined): number
 };
 
 export const setHouseMode = (hass: HomeAssistant, mode: string, force = false) =>
-  hass.callWS<{ result: string; reason?: string; open?: string[]; minutes?: number; failed?: string[] }>({
+  hass.callWS<{ result: string; would?: string; reason?: string; open?: string[]; minutes?: number; failed?: string[] }>({
     type: 'alarmo/ext/house/set',
     mode,
     force,

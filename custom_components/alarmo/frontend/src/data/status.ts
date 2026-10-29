@@ -2,7 +2,7 @@
 import type { HomeAssistant } from '../types';
 
 export type StatusInfo = {
-  house: { enabled: boolean; current: string | null; name: string | null; icon: string | null; source: string | null };
+  house: { enabled: boolean; shadow?: boolean; current: string | null; name: string | null; icon: string | null; source: string | null };
   alarms: { key: string; entity_id: string; name: string }[];
   links: { key: string; panel_entity: string; mode: 'off' | 'shadow' | 'live'; running: boolean; ready_entity: string | null }[];
   rules_pending: number;

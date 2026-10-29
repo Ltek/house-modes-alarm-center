@@ -35,8 +35,18 @@ async def ws_house_get(hass, connection, msg):
             "settings": _mgr(hass).settings,
             "targets": _link_targets(hass),
             "sources": list(SOURCES),
+            "shadow": _mgr(hass).shadow_log.summary(),
         },
     )
+
+
+@websocket_api.websocket_command({vol.Required("type"): "alarmo/ext/house/shadow"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_house_shadow(hass, connection, msg):
+    """Shadow log (newest last) and summary."""
+    sh = _mgr(hass).shadow_log
+    connection.send_result(msg["id"], {"log": list(sh.log), "summary": sh.summary()})
 
 
 @websocket_api.websocket_command(
@@ -146,7 +156,7 @@ async def ws_house_locks(hass, connection, msg):
     connection.send_result(msg["id"], {"locks": discover_locks(hass)})
 
 
-HOUSE_COMMANDS = (ws_house_get, ws_house_save, ws_house_set, ws_house_locks)
+HOUSE_COMMANDS = (ws_house_get, ws_house_save, ws_house_set, ws_house_locks, ws_house_shadow)
 
 
 def register_house_service(hass: HomeAssistant) -> None:

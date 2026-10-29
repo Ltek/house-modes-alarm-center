@@ -3,6 +3,21 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.10.29.34 — 2026-10-29
+
+- **House Modes: Shadow** (House Modes tab: Off / Shadow / Live). House Modes run next to your own automations and
+  change nothing:
+  - each request (input_select, `select.alarmo_house_mode`, lock code, timer, delayed request) is checked the way Live
+    would handle it (permissions, readiness, partitions, scenes and scripts), then compared with what your
+    automations did to the partitions within 3 minutes: ✓ matched, ✗ differed;
+  - partitions changed outside House Modes show which House Mode that would be;
+  - optional *Compare with*: your own House Mode entity is checked as well;
+  - nothing is armed or disarmed, no step runs, no notification or House Mode event is sent, the input_select is
+    never written; timers and delays are only logged;
+  - *Shadow comparison* card with matched / differed counts; the lines are also on the Activity tab (`[shadow]`);
+  - switching to Live keeps the current mode. The status strip shows "· shadow".
+- HOUSE-MODES.md: "Try it in shadow first".
+
 ## v2026.10.29.33 — 2026-10-29
 
 - **Panel link start-up check.** After a Home Assistant restart, an integration reload or a panel reconnect, Alarmo

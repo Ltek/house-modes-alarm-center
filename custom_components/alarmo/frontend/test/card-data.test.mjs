@@ -21,7 +21,7 @@ test('border: alarm, delay, armed in the mode colour, ready / not ready', () => 
 });
 
 test('panel display, keys, links, hidden modes', () => {
-  assert.deepEqual(lcdLines('****DISARMED****  Ready to Arm  '), ['****DISARMED****', '  Ready to Arm']);
+  assert.deepEqual(lcdLines('****DISARMED****  Ready to Arm  '), ['****DISARMED****', 'Ready to Arm']);
   assert.deepEqual(lcdLines(null), ['', '']);
   assert.deepEqual(keypadKeys()[5], ['6', 'BYPASS']);
   assert.deepEqual(keypadKeys({ 6: 'BYP' })[5], ['6', 'BYP']);

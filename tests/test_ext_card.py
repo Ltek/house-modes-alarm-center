@@ -1,15 +1,18 @@
 # ruff: noqa: E501
 """Dashboard card support: card data for every user, the panel keypad service, colours, clock-time timers."""
 
+import os
 import datetime as dt
 from typing import Any
 
 import pytest
 from homeassistant.core import Context
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.components.frontend import DATA_EXTRA_MODULE_URL
 
 from tests.helpers import advance_time
 from tests.test_ext_panel_link import GF, PANEL, _link, _save, _setup
+from custom_components.alarmo.panel import async_register_panel
 from custom_components.alarmo.house_config import normalize, timer_due, mode_color
 
 pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
@@ -90,8 +93,19 @@ async def test_panel_keypress_checks_the_user(hass: Any, hass_storage: Any, tmp_
     assert not any("12343" in t for t in log)  # digits are masked
 
 
-async def test_card_is_served(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
-    """The card file is registered as an extra frontend module when it exists."""
+async def test_card_is_served(hass: Any, hass_storage: Any, hass_client_no_auth: Any, tmp_path: Any) -> None:
+    """The card file is served without login and loaded on every dashboard as an extra module."""
     await _setup(hass, hass_storage, tmp_path)
-    data = hass.data.get("alarmo_ext_card") or {}
-    assert not data or data["url"].startswith("/alarmo_ext/house-modes-alarm-center-card.js")
+    dist = os.path.join(hass.config.path("custom_components"), "alarmo", "frontend", "dist")
+    os.makedirs(dist, exist_ok=True)
+    for name in ("alarm-panel.js", "house-modes-alarm-center-card.js"):
+        with open(os.path.join(dist, name), "w", encoding="utf-8") as fh:
+            fh.write("export const x = 1;\n")
+    hass.data.pop("alarmo_ext_card", None)
+    await async_register_panel(hass)
+    url = hass.data["alarmo_ext_card"]["url"]
+    assert url.startswith("/alarmo_ext/house-modes-alarm-center-card.js?v=")
+    assert url in hass.data[DATA_EXTRA_MODULE_URL].urls
+    client = await hass_client_no_auth()
+    res = await client.get(url)
+    assert res.status == 200 and "export const x" in await res.text()

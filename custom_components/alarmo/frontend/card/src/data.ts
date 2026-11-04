@@ -79,7 +79,7 @@ export const keypadKeys = (labels?: Record<string, string>): [string, string][] 
 /** The panel's 2×16 keypad text as two lines. */
 export const lcdLines = (alpha: string | null | undefined): [string, string] => {
   const a = String(alpha || '');
-  return [a.slice(0, 16).replace(/\s+$/, ''), a.slice(16, 32).replace(/\s+$/, '')];
+  return [a.slice(0, 16).trim(), a.slice(16, 32).trim()];
 };
 
 /** The link that belongs to the card's Alarmo entity (or the first one). */

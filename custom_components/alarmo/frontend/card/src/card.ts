@@ -243,30 +243,36 @@ export class HouseModesAlarmCenterCard extends LitElement {
       border: 2px solid var(--hmac-border, var(--divider-color));
       border-radius: var(--ha-card-border-radius, 12px);
     }
+    /* icon + text centred together in the card (chevron at the right edge) */
     .head {
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      min-height: 64px;
+      justify-content: center;
+      gap: 20px;
+      padding: 12px 44px;
+      min-height: 72px;
     }
     .head.clickable {
       cursor: pointer;
     }
     .mode-icon {
-      --mdc-icon-size: 48px;
-      width: 48px;
-      height: 48px;
+      --mdc-icon-size: 64px;
+      width: 64px;
+      height: 64px;
       flex: none;
     }
     .head-text {
-      flex: 1;
+      flex: none;
       text-align: center;
       min-width: 0;
+      max-width: calc(100% - 84px);
     }
     .mode-name {
-      font-size: 1.1em;
-      letter-spacing: 0.04em;
+      font-family: var(--code-font-family, monospace);
+      font-size: 1.6em;
+      letter-spacing: 0.06em;
+      line-height: 1.25;
       color: var(--primary-text-color);
     }
     .tag {
@@ -279,11 +285,12 @@ export class HouseModesAlarmCenterCard extends LitElement {
       vertical-align: middle;
     }
     .lcd {
-      font-family: monospace;
-      font-size: 0.8em;
+      font-family: var(--code-font-family, monospace);
+      font-size: 1em;
       white-space: pre;
-      color: var(--secondary-text-color);
-      line-height: 1.3;
+      color: var(--primary-text-color);
+      line-height: 1.6;
+      margin-top: 2px;
     }
     .lcd.big {
       font-size: 1em;
@@ -294,6 +301,10 @@ export class HouseModesAlarmCenterCard extends LitElement {
       margin-bottom: 8px;
     }
     .chev {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
       color: var(--secondary-text-color);
     }
     .message {

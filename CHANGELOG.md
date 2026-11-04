@@ -3,6 +3,13 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.04.39 — 2026-11-04
+
+- Dashboard card header: the House Mode icon and text are centred together in the card, with a larger icon, the
+  mode name in the panel's monospace style, and the panel display's two lines centred in full brightness. The
+  collapse chevron sits at the right edge.
+- Test: the card registration is now checked end to end (extra frontend module + file served without login).
+
 ## v2026.11.04.38 — 2026-11-04
 
 - **House Modes & Alarm Center Card** ([CARD.md](CARD.md)), served by the integration (no download, no resource):

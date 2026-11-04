@@ -170,6 +170,22 @@ export const slug = (name: string) =>
     .replace(/^_+|_+$/g, '')
     .slice(0, 32) || 'mode';
 
+/** Default icon for a House Mode name (same rules as the backend's auto-detect). */
+export const defaultModeIcon = (name: string): string => {
+  const n = name.trim().toLowerCase();
+  const rules: [RegExp, string][] = [
+    [/vacation|holiday|travel/, 'mdi:airplane'],
+    [/disarm|^off$|wake|^day/, 'mdi:shield-off-outline'],
+    [/away|out|leave/, 'mdi:car'],
+    [/sleep|night|bed/, 'mdi:bed'],
+    [/stay|home/, 'mdi:home-lock'],
+    [/spa|bypass|custom|pool|hot.?tub/, 'mdi:hot-tub'],
+    [/guest|party|visitor|clean/, 'mdi:account-group'],
+    [/local/, 'mdi:map-marker-radius'],
+  ];
+  return rules.find(([re]) => re.test(n))?.[1] || 'mdi:home';
+};
+
 export const newMode = (name: string, existing: HouseMode[]): HouseMode => {
   let id = slug(name);
   let n = 2;
@@ -177,7 +193,7 @@ export const newMode = (name: string, existing: HouseMode[]): HouseMode => {
   return {
     id,
     name,
-    icon: 'mdi:home',
+    icon: defaultModeIcon(name),
     targets: {},
     enter_sources: [...SOURCES],
     leave_sources: [...SOURCES],

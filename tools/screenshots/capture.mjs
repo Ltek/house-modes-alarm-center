@@ -98,6 +98,18 @@ const SHOTS = [
       await v.updateComplete;
     });
   }],
+  ['/alarmo/house', '14-house-mode-editor', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');
+      const sleep = v.draft.modes.find(m => /sleep/i.test(m.name)) || v.draft.modes[1];
+      v.draft.modes.forEach(m => { if (/sleep/i.test(m.name)) m.icon = 'mdi:bed'; });
+      v.info.settings.modes.forEach(m => { if (/sleep/i.test(m.name)) m.icon = 'mdi:bed'; });
+      v.draft = JSON.parse(JSON.stringify(v.draft));
+      v.open = [sleep.id];
+      await v.updateComplete;
+      v.shadowRoot.querySelector('table.full thead').scrollIntoView();
+    });
+  }],
   ['/alarmo/house', '13-house-modes-detect', async (p) => {
     await p.evaluate(async () => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');

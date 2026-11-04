@@ -128,3 +128,10 @@ async def test_live_writes_current_and_previous(hass: Any, hass_storage: Any, tm
     assert hass.states.get(E_GF).state in ("arming", "armed_home")
     assert hass.states.get("input_select.house_mode").state == "Stay"
     assert hass.states.get("input_select.house_mode_last").state == "Disarmed"
+
+
+def test_icon_without_prefix_and_sleep_is_a_bed() -> None:
+    """'bed' is stored as mdi:bed; an empty icon is mdi:home; auto-detect gives Sleep a bed."""
+    s = normalize({"modes": [{"id": "s", "name": "Sleep", "icon": "bed"}, {"id": "a", "name": "A", "icon": ""}]})
+    assert [m["icon"] for m in s["modes"]] == ["mdi:bed", "mdi:home"]
+    assert hd.rule_for("Sleep")[1] == "mdi:bed"

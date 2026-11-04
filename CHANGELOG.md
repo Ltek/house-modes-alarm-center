@@ -3,6 +3,16 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.04.37 — 2026-11-04
+
+- **House Modes list** uses the standard table: icon first, name, partitions, and a pencil (edit / close) and a
+  trash can (delete) on the right. The small arrows are gone.
+- **Icon picker** for House Modes and scenes: Home Assistant's searchable icon picker where it is available,
+  otherwise a box with a live preview. "mdi:" is never needed: `bed` is saved as `mdi:bed` (also when saved through
+  the API).
+- **Default icons from the mode name** for new, starter and detected modes: Sleep / Night → bed, Away → car,
+  Disarmed → shield off, Vacation → airplane, Guest → people, Spa → hot tub, Local → map marker.
+
 ## v2026.11.04.36 — 2026-11-04
 
 House Modes Shadow, after the first five days on a real house:

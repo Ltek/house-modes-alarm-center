@@ -31,6 +31,14 @@ FAILURE = ("undo", "keep", "previous")
 HISTORY_SIZE = 50
 OPEN_STATES = ("on", "open", "opening", "closing", "unlocked")
 
+def icon_name(value: str) -> str:
+    """'bed' → 'mdi:bed' (the prefix is never required); empty → mdi:home."""
+    v = str(value or "").strip()
+    if not v:
+        return "mdi:home"
+    return v if ":" in v else "mdi:" + re.sub(r"[\s_]+", "-", v.lower())
+
+
 _time = vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")
 
 TIMER_SCHEMA = vol.Schema(
@@ -64,7 +72,7 @@ MODE_SCHEMA = vol.Schema(
     {
         vol.Required("id"): vol.Match(r"^[a-z0-9_]{1,32}$"),
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=40)),
-        vol.Optional("icon", default="mdi:home"): str,
+        vol.Optional("icon", default="mdi:home"): vol.All(str, icon_name),
         vol.Optional("targets", default={}): {str: vol.In(TARGET_STATES)},
         vol.Optional("enter_sources", default=list(SOURCES)): [vol.In(SOURCES)],
         vol.Optional("leave_sources", default=list(SOURCES)): [vol.In(SOURCES)],

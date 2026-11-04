@@ -42,6 +42,7 @@ import './slider-field';
 import { roleChip, sectionHead, entityBadge } from './page-intro';
 import { navigate } from '../../helpers';
 import './multi-picker';
+import './icon-field';
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 const STATE_LABEL: Record<string, string> = {
@@ -279,7 +280,7 @@ export class AlarmViewHouse extends LitElement {
     return html`
       <ha-card>${sectionHead(`Modes (${d.modes.length})`, 'settings')}
         <div class="card-content desc">
-          <p>Open a mode (▸) to set which partitions it arms, who may switch into or out of it, readiness checks, what
+          <p>Edit a mode (pencil) to set which partitions it arms, who may switch into or out of it, readiness checks, what
             happens if arming fails, and timers. Save at the bottom of the page.</p>
         </div>
         <div class="toolbar">
@@ -288,18 +289,32 @@ export class AlarmViewHouse extends LitElement {
           ${!d.modes.length ? html`<ha-button appearance="plain" @click=${this.addStarter}><ha-icon slot="start" icon="mdi:auto-fix"></ha-icon>Add starter modes</ha-button>` : nothing}
         </div>
         ${this.detect ? this.renderDetect() : nothing}
-        ${d.modes.map(m => {
-          const open = this.open.includes(m.id);
-          return html`
-            <div class="toolbar" style="border-top:1px solid var(--divider-color)">
-              <button class="link" @click=${() => (this.open = open ? this.open.filter(x => x !== m.id) : [...this.open, m.id])}>${open ? '▾' : '▸'}</button>
-              <ha-icon icon=${m.icon}></ha-icon><strong>${m.name}</strong>
-              <span class="secondary grow" style="display:inline">${describeTargets(m, names, s => STATE_LABEL[s] || s)}</span>
-              <button class="link" @click=${() => window.confirm(`Delete ${m.name}?`) && (this.draft = removeMode(this.draft!, m.id))}>Delete</button>
-            </div>
-            ${open ? this.renderEditor(m) : nothing}
-          `;
-        })}
+        ${d.modes.length
+          ? html`<div class="table-wrap"><table class="full">
+              <thead><tr><th class="icon"></th><th>House Mode</th><th>Partitions</th><th></th></tr></thead>
+              <tbody>
+                ${d.modes.map(m => {
+                  const open = this.open.includes(m.id);
+                  const toggle = () => (this.open = open ? this.open.filter(x => x !== m.id) : [...this.open, m.id]);
+                  return html`
+                    <tr>
+                      <td class="icon"><ha-icon icon=${m.icon}></ha-icon></td>
+                      <td class="name">${m.name}${m.id === this.info!.settings.current ? html`<span class="secondary">current</span>` : nothing}</td>
+                      <td>${describeTargets(m, names, s => STATE_LABEL[s] || s) || html`<span class="secondary" style="display:inline">leaves the partitions alone</span>`}</td>
+                      <td class="row-actions">
+                        <ha-icon-button .label=${open ? 'Close' : 'Edit'} title=${open ? 'Close' : 'Edit'} @click=${toggle}>
+                          <ha-icon icon=${open ? 'mdi:chevron-up' : 'mdi:pencil'}></ha-icon></ha-icon-button>
+                        <ha-icon-button .label=${'Delete'} title="Delete"
+                          @click=${() => window.confirm(`Delete ${m.name}?`) && (this.draft = removeMode(this.draft!, m.id))}>
+                          <ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>
+                      </td>
+                    </tr>
+                    ${open ? html`<tr class="detail"><td colspan="4">${this.renderEditor(m)}</td></tr>` : nothing}
+                  `;
+                })}
+              </tbody>
+            </table></div>`
+          : nothing}
       </ha-card>
     `;
   }
@@ -417,7 +432,8 @@ export class AlarmViewHouse extends LitElement {
       <div class="notice" style="margin:0 16px 12px">
         <div class="detail-grid">
           <label>Name <input type="text" .value=${m.name} @change=${(e: any) => upd(x => (x.name = e.target.value))} /></label>
-          <label>Icon <input type="text" .value=${m.icon} @change=${(e: any) => upd(x => (x.icon = e.target.value || 'mdi:home'))} /></label>
+          <alarmo-ext-icon-field .hass=${this.hass} .value=${m.icon} .placeholder=${'home'}
+            @value-changed=${(e: CustomEvent) => upd(x => (x.icon = e.detail.value || 'mdi:home'))}></alarmo-ext-icon-field>
           <label title="What happens when a partition does not arm">If arming fails
             <select @change=${(e: any) => upd(x => (x.on_failure = e.target.value))}>
               <option value="undo" ?selected=${m.on_failure === 'undo'}>undo (back to how it was)</option>

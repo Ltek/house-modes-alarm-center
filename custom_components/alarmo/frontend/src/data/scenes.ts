@@ -109,7 +109,7 @@ export const loadScene = (hass: HomeAssistant, id: string) =>
 export const saveScene = async (hass: HomeAssistant, cfg: SceneConfig) => {
   if (!Object.keys(cfg.entities).length) throw new Error('A scene needs at least one entity');
   const body: Record<string, any> = { name: cfg.name, entities: cfg.entities };
-  if (cfg.icon) body.icon = cfg.icon;
+  if (cfg.icon) body.icon = cfg.icon.includes(':') ? cfg.icon : `mdi:${cfg.icon.trim().toLowerCase().replace(/[\s_]+/g, '-')}`;
   await hass.callApi('POST', `config/scene/config/${cfg.id}`, body);
   await hass.callService('scene', 'reload', {}).catch(() => undefined);
 };

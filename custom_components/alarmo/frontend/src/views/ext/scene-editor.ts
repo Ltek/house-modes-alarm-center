@@ -28,6 +28,7 @@ import { extStyles } from './ext-styles';
 import { entityBadge, sectionHead } from './page-intro';
 import './multi-picker';
 import './slider-field';
+import './icon-field';
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 
@@ -192,7 +193,8 @@ export class SceneEditor extends LitElement {
       <h4 class="subhead">${this.open === 'new' ? 'New scene' : `Edit ${d.name}`}</h4>
       <div class="field-row">
         <label>Name <input type="text" .value=${d.name} @input=${(e: any) => this.set(x => (x.name = e.target.value))} /></label>
-        <label>Icon <input type="text" placeholder="mdi:…" .value=${d.icon || ''} @input=${(e: any) => this.set(x => (x.icon = e.target.value))} /></label>
+        <alarmo-ext-icon-field .hass=${this.hass} .value=${d.icon || ''} .placeholder=${'palette'}
+          @value-changed=${(e: CustomEvent) => this.set(x => (x.icon = e.detail.value))}></alarmo-ext-icon-field>
       </div>
       ${this.modes.length
         ? html`<alarmo-ext-multi-picker .label=${'House Modes'} .placeholder=${'Add a House Mode…'} .options=${this.modes.map(m => ({ value: m, label: m }))}

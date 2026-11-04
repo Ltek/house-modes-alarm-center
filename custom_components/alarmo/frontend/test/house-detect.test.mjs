@@ -12,7 +12,7 @@ test('adds new modes, updates same-named ones, sets the entities and Shadow', ()
   const changes = applyDetected(d, [sug('stay', { m: 'armed_home' }, 'activity', 'mdi:home-lock'), sug('Away', { m: 'armed_away' }), sug('Zebra', {}, 'none')], ents);
   assert.equal(d.modes.length, 3);
   assert.deepEqual(d.modes[0].targets, { m: 'armed_home' });
-  assert.equal(d.modes[0].icon, 'mdi:home-lock');
+  assert.equal(d.modes[0].icon, 'mdi:shield-home'); // an icon the mode already has is kept
   assert.equal(d.modes[1].name, 'Away');
   assert.deepEqual(d.modes[2].targets, {}); // no basis: added empty
   assert.equal(d.input_select, 'input_select.sel');

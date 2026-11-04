@@ -168,11 +168,11 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
         {
             "enabled": True,
             "modes": [
-                {"id": "disarmed", "name": "Disarmed", "icon": "mdi:shield-off-outline", "targets": {GF: "disarmed", UP: "disarmed", GAR: "disarmed"}},
+                {"id": "disarmed", "name": "Disarmed", "icon": "mdi:shield-lock-open-outline", "targets": {GF: "disarmed", UP: "disarmed", GAR: "disarmed"}},
                 {"id": "stay", "name": "Stay", "icon": "mdi:home", "targets": {GF: "armed_home", UP: "disarmed", GAR: "armed_away"}},
                 {"id": "sleep", "name": "Sleep", "icon": "mdi:bed", "targets": {GF: "armed_night", UP: "armed_night", GAR: "armed_away"},
                  "readiness": {"entities": ["binary_sensor.front_door", "binary_sensor.back_door"], "action": "block"}},
-                {"id": "away", "name": "Away", "icon": "mdi:car", "targets": {GF: "armed_away", UP: "armed_away", GAR: "armed_away"},
+                {"id": "away", "name": "Away", "icon": "mdi:shield-lock", "targets": {GF: "armed_away", UP: "armed_away", GAR: "armed_away"},
                  "enter_sources": ["manual", "automation", "presence_away", "lock", "timer", "schedule"]},
                 {"id": "guest", "name": "Guest", "icon": "mdi:account-group", "targets": {GF: "disarmed", UP: "disarmed", GAR: "armed_away"},
                  "timers": [{"after_minutes": 240, "then": "previous", "notify": True}]},

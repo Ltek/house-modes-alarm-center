@@ -3,6 +3,15 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.04.40 — 2026-11-04
+
+- **Shield icons** for Disarmed (`shield-lock-open-outline`), Away (`shield-lock`), Stay (`shield-home`) and Vacation
+  (`shield-airplane`): the defaults for new, starter and detected modes. Existing modes that still have the old
+  automatic icon (shield-off, car, home, airplane) switch over; icons you chose stay.
+- Card header: the icon is centred with the text block in real Home Assistant (`ha-icon` is inline there and sat on
+  the text baseline), and the "shadow" tag moved to the top-right corner, so the mode name stays centred over the
+  panel display.
+
 ## v2026.11.04.39 — 2026-11-04
 
 - Dashboard card header: the House Mode icon and text are centred together in the card, with a larger icon, the

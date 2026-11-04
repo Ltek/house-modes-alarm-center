@@ -45,7 +45,7 @@ async def test_card_data_for_ordinary_users(hass: Any, hass_storage: Any, hass_w
     client = await hass_ws_client(hass, hass_read_only_access_token)
     await client.send_json({"id": 1, "type": "alarmo/ext/card/get"})
     res = (await client.receive_json())["result"]
-    assert res["house"]["modes"] == [{"id": "stay", "name": "Stay", "icon": "mdi:home", "color": "#ff9800"}]
+    assert res["house"]["modes"] == [{"id": "stay", "name": "Stay", "icon": "mdi:shield-home", "color": "#ff9800"}]
     assert res["house"]["shadow"] and res["house"]["select_entity"] == "input_select.sel"
     assert res["links"][0]["panel_entity"] == PANEL and res["links"][0]["mode"] == "shadow"
     assert res["keypad"]["allowed"] is False and "administrators" in res["keypad"]["reason"]

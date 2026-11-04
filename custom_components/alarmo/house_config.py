@@ -155,6 +155,24 @@ SETTINGS_SCHEMA = vol.Schema(
 STATE_KEYS = ("current", "previous", "history", "pending", "source", "changed_at")
 
 
+# icons the integration used to pick automatically (until v2026.11.04.39) → the shield icons used now
+_OLD_AUTO_ICONS: list[tuple[str, tuple[str, ...], str]] = [
+    (r"vacation|holiday|travel", ("mdi:airplane",), "mdi:shield-airplane"),
+    (r"disarm|^off$|wake|^day", ("mdi:shield-off-outline",), "mdi:shield-lock-open-outline"),
+    (r"away|out|leave", ("mdi:car",), "mdi:shield-lock"),
+    (r"stay|home", ("mdi:home-lock", "mdi:home"), "mdi:shield-home"),
+]
+
+
+def _upgrade_icon(name: str, icon: str) -> str:
+    """An icon that is still the old automatic one for this name becomes the new one; chosen icons stay."""
+    n = name.strip().lower()
+    for pattern, old, new in _OLD_AUTO_ICONS:
+        if re.search(pattern, n):
+            return new if icon in old else icon
+    return icon
+
+
 def normalize(raw: dict | None) -> dict[str, Any]:
     """Validate the user-editable part; runtime keys pass through."""
     raw = copy.deepcopy(raw or {})
@@ -168,6 +186,8 @@ def normalize(raw: dict | None) -> dict[str, Any]:
     if old and not raw.get("notify_services"):
         raw["notify_services"] = [old]
     clean = SETTINGS_SCHEMA(raw)
+    for m in clean["modes"]:
+        m["icon"] = _upgrade_icon(m["name"], m["icon"])
     clean["current"] = state.get("current")
     clean["previous"] = state.get("previous")
     clean["history"] = list(state.get("history") or [])[-HISTORY_SIZE:]

@@ -178,11 +178,11 @@ export const slug = (name: string) =>
 export const defaultModeIcon = (name: string): string => {
   const n = name.trim().toLowerCase();
   const rules: [RegExp, string][] = [
-    [/vacation|holiday|travel/, 'mdi:airplane'],
-    [/disarm|^off$|wake|^day/, 'mdi:shield-off-outline'],
-    [/away|out|leave/, 'mdi:car'],
+    [/vacation|holiday|travel/, 'mdi:shield-airplane'],
+    [/disarm|^off$|wake|^day/, 'mdi:shield-lock-open-outline'],
+    [/away|out|leave/, 'mdi:shield-lock'],
     [/sleep|night|bed/, 'mdi:bed'],
-    [/stay|home/, 'mdi:home-lock'],
+    [/stay|home/, 'mdi:shield-home'],
     [/spa|bypass|custom|pool|hot.?tub/, 'mdi:hot-tub'],
     [/guest|party|visitor|clean/, 'mdi:account-group'],
     [/local/, 'mdi:map-marker-radius'],

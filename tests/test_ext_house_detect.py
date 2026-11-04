@@ -135,3 +135,19 @@ def test_icon_without_prefix_and_sleep_is_a_bed() -> None:
     s = normalize({"modes": [{"id": "s", "name": "Sleep", "icon": "bed"}, {"id": "a", "name": "A", "icon": ""}]})
     assert [m["icon"] for m in s["modes"]] == ["mdi:bed", "mdi:home"]
     assert hd.rule_for("Sleep")[1] == "mdi:bed"
+
+
+def test_old_automatic_icons_become_shields() -> None:
+    """Disarmed / Away / Stay / Vacation with the old automatic icons get the shield icons; chosen icons stay."""
+    s = normalize({"modes": [
+        {"id": "d", "name": "Disarmed", "icon": "mdi:shield-off-outline"},
+        {"id": "a", "name": "Away", "icon": "mdi:car"},
+        {"id": "s", "name": "Stay", "icon": "mdi:home"},
+        {"id": "v", "name": "Vacation", "icon": "mdi:airplane"},
+        {"id": "g", "name": "Guest", "icon": "mdi:account-group"},
+        {"id": "x", "name": "Away 2", "icon": "mdi:rocket"},
+    ]})
+    assert [m["icon"] for m in s["modes"]] == [
+        "mdi:shield-lock-open-outline", "mdi:shield-lock", "mdi:shield-home", "mdi:shield-airplane",
+        "mdi:account-group", "mdi:rocket",
+    ]

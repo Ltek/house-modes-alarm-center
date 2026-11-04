@@ -17,8 +17,8 @@ test('mdi: is never required', () => {
 test('default House Mode icons, Sleep is a bed', () => {
   assert.equal(defaultModeIcon('Sleep'), 'mdi:bed');
   assert.equal(defaultModeIcon('Night'), 'mdi:bed');
-  assert.equal(defaultModeIcon('Away'), 'mdi:car');
-  assert.equal(defaultModeIcon('Disarmed'), 'mdi:shield-off-outline');
+  assert.equal(defaultModeIcon('Away'), 'mdi:shield-lock');
+  assert.equal(defaultModeIcon('Disarmed'), 'mdi:shield-lock-open-outline');
   assert.equal(defaultModeIcon('Local'), 'mdi:map-marker-radius');
   assert.equal(defaultModeIcon('Zebra'), 'mdi:home');
   assert.equal(newMode('Sleep', []).icon, 'mdi:bed');

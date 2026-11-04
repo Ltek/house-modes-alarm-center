@@ -31,11 +31,11 @@ WORD = {
 MAJORITY = 0.6
 
 NAME_RULES: list[tuple[str, str | None, str]] = [
-    (r"vacation|holiday|travel", "armed_vacation", "mdi:airplane"),
-    (r"disarm|^off$|^home$|wake|^day", "disarmed", "mdi:shield-off-outline"),
-    (r"away|out|leave", "armed_away", "mdi:car"),
+    (r"vacation|holiday|travel", "armed_vacation", "mdi:shield-airplane"),
+    (r"disarm|^off$|^home$|wake|^day", "disarmed", "mdi:shield-lock-open-outline"),
+    (r"away|out|leave", "armed_away", "mdi:shield-lock"),
     (r"sleep|night|bed", "armed_night", "mdi:bed"),
-    (r"stay|home", "armed_home", "mdi:home-lock"),
+    (r"stay|home", "armed_home", "mdi:shield-home"),
     (r"spa|bypass|custom|pool|hot.?tub", "armed_custom_bypass", "mdi:hot-tub"),
     (r"guest|party|visitor|clean", None, "mdi:account-group"),
 ]

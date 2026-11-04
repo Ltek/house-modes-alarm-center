@@ -188,9 +188,10 @@ export class HouseModesAlarmCenterCard extends LitElement {
         role=${this.config!.collapsible ? 'button' : nothing} aria-expanded=${this.config!.collapsible ? String(!this.collapsed) : nothing}>
         <ha-icon class="mode-icon" icon=${mode?.icon || 'mdi:shield-home'} style=${`color:${mode?.color || 'var(--secondary-text-color)'}`}></ha-icon>
         <div class="head-text">
-          <div class="mode-name">${title.toUpperCase()}${h.shadow ? html`<span class="tag">shadow</span>` : nothing}</div>
+          <div class="mode-name">${title.toUpperCase()}</div>
           ${kp ? html`<div class="lcd" aria-label="Panel display"><div>${l1 || ' '}</div><div>${l2 || ' '}</div></div>` : nothing}
         </div>
+        ${h.shadow ? html`<span class="tag" title="House Modes run in Shadow: your automations are in charge">shadow</span>` : nothing}
         ${this.config!.collapsible ? html`<ha-icon class="chev" icon=${this.collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'}></ha-icon>` : nothing}
       </div>
     `;
@@ -256,11 +257,16 @@ export class HouseModesAlarmCenterCard extends LitElement {
     .head.clickable {
       cursor: pointer;
     }
+    /* a box (ha-icon is inline in Home Assistant): its middle is the text block's middle */
     .mode-icon {
       --mdc-icon-size: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 64px;
       height: 64px;
       flex: none;
+      line-height: 0;
     }
     .head-text {
       flex: none;
@@ -275,14 +281,19 @@ export class HouseModesAlarmCenterCard extends LitElement {
       line-height: 1.25;
       color: var(--primary-text-color);
     }
+    /* top-right corner, so it never pushes the centred text */
     .tag {
-      margin-left: 8px;
-      font-size: 0.65em;
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7em;
       padding: 1px 6px;
       border-radius: 8px;
       border: 1px solid var(--secondary-text-color);
       color: var(--secondary-text-color);
-      vertical-align: middle;
+    }
+    .head.clickable .tag {
+      right: 40px;
     }
     .lcd {
       font-family: var(--code-font-family, monospace);

@@ -29,7 +29,7 @@ class HouseModeSelect(SelectEntity):
 
     _attr_should_poll = False
     _attr_unique_id = "alarmo_house_mode"
-    _attr_name = "House Mode"
+    _attr_name = "House Mode (Alarmo)"
     _attr_icon = "mdi:home-switch"
 
     def __init__(self, ext) -> None:

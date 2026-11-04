@@ -3,6 +3,19 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.04.36 — 2026-11-04
+
+House Modes Shadow, after the first five days on a real house:
+
+- **A failed arm counts as a match** when Alarmo itself could not arm (open zones): live House Modes would have
+  failed the same way. The line names the open zones and the on-failure policy.
+- **Overlapping requests are compared once:** when a request follows another within seconds, only the last one is
+  compared with your current / previous House Mode entities (before, both were, with opposite results).
+- **Shadow lines always reach the Activity log:** a request now opens an Activity sequence when none is open yet
+  (schedule and automation requests were often missing there).
+- `select.alarmo_house_mode` is now named **House Mode (Alarmo)**, so it is not confused with an existing
+  "House Mode" helper in logs and lists. The entity id does not change.
+
 ## v2026.10.29.35 — 2026-10-29
 
 - **Detect House Modes** (House Modes tab → Modes → *Detect from your input_selects*):

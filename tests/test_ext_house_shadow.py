@@ -141,3 +141,41 @@ async def test_shadow_to_live_keeps_the_mode(hass: Any, hass_storage: Any, tmp_p
     await _settle(hass)
     assert res["result"] == "changed" and _state(hass, E_GF) == "disarmed"
     assert GF in mgr.settings["modes"][0]["targets"]
+
+
+async def test_shadow_failed_arm_counts_as_match(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """Alarmo cannot arm (window open): live House Modes would fail too, so it is a match with the reason."""
+    mgr = await _setup(hass, hass_storage, tmp_path)
+    hass.states.async_set("binary_sensor.gf_window_1", "on")
+    await _settle(hass)
+    await _select(hass, REQ, "Away")
+    await hass.services.async_call("alarmo", "arm", {"entity_id": E_GF, "code": "1234", "mode": "away"}, blocking=True)
+    await _settle(hass)
+    await advance_time(hass, 181)
+    assert any("Alarmo could not arm (open:" in m and "fail the same way" in m and ok for m, ok in _log(mgr))
+    assert mgr.shadow_log.summary()["differed"] == 0
+
+
+async def test_shadow_overlapping_requests_compare_once(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """Stay, then Disarmed a moment later: only the last request is compared with the user's entity."""
+    mgr = await _setup(hass, hass_storage, tmp_path)
+    await _select(hass, REQ, "Stay")
+    await _user_arms(hass, "home", E_GF, E_GAR, confirmed="Stay")
+    await _select(hass, REQ, "Guest")
+    await _select(hass, CONFIRMED, "Guest")
+    await advance_time(hass, 6)
+    compares = [(m, ok) for m, ok in _log(mgr) if m.startswith(f"{CONFIRMED} is")]
+    assert compares[-1] == (f"{CONFIRMED} is Guest", True)
+    assert not any("House Modes: Stay" in m for m, _ in compares[-1:])
+    assert len([m for m, _ in compares if "Guest" in m]) == 1
+
+
+async def test_shadow_request_lines_reach_the_activity_log(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """A request line opens an Activity sequence even when nothing else did yet."""
+    mgr = await _setup(hass, hass_storage, tmp_path)
+    rec = hass.data["alarmo_ext"].recorder
+    rec.current = None
+    await mgr.async_set_mode("Stay", "schedule")
+    assert rec.current is not None
+    assert any("[shadow] schedule: Disarmed → Stay: would set" in e["text"] for e in rec.current["entries"])
+    assert hass.states.get("select.alarmo_house_mode").attributes["friendly_name"] == "House Mode (Alarmo)"

@@ -17,7 +17,9 @@ from collections import deque
 from homeassistant.core import Event, callback
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
+from . import const
 from .house_config import (
     HISTORY_SIZE,
     find_mode,
@@ -59,7 +61,7 @@ class HouseShadow:
         self.log: deque[dict] = deque(maxlen=LOG_SIZE)
         self._watch: dict | None = None
         self._timers: dict[str, Any] = {}
-        self._later: list = []
+        self._compare_unsub = None
 
     # ------------------------------------------------------------ log
 
@@ -69,7 +71,12 @@ class HouseShadow:
         rec = getattr(self.mgr.ext, "recorder", None)
         if rec is not None:
             mark = {True: " ✓", False: " ✗"}.get(ok, "")
-            rec.add("house", f"[shadow] {msg}{mark}", starter=starter, level="warning" if ok is False else "info")
+            rec.add(
+                "house",
+                f"[shadow] {msg}{mark}",
+                starter=starter or kind in ("request", "external"),
+                level="warning" if ok is False else "info",
+            )
 
     def summary(self) -> dict[str, Any]:
         """Counts for the House Modes tab."""
@@ -103,8 +110,9 @@ class HouseShadow:
         for unsub in self._timers.values():
             unsub()
         self._timers = {}
-        while self._later:
-            self._later.pop()()
+        if self._compare_unsub:
+            self._compare_unsub()
+            self._compare_unsub = None
 
     @property
     def watching(self) -> bool:
@@ -173,12 +181,24 @@ class HouseShadow:
         self.add("request", msg)
         ents = [e.entity_id for k in target["targets"] if (e := self.mgr._entity(k)) is not None and e.entity_id]
         name = target["name"]
-        w = {"target": target, "source": source, "expect": expect, "msg": name, "t0": time.monotonic()}
+        w = {"target": target, "source": source, "expect": expect, "msg": name, "t0": time.monotonic(), "failed": None}
         w["unsubs"] = [
             async_track_state_change_event(self.hass, ents, self._on_state),
             async_call_later(self.hass, WATCH_SECONDS, self._on_timeout),
+            async_dispatcher_connect(self.hass, "alarmo_event", self._on_alarmo_event),
         ]
         self._watch = w
+
+    @callback
+    def _on_alarmo_event(self, event: str, area_id: str | None, args: dict | None = None) -> None:
+        """Alarmo could not arm (open zones): live House Modes would have failed the same way."""
+        w = self._watch
+        if w is None or event != const.EVENT_FAILED_TO_ARM:
+            return
+        if area_id is not None and area_id not in w["target"]["targets"]:
+            return
+        names = sorted(self.mgr._name(e) for e in ((args or {}).get("open_sensors") or {}))
+        w["failed"] = sorted(set(w["failed"] or []) | set(names))
 
     def _end_watch(self) -> None:
         w, self._watch = self._watch, None
@@ -210,11 +230,20 @@ class HouseShadow:
         if w is None:
             return
         self._watch = None
-        for unsub in w["unsubs"][:1]:
-            unsub()
+        for i, unsub in enumerate(w["unsubs"]):
+            if i != 1:  # the timer has fired
+                unsub()
         live = self.mgr._live_states(self.mgr.settings)
         now = ", ".join(f"{self._area(k)} {STATE_WORD.get(live.get(k), live.get(k))}" for k in w["target"]["targets"])
-        if w["expect"] == "change":
+        if w["expect"] == "change" and w["failed"] is not None:
+            opened = ", ".join(w["failed"]) or "zones not ready"
+            self.add(
+                "request",
+                f"{w['msg']}: Alarmo could not arm (open: {opened}); live House Modes would fail the same way "
+                f"(on failure {w['target']['on_failure']})",
+                True,
+            )
+        elif w["expect"] == "change":
             policy = w["target"]["on_failure"]
             self.add(
                 "request",
@@ -277,9 +306,14 @@ class HouseShadow:
                 self.add("compare", f"{ent} is {have}" + (f" (House Modes would not have changed to {target['name']})"
                                                            if same else ""), not same)
 
-        self._later.append(async_call_later(self.hass, delay, _check))
-        if len(self._later) > 20:
-            self._later = self._later[-20:]
+        @callback
+        def _run(now) -> None:
+            self._compare_unsub = None
+            _check(now)
+
+        if self._compare_unsub:
+            self._compare_unsub()  # superseded by a newer request: only the last one is compared
+        self._compare_unsub = async_call_later(self.hass, delay, _run)
 
     # ------------------------------------------------------------ timers and delays (in memory)
 

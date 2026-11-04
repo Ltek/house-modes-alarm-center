@@ -7,7 +7,10 @@ import {
   CardConfig,
   CardData,
   DEFAULTS,
+  armColors,
   borderColor,
+  styleVars,
+  fromPairs,
   keypadKeys,
   lcdLines,
   linkFor,
@@ -31,6 +34,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
   @state() private collapsed = false;
   @state() private message = '';
   @state() private busyKey = '';
+  @state() private alarmCollapsed = false;
 
   private fetchedFor = '';
   private requestedAt = 0;
@@ -53,7 +57,10 @@ export class HouseModesAlarmCenterCard extends LitElement {
       throw new Error('entity must be an Alarmo alarm_control_panel');
     const first = !this.config;
     this.config = { ...DEFAULTS, ...config };
-    if (first) this.collapsed = !!(this.config.collapsible && this.config.start_collapsed);
+    if (first) {
+      this.collapsed = !!(this.config.collapsible && this.config.start_collapsed);
+      this.alarmCollapsed = !!(this.config.alarm_collapsible && this.config.alarm_start_collapsed);
+    }
   }
 
   getCardSize() {
@@ -161,19 +168,61 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const ready = link?.ready_entity ? this.hass.states[link.ready_entity]?.state : undefined;
     const border = borderColor(alarmState, panelState, ready, mode?.color);
     return html`
-      <ha-card style=${`--hmac-border:${border}`}>
+      <ha-card style=${`--hmac-border:${border};${styleVars(c.styles)}`}>
         ${c.show_header || this.collapsed ? this.renderHeader(mode, alarmState, link) : nothing}
         ${this.message ? html`<div class="message" role="status">${this.message}</div>` : nothing}
         ${this.collapsed
           ? nothing
           : html`
               ${c.show_house_modes && h.enabled ? this.renderModes() : nothing}
-              ${c.show_alarm && alarmEnt
-                ? html`<hmac-alarm embedded .hass=${this.hass} .cardConfig=${{ type: 'hmac-alarm', ...(c.alarm || {}), entity: alarmEnt, ...(c.name ? { name: c.name } : {}) }}></hmac-alarm>`
-                : nothing}
+              ${c.show_alarm && alarmEnt ? this.renderAlarm(alarmEnt, alarmState) : nothing}
               ${c.show_panel_keypad && link?.panel_type === 'envisalink' ? this.renderKeypad(link) : nothing}
             `}
       </ha-card>
+    `;
+  }
+
+  private alarmConfig(alarmEnt: string) {
+    const c = this.config!;
+    const user = c.alarm || {};
+    let states = user.states || {};
+    if (c.alarm_colors_from_modes) {
+      // House Mode colours first, the user's own per-state settings win
+      const cols = armColors(this.data!, alarmEnt);
+      states = fromPairs(
+        [...new Set([...Object.keys(cols), ...Object.keys(states)])].map(k => [k, { color: cols[k], ...(states[k] || {}) }] as [string, any])
+      );
+    }
+    return {
+      type: 'hmac-alarm',
+      ...user,
+      states,
+      entity: alarmEnt,
+      ...(c.name ? { name: c.name } : {}),
+      show_name: c.show_alarm_name,
+      show_state: c.show_alarm_state,
+      show_arm_options: c.show_arm_options,
+    };
+  }
+
+  private renderAlarm(alarmEnt: string, alarmState: string | undefined) {
+    const c = this.config!;
+    const st = this.hass!.states[alarmEnt];
+    const name = c.name || (st?.attributes as any)?.friendly_name || alarmEnt;
+    const stateText = alarmState ? this.hass!.localize(`component.alarm_control_panel.entity_component._.state.${alarmState}`) || alarmState.replace(/_/g, ' ') : '';
+    const color = armColors(this.data!, alarmEnt)[(alarmState === 'arming' || alarmState === 'pending' ? (st?.attributes as any)?.arm_mode : alarmState) || ''];
+    return html`
+      ${c.alarm_collapsible
+        ? html`<button class="alarm-bar" aria-expanded=${String(!this.alarmCollapsed)} @click=${() => (this.alarmCollapsed = !this.alarmCollapsed)}>
+            <ha-icon icon=${alarmState === 'disarmed' ? 'mdi:lock-open-variant' : alarmState === 'triggered' ? 'mdi:bell-ring' : 'mdi:lock'}
+              style=${color ? `color:${color}` : ''}></ha-icon>
+            <span class="alarm-bar-text">${name} · ${stateText}</span>
+            ${c.show_chevron ? html`<ha-icon class="bar-chev" icon=${this.alarmCollapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'}></ha-icon>` : nothing}
+          </button>`
+        : nothing}
+      ${c.alarm_collapsible && this.alarmCollapsed
+        ? nothing
+        : html`<hmac-alarm embedded .hass=${this.hass} .cardConfig=${this.alarmConfig(alarmEnt)}></hmac-alarm>`}
     `;
   }
 
@@ -186,10 +235,15 @@ export class HouseModesAlarmCenterCard extends LitElement {
       <div class="head ${this.config!.collapsible ? 'clickable' : ''} ${this.config!.collapsible && this.config!.show_chevron ? 'chevron' : ''}" @click=${this.toggle}
         @contextmenu=${(e: Event) => { e.preventDefault(); this.moreInfo(link?.keypad_entity || this.alarmEntity); }}
         role=${this.config!.collapsible ? 'button' : nothing} aria-expanded=${this.config!.collapsible ? String(!this.collapsed) : nothing}>
-        <ha-icon class="mode-icon" icon=${mode?.icon || 'mdi:shield-home'} style=${`color:${mode?.color || 'var(--secondary-text-color)'}`}></ha-icon>
+        <ha-icon class="mode-icon" icon=${mode?.icon || 'mdi:shield-home'} style=${`--mode-color:${mode?.color || 'var(--secondary-text-color)'}`}></ha-icon>
         <div class="head-text">
-          <div class="mode-name">${title.toUpperCase()}</div>
-          ${kp ? html`<div class="lcd" aria-label="Panel display"><div>${l1 || ' '}</div><div>${l2 || ' '}</div></div>` : nothing}
+          ${this.config!.show_mode_name ? html`<div class="mode-name">${title}</div>` : nothing}
+          ${kp && (this.config!.show_line1 || this.config!.show_line2)
+            ? html`<div class="lcd" aria-label="Panel display">
+                ${this.config!.show_line1 ? html`<div class="line1">${l1 || ' '}</div>` : nothing}
+                ${this.config!.show_line2 ? html`<div class="line2">${l2 || ' '}</div>` : nothing}
+              </div>`
+            : nothing}
         </div>
         ${h.shadow ? html`<span class="tag" title="House Modes run in Shadow: your automations are in charge">shadow</span>` : nothing}
         ${this.config!.collapsible && this.config!.show_chevron ? html`<ha-icon class="chev" icon=${this.collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'}></ha-icon>` : nothing}
@@ -201,13 +255,14 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const h = this.data!.house;
     const modes = visibleModes(this.data!, this.config!.hidden_modes);
     return html`
-      <div class="modes" style=${`grid-template-columns:repeat(${Math.max(1, Math.min(9, this.config!.columns || 5))}, 1fr)`}>
+      <div class="modes ${this.config!.modes_align === 'center' ? 'center' : ''}"
+        style=${`--cols:${Math.max(1, Math.min(9, this.config!.columns || 5))}`}>
         ${modes.map(m => {
           const on = m.id === h.current;
           return html`<button class="mode ${on ? 'on' : ''}" aria-pressed=${on ? 'true' : 'false'} title=${m.name}
               @click=${() => this.chooseMode(m.name)}>
-              <ha-icon icon=${m.icon} style=${on ? `color:${m.color}` : ''}></ha-icon>
-              <span>${m.name}</span>
+              <ha-icon icon=${m.icon} style=${`--mode-color:${m.color}`}></ha-icon>
+              ${this.config!.show_mode_labels ? html`<span>${m.name}</span>` : nothing}
             </button>`;
         })}
       </div>
@@ -241,8 +296,8 @@ export class HouseModesAlarmCenterCard extends LitElement {
   static styles = css`
     ha-card {
       overflow: hidden;
-      border: 2px solid var(--hmac-border, var(--divider-color));
-      border-radius: var(--ha-card-border-radius, 12px);
+      border: var(--hmac-border-width, 2px) solid var(--hmac-border, var(--divider-color));
+      border-radius: var(--hmac-radius, var(--ha-card-border-radius, 12px));
     }
     /* icon + text centred together, as in a button-card header: 48 px icon, 12 px gap, the pair nudged 10 px left
        so the text (not the icon) sits near the middle */
@@ -260,12 +315,13 @@ export class HouseModesAlarmCenterCard extends LitElement {
     }
     /* a box (ha-icon is inline in Home Assistant): its middle is the text block's middle */
     .mode-icon {
-      --mdc-icon-size: 48px;
+      --mdc-icon-size: var(--hmac-header-icon-size, 48px);
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 48px;
-      height: 48px;
+      width: var(--hmac-header-icon-size, 48px);
+      height: var(--hmac-header-icon-size, 48px);
+      color: var(--hmac-header-icon-color, var(--mode-color));
       flex: none;
       line-height: 0;
     }
@@ -276,11 +332,14 @@ export class HouseModesAlarmCenterCard extends LitElement {
       max-width: calc(100% - 80px);
     }
     .mode-name {
-      font-family: var(--code-font-family, monospace);
-      font-size: 1.6em;
+      font-family: var(--hmac-mode-name-font, var(--code-font-family, monospace));
+      font-size: var(--hmac-mode-name-size, 22px);
+      font-weight: var(--hmac-mode-name-weight, 400);
+      font-style: var(--hmac-mode-name-style, normal);
+      text-transform: var(--hmac-mode-name-transform, uppercase);
       letter-spacing: 0.06em;
       line-height: 1.25;
-      color: var(--primary-text-color);
+      color: var(--hmac-mode-name-color, var(--primary-text-color));
     }
     /* top-right corner, so it never pushes the centred text */
     .tag {
@@ -297,12 +356,26 @@ export class HouseModesAlarmCenterCard extends LitElement {
       right: 40px;
     }
     .lcd {
-      font-family: var(--code-font-family, monospace);
-      font-size: 1em;
-      white-space: pre;
-      color: var(--primary-text-color);
       line-height: 1.6;
       margin-top: 2px;
+    }
+    .line1,
+    .line2 {
+      white-space: pre;
+      font-family: var(--hmac-f, var(--code-font-family, monospace));
+      font-size: var(--hmac-s, 14px);
+      font-weight: var(--hmac-w, 400);
+      font-style: var(--hmac-i, normal);
+      text-transform: var(--hmac-t, none);
+      color: var(--hmac-c, var(--primary-text-color));
+    }
+    .line1 {
+      --hmac-f: var(--hmac-line1-font); --hmac-s: var(--hmac-line1-size); --hmac-w: var(--hmac-line1-weight);
+      --hmac-i: var(--hmac-line1-style); --hmac-t: var(--hmac-line1-transform); --hmac-c: var(--hmac-line1-color);
+    }
+    .line2 {
+      --hmac-f: var(--hmac-line2-font); --hmac-s: var(--hmac-line2-size); --hmac-w: var(--hmac-line2-weight);
+      --hmac-i: var(--hmac-line2-style); --hmac-t: var(--hmac-line2-transform); --hmac-c: var(--hmac-line2-color);
     }
     .lcd.big {
       font-size: 1em;
@@ -328,8 +401,18 @@ export class HouseModesAlarmCenterCard extends LitElement {
     }
     .modes {
       display: grid;
+      grid-template-columns: repeat(var(--cols, 5), 1fr);
       gap: 4px;
       padding: 4px 8px 8px;
+    }
+    /* 'center': same button width, every row (the last one too) centred across the card */
+    .modes.center {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .modes.center .mode {
+      flex: 0 0 calc((100% - (var(--cols, 5) - 1) * 4px) / var(--cols, 5));
     }
     .mode {
       display: flex;
@@ -345,10 +428,19 @@ export class HouseModesAlarmCenterCard extends LitElement {
       font: inherit;
     }
     .mode ha-icon {
-      --mdc-icon-size: 36px;
+      --mdc-icon-size: var(--hmac-mode-icon-size, 36px);
+      color: var(--hmac-mode-icon-color, var(--secondary-text-color));
+    }
+    .mode.on ha-icon {
+      color: var(--hmac-mode-icon-active-color, var(--mode-color));
     }
     .mode span {
-      font-size: 0.72em;
+      font-family: var(--hmac-mode-label-font, inherit);
+      font-size: var(--hmac-mode-label-size, 10px);
+      font-weight: var(--hmac-mode-label-weight, 400);
+      font-style: var(--hmac-mode-label-style, normal);
+      text-transform: var(--hmac-mode-label-transform, none);
+      color: var(--hmac-mode-label-color, inherit);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -389,11 +481,47 @@ export class HouseModesAlarmCenterCard extends LitElement {
       font: inherit;
     }
     .key .k {
-      font-size: 1.15em;
+      font-family: var(--hmac-key-digit-font, inherit);
+      font-size: var(--hmac-key-digit-size, 16px);
+      font-weight: var(--hmac-key-digit-weight, 400);
+      font-style: var(--hmac-key-digit-style, normal);
+      color: var(--hmac-key-digit-color, inherit);
       line-height: 1;
     }
     .key .l {
-      font-size: 0.7em;
+      font-family: var(--hmac-key-label-font, inherit);
+      font-size: var(--hmac-key-label-size, 10px);
+      font-weight: var(--hmac-key-label-weight, 400);
+      font-style: var(--hmac-key-label-style, normal);
+      text-transform: var(--hmac-key-label-transform, none);
+      color: var(--hmac-key-label-color, var(--secondary-text-color));
+    }
+    .alarm-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: calc(100% - 16px);
+      margin: 4px 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--divider-color);
+      border-radius: 10px;
+      background: none;
+      cursor: pointer;
+      color: var(--primary-text-color);
+      font: inherit;
+      --mdc-icon-size: 22px;
+    }
+    .alarm-bar-text {
+      flex: 1;
+      text-align: left;
+      font-family: var(--hmac-alarm-bar-font, inherit);
+      font-size: var(--hmac-alarm-bar-size, 14px);
+      font-weight: var(--hmac-alarm-bar-weight, 500);
+      font-style: var(--hmac-alarm-bar-style, normal);
+      text-transform: var(--hmac-alarm-bar-transform, none);
+      color: var(--hmac-alarm-bar-color, inherit);
+    }
+    .bar-chev {
       color: var(--secondary-text-color);
     }
     .key:disabled {

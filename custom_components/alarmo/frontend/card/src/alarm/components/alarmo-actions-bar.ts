@@ -5,7 +5,7 @@ import { HomeAssistant } from '../lib/types';
 import { fireEvent } from '../lib/fire-event';
 import { isDefined, isEmpty } from '../helpers';
 import { CardConfig } from '../types';
-import { calcSupportedActions } from '../data/entity';
+import { calcSupportedActions, computeStateColor } from '../data/entity';
 import { calcStateConfig } from '../data/config';
 
 
@@ -76,7 +76,9 @@ export class AlarmoActionsBar extends LitElement {
       const stateConfig = calcStateConfig(ActionToState[e], this.config!);
 
       return html`
-        <div class="button ${ActionToState[e] == selectedOption ? 'selected' : ''}" @click=${(ev: Event) => this._handleClick(ev, e)}>
+        <div class="button ${ActionToState[e] == selectedOption ? 'selected' : ''}"
+          style="--btn-color: ${computeStateColor({ ...stateObj, state: ActionToState[e] } as any, this.config!)}"
+          @click=${(ev: Event) => this._handleClick(ev, e)}>
           <div class="content ${hasTextLabel ? 'has-text' : ''}">
             <ha-icon icon="${isEmpty(stateConfig.button_icon) ? ActionToIcon[e] : stateConfig.button_icon}"></ha-icon>
             ${ActionToState[e] != selectedOption && isDefined(this.readyForArmModes)
@@ -153,7 +155,7 @@ export class AlarmoActionsBar extends LitElement {
         border-radius: calc(var(--content-scale, 1) * 6px);
         height: calc(var(--content-scale, 1) * 26px);
         color: var(--primary-text-color);
-        --mdc-icon-size: calc(var(--content-scale, 1) * 22px);
+        --mdc-icon-size: calc(var(--content-scale, 1) * var(--hmac-alarm-icon-size, 22px));
         align-items: center;
         justify-content: center;
         cursor: pointer;
@@ -176,7 +178,7 @@ export class AlarmoActionsBar extends LitElement {
         left: 0;
         height: 100%;
         width: 100%;
-        background: var(--selected-color);
+        background: var(--btn-color, var(--selected-color));
         opacity: 0;
         border-radius: calc(var(--content-scale, 1) * 14px);
         transition:
@@ -192,6 +194,7 @@ export class AlarmoActionsBar extends LitElement {
       }
       div.content ha-icon {
         display: flex;
+        color: var(--hmac-alarm-icon-color, var(--btn-color, inherit));
       }
       div.content span {
         display: flex;
@@ -205,11 +208,16 @@ export class AlarmoActionsBar extends LitElement {
         -moz-hyphens: auto;
         hyphens: auto;
         word-break: break-word;
-        font-weight: 400;
-        font-size: calc(var(--content-scale, 1) * 1rem);
+        font-weight: var(--hmac-alarm-button-weight, 400);
+        font-size: calc(var(--content-scale, 1) * var(--hmac-alarm-button-size, 14px));
+        font-family: var(--hmac-alarm-button-font, inherit);
+        font-style: var(--hmac-alarm-button-style, normal);
+        text-transform: var(--hmac-alarm-button-transform, none);
+        color: var(--hmac-alarm-button-color, inherit);
       }
-      div.button.selected div.content ha-icon, div.button.selected div.content {
-        color: white;
+      div.button.selected div.content ha-icon, div.button.selected div.content,
+      div.button.selected div.content span {
+        color: var(--hmac-alarm-icon-active-color, white);
       }
       @media (max-width: 280px) {
         div.container {

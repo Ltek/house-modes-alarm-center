@@ -146,8 +146,9 @@ def test_old_automatic_icons_become_shields() -> None:
         {"id": "v", "name": "Vacation", "icon": "mdi:airplane"},
         {"id": "g", "name": "Guest", "icon": "mdi:account-group"},
         {"id": "x", "name": "Away 2", "icon": "mdi:rocket"},
+        {"id": "l", "name": "Local", "icon": "mdi:home"},
     ]})
     assert [m["icon"] for m in s["modes"]] == [
         "mdi:shield-lock-open-outline", "mdi:shield-lock", "mdi:shield-home", "mdi:shield-airplane",
-        "mdi:account-group", "mdi:rocket",
+        "mdi:account-group", "mdi:rocket", "mdi:map-marker-radius",
     ]

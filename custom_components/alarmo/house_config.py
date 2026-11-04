@@ -161,6 +161,7 @@ _OLD_AUTO_ICONS: list[tuple[str, tuple[str, ...], str]] = [
     (r"disarm|^off$|wake|^day", ("mdi:shield-off-outline",), "mdi:shield-lock-open-outline"),
     (r"away|out|leave", ("mdi:car",), "mdi:shield-lock"),
     (r"stay|home", ("mdi:home-lock", "mdi:home"), "mdi:shield-home"),
+    (r"local", ("mdi:home",), "mdi:map-marker-radius"),
 ]
 
 

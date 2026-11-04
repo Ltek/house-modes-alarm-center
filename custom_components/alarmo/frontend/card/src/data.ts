@@ -1,6 +1,6 @@
 // House Modes & Alarm Center Card: data from the integration + pure helpers (unit-tested with node --test).
 
-export type CardMode = { id: string; name: string; icon: string; color: string };
+export type CardMode = { id: string; name: string; icon: string; color: string; targets?: Record<string, string> };
 export type LastResult = {
   result: string;
   requested?: string;
@@ -38,6 +38,43 @@ export type CardData = {
   keypad: { allowed: boolean; reason: string; blocked_keys: string };
 };
 
+/** A text style; every key optional (unset = the card's default). */
+export type TextStyle = {
+  size?: number; // px
+  weight?: number; // 300–800
+  color?: string; // #hex, var(--…) or any CSS colour
+  font?: 'monospace' | 'sans' | 'serif';
+  italic?: boolean;
+  caps?: boolean; // UPPERCASE
+};
+export type IconStyle = { size?: number; color?: string; active_color?: string };
+
+/** Every styled element of the card, with its defaults (shown in the editor as "Card default (…)"). */
+export const TEXT_ELEMENTS = {
+  mode_name: { label: 'House Mode name', size: 22, weight: 400, font: 'monospace', caps: true },
+  line1: { label: 'Panel display, line 1', size: 14, weight: 400, font: 'monospace', caps: false },
+  line2: { label: 'Panel display, line 2', size: 14, weight: 400, font: 'monospace', caps: false },
+  mode_label: { label: 'House Mode button text', size: 10, weight: 400, font: 'sans', caps: false },
+  alarm_bar: { label: 'Alarm bar (collapsed)', size: 14, weight: 500, font: 'sans', caps: false },
+  alarm_name: { label: 'Alarm name', size: 24, weight: 400, font: 'sans', caps: false },
+  alarm_state: { label: 'Alarm state', size: 14, weight: 400, font: 'sans', caps: false },
+  alarm_button: { label: 'Arm button text', size: 14, weight: 400, font: 'sans', caps: false },
+  chip: { label: 'Option chips', size: 12, weight: 500, font: 'sans', caps: false },
+  key_digit: { label: 'Keypad digit', size: 16, weight: 400, font: 'sans', caps: false },
+  key_label: { label: 'Keypad function', size: 10, weight: 400, font: 'sans', caps: false },
+} as const;
+export type TextElement = keyof typeof TEXT_ELEMENTS;
+
+export const ICON_ELEMENTS = {
+  header_icon: { label: 'House Mode icon (header)', size: 48 },
+  mode_icon: { label: 'House Mode button icons', size: 36 },
+  alarm_icon: { label: 'Arm button icons', size: 22 },
+} as const;
+export type IconElement = keyof typeof ICON_ELEMENTS;
+
+export type CardStyles = Partial<Record<TextElement, TextStyle>> &
+  Partial<Record<IconElement, IconStyle>> & { card?: { border_width?: number; radius?: number } };
+
 export type CardConfig = {
   type: string;
   entity?: string;
@@ -52,12 +89,28 @@ export type CardConfig = {
   show_chevron?: boolean;
   columns?: number;
   hidden_modes?: string[];
+  /** 'grid' = fixed columns, last row left-aligned (standard); 'center' = rows centred across the width */
+  modes_align?: 'grid' | 'center';
+  show_mode_labels?: boolean;
+  show_mode_name?: boolean;
+  show_line1?: boolean;
+  show_line2?: boolean;
+  alarm_collapsible?: boolean;
+  alarm_start_collapsed?: boolean;
+  show_alarm_name?: boolean;
+  show_alarm_state?: boolean;
+  show_arm_options?: boolean;
+  /** arm buttons take their colour from the House Mode that sets that arm mode */
+  alarm_colors_from_modes?: boolean;
+  styles?: CardStyles;
   keypad_labels?: Record<string, string>;
   alarm?: Record<string, any>;
 };
 
 export const DEFAULTS: Required<Pick<CardConfig,
-  'show_header' | 'show_house_modes' | 'show_alarm' | 'show_panel_keypad' | 'collapsible' | 'start_collapsed' | 'show_chevron' | 'columns'>> = {
+  'show_header' | 'show_house_modes' | 'show_alarm' | 'show_panel_keypad' | 'collapsible' | 'start_collapsed' | 'show_chevron' | 'columns'
+  | 'modes_align' | 'show_mode_labels' | 'show_mode_name' | 'show_line1' | 'show_line2' | 'alarm_collapsible' | 'alarm_start_collapsed'
+  | 'show_alarm_name' | 'show_alarm_state' | 'show_arm_options' | 'alarm_colors_from_modes'>> = {
   show_header: true,
   show_house_modes: true,
   show_alarm: true,
@@ -66,6 +119,103 @@ export const DEFAULTS: Required<Pick<CardConfig,
   start_collapsed: true,
   show_chevron: false,
   columns: 5,
+  modes_align: 'grid',
+  show_mode_labels: true,
+  show_mode_name: true,
+  show_line1: true,
+  show_line2: true,
+  alarm_collapsible: false,
+  alarm_start_collapsed: true,
+  show_alarm_name: true,
+  show_alarm_state: true,
+  show_arm_options: true,
+  alarm_colors_from_modes: true,
+};
+
+const FONTS: Record<string, string> = {
+  monospace: 'var(--code-font-family, monospace)',
+  sans: 'var(--ha-font-family-body, Roboto, "Noto Sans", sans-serif)',
+  serif: 'Georgia, "Times New Roman", serif',
+};
+
+/** Object.fromEntries for the es2017 target. */
+export const fromPairs = <T>(pairs: [string, T][]): Record<string, T> => {
+  const o: Record<string, T> = {};
+  for (const [k, v] of pairs) o[k] = v;
+  return o;
+};
+
+const safe = (v: unknown) => String(v).replace(/[;{}<>]/g, '');
+
+/**
+ * Inline custom properties for the card root (shadow DOM: they reach every section, the alarm section too).
+ * Only set styles produce a variable; the stylesheet's fallbacks are the defaults.
+ */
+export const styleVars = (styles: CardStyles | undefined): string => {
+  const out: string[] = [];
+  const set = (name: string, v: unknown) => v !== undefined && v !== null && v !== '' && out.push(`--hmac-${name}:${safe(v)}`);
+  for (const key of Object.keys(TEXT_ELEMENTS) as TextElement[]) {
+    const t = (styles || {})[key] as TextStyle | undefined;
+    if (!t) continue;
+    const n = key.replace(/_/g, '-');
+    if (t.size) set(`${n}-size`, `${Number(t.size)}px`);
+    if (t.weight) set(`${n}-weight`, Number(t.weight));
+    set(`${n}-color`, t.color);
+    if (t.font && FONTS[t.font]) set(`${n}-font`, FONTS[t.font]);
+    if (t.italic !== undefined) set(`${n}-style`, t.italic ? 'italic' : 'normal');
+    if (t.caps !== undefined) set(`${n}-transform`, t.caps ? 'uppercase' : 'none');
+  }
+  for (const key of Object.keys(ICON_ELEMENTS) as IconElement[]) {
+    const i = (styles || {})[key] as IconStyle | undefined;
+    if (!i) continue;
+    const n = key.replace(/_/g, '-');
+    if (i.size) set(`${n}-size`, `${Number(i.size)}px`);
+    set(`${n}-color`, i.color);
+    set(`${n}-active-color`, i.active_color);
+  }
+  const c = (styles || {}).card;
+  if (c?.border_width !== undefined) set('border-width', `${Number(c.border_width)}px`);
+  if (c?.radius !== undefined) set('radius', `${Number(c.radius)}px`);
+  return out.join(';');
+};
+
+/** Remove empty style objects and undefined keys (byte-stable YAML). */
+export const pruneStyles = (styles: CardStyles | undefined): CardStyles | undefined => {
+  if (!styles) return undefined;
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(styles)) {
+    if (!v || typeof v !== 'object') continue;
+    // a size of 0 means "card default" — except the frame, where 0 px is a real value
+    const clean = fromPairs(
+      Object.entries(v).filter(([, x]) => x !== undefined && x !== '' && x !== null && (k === 'card' || x !== 0))
+    );
+    if (Object.keys(clean).length) out[k] = clean;
+  }
+  return Object.keys(out).length ? (out as CardStyles) : undefined;
+};
+
+const ARM_DEFAULT_COLORS: Record<string, string> = {
+  disarmed: '#4caf50',
+  armed_away: '#f44336',
+  armed_home: '#ff9800',
+  armed_night: '#5c6bc0',
+  armed_vacation: '#dc143c',
+  armed_custom_bypass: '#00bcd4',
+};
+
+/**
+ * Colour per arm mode from the House Modes: the mode that sets this partition (alarm key) to that arm mode, else any
+ * mode that sets some partition to it, else a default.
+ */
+export const armColors = (data: CardData, alarmEntity?: string): Record<string, string> => {
+  const key = data.alarms.find(a => a.entity_id === alarmEntity)?.key;
+  const out: Record<string, string> = {};
+  for (const st of Object.keys(ARM_DEFAULT_COLORS)) {
+    const direct = data.house.modes.find(m => key && m.targets?.[key] === st);
+    const any = data.house.modes.find(m => Object.values(m.targets || {}).includes(st));
+    out[st] = (direct || any)?.color || ARM_DEFAULT_COLORS[st];
+  }
+  return out;
 };
 
 /** Vista keypad keys, in keypad order, with the function printed under each key. */

@@ -38,6 +38,7 @@ NAME_RULES: list[tuple[str, str | None, str]] = [
     (r"stay|home", "armed_home", "mdi:shield-home"),
     (r"spa|bypass|custom|pool|hot.?tub", "armed_custom_bypass", "mdi:hot-tub"),
     (r"guest|party|visitor|clean", None, "mdi:account-group"),
+    (r"local", "disarmed", "mdi:map-marker-radius"),
 ]
 
 

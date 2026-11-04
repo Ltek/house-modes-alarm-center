@@ -181,8 +181,27 @@ const CARD_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${THE
   cols[0].appendChild(mk({ entity: 'alarm_control_panel.ground_floor' }));
   cols[1].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_house_modes: false, show_alarm: false, show_panel_keypad: true }));
   cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', collapsible: true, start_collapsed: true, show_chevron: true }));
-  cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_alarm: false, columns: 5 }));
+  cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_alarm: false, columns: 4, modes_align: 'center',
+    styles: { mode_name: { font: 'sans', weight: 600 }, line2: { color: 'var(--secondary-text-color)' } } }));
+  cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_header: false, show_house_modes: false, alarm_collapsible: true, alarm_start_collapsed: true, show_chevron: true }));
   window.cardsReady = true;
+</script></body></html>`;
+
+const EDITOR_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${THEME}
+  body{padding:16px;display:flex;gap:24px;align-items:flex-start} .ed{width:560px}</style></head><body>
+<script type="module">
+  await import('/shim.js');
+  await import('/card.js');
+  const ed = document.createElement('house-modes-alarm-center-card-editor');
+  ed.hass = window.demoHass;
+  ed.setConfig({ type: 'custom:house-modes-alarm-center-card', entity: 'alarm_control_panel.ground_floor', collapsible: true,
+    styles: { mode_name: { size: 26, font: 'sans', weight: 600 } } });
+  const box = document.createElement('div'); box.className = 'ed'; box.appendChild(ed); document.body.appendChild(box);
+  await new Promise(r => setTimeout(r, 400));
+  const root = ed.shadowRoot;
+  root.querySelector('details[data-id="header"]').open = true;
+  root.querySelector('details[data-id="header"] details.sub:nth-of-type(2)').open = true;
+  window.editorReady = true;
 </script></body></html>`;
 
 const files = {
@@ -200,7 +219,7 @@ const server = http.createServer((req, res) => {
     return res.end(fs.readFileSync(f[0]));
   }
   res.writeHead(200, { 'content-type': 'text/html' });
-  res.end(url.pathname === '/card' ? CARD_PAGE : PAGE);
+  res.end(url.pathname === '/card' ? CARD_PAGE : url.pathname === '/editor' ? EDITOR_PAGE : PAGE);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -236,6 +255,17 @@ await page.waitForTimeout(1500);
   const file = path.join(OUT, '15-dashboard-card.png');
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   await page.screenshot({ path: file, clip: { x: 0, y: 0, width: 1360, height: Math.min(height, MAX_HEIGHT) } });
+  console.log('saved', path.relative(ROOT, file));
+}
+// card editor
+await page.setViewportSize({ width: 1360, height: 900 });
+await page.goto(base + '/editor');
+await page.waitForFunction(() => window.editorReady, null, { timeout: 15000 });
+await page.waitForTimeout(800);
+{
+  const file = path.join(OUT, '16-card-editor.png');
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  await page.screenshot({ path: file, clip: { x: 0, y: 0, width: 620, height: Math.min(height, MAX_HEIGHT) } });
   console.log('saved', path.relative(ROOT, file));
 }
 await browser.close();

@@ -21,8 +21,8 @@ export const ICONS: Record<AlarmStates, string> = {
   [AlarmStates.ArmedHome]: 'hass:shield-home',
   [AlarmStates.ArmedNight]: 'hass:shield-moon',
   [AlarmStates.ArmedVacation]: 'hass:shield-airplane',
-  [AlarmStates.ArmedCustomBypass]: 'hass:security',
-  [AlarmStates.Disarmed]: 'hass:shield-off',
+  [AlarmStates.ArmedCustomBypass]: 'mdi:lock-percent-open',
+  [AlarmStates.Disarmed]: 'mdi:lock-open-variant',
   [AlarmStates.Arming]: 'hass:shield-outline',
   [AlarmStates.Pending]: 'hass:shield-outline',
   [AlarmStates.Triggered]: 'hass:bell-ring',
@@ -42,8 +42,8 @@ export const ActionToIcon = {
   [ArmActions.ArmHome]: 'mdi:home',
   [ArmActions.ArmNight]: 'mdi:moon-waning-crescent',
   [ArmActions.ArmVacation]: 'mdi:airplane',
-  [ArmActions.ArmCustomBypass]: 'mdi:shield',
-  [ArmActions.Disarm]: 'mdi:shield-off',
+  [ArmActions.ArmCustomBypass]: 'mdi:lock-percent-open',
+  [ArmActions.Disarm]: 'mdi:lock-open-variant',
 }
 
 export const ActionToState = {

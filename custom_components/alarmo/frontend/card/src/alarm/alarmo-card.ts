@@ -34,7 +34,6 @@ import {
 } from './data/entity';
 import { validateConfig } from './data/config';
 import { fetchEntities, fetchConfig, fetchReadyToArmModes } from './data/websockets';
-import { mdiDotsVertical } from '@mdi/js';
 import { CodeDialogParams } from './components/alarmo-code-dialog';
 import { HomeAssistant } from './lib/types';
 import { computeDomain } from './lib/compute-domain';
@@ -245,35 +244,6 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
 
     return html`
       <ha-card>
-        ${stateObj.state === AlarmStates.Disarmed
-        ? html`
-              <ha-dropdown
-                placement="bottom-end"
-                id="cornerMenu"
-              >
-                <ha-icon-button slot="trigger" .label=${this.hass.localize('ui.common.menu')} .path=${mdiDotsVertical}>
-                </ha-icon-button>
-                <span class="title">
-                  ${localize('arm_options.heading', this.hass.language)}
-                </span>
-                <ha-dropdown-item @click=${(ev: Event) => this._toggleArmOptions(ev, 'skip_delay')}>
-                  <ha-icon
-                    icon="mdi:check"
-                    style="${this.armOptions.skip_delay ? '' : 'visibility: hidden'}"
-                  ></ha-icon>
-                  ${localize('arm_options.skip_delay', this.hass.language)}
-                </ha-dropdown-item>
-                <ha-dropdown-item @click=${(ev: Event) => this._toggleArmOptions(ev, 'force')}>
-                  <ha-icon
-                    icon="mdi:check"
-                    style="${this.armOptions.force ? '' : 'visibility: hidden'}"
-                  ></ha-icon>
-                  ${localize('arm_options.force', this.hass.language)}
-                </ha-dropdown-item>
-              </ha-dropdown>
-            `
-        : ''}
-
         <div class="header">
           <div class="icon">
             <hmac-state-badge
@@ -284,12 +254,12 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
             </hmac-state-badge>
           </div>
           <div class="summary">
-            <div class="name">
+            ${(this._config as any).show_name === false ? '' : html`<div class="name">
               ${computeNameDisplay(stateObj, this._config)}
-            </div>
-            <div class="state">
+            </div>`}
+            ${(this._config as any).show_state === false ? '' : html`<div class="state">
               ${computeStateDisplay(stateObj, this.hass.localize, this._config)}
-            </div>
+            </div>`}
           </div>
         </div>
 
@@ -298,6 +268,18 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
         <div id="actions" class="actions">
           ${this._renderActions()}
         </div>
+
+        ${stateObj.state === AlarmStates.Disarmed && (this._config as any).show_arm_options !== false
+        ? html`
+          <div class="chips" role="group" aria-label=${localize('arm_options.heading', this.hass.language)}>
+            ${(['skip_delay', 'force'] as const).map(o => html`
+              <button class="chip ${this.armOptions[o] ? 'on' : ''}" aria-pressed=${this.armOptions[o] ? 'true' : 'false'}
+                @click=${(ev: Event) => this._toggleArmOptions(ev, o)}>
+                <ha-icon icon=${this.armOptions[o] ? 'mdi:check' : o === 'skip_delay' ? 'mdi:timer-off-outline' : 'mdi:shield-alert-outline'}></ha-icon>
+                ${localize(`arm_options.${o}`, this.hass!.language)}
+              </button>`)}
+          </div>`
+        : ''}
 
         ${(!codeRequired(stateObj) && !this._config.keep_keypad_visible) || this._config.use_code_dialog
         ? html``
@@ -612,12 +594,55 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
         flex-direction: column;
       }
       .header .name {
-        font-size: 24px;
+        font-size: var(--hmac-alarm-name-size, 24px);
+        font-weight: var(--hmac-alarm-name-weight, 400);
+        font-family: var(--hmac-alarm-name-font, inherit);
+        font-style: var(--hmac-alarm-name-style, normal);
+        text-transform: var(--hmac-alarm-name-transform, none);
+        color: var(--hmac-alarm-name-color, inherit);
         display: flex;
       }
       .header .state {
-        font-size: 14px;
+        font-size: var(--hmac-alarm-state-size, 14px);
+        font-weight: var(--hmac-alarm-state-weight, 400);
+        font-family: var(--hmac-alarm-state-font, inherit);
+        font-style: var(--hmac-alarm-state-style, normal);
+        text-transform: var(--hmac-alarm-state-transform, none);
+        color: var(--hmac-alarm-state-color, inherit);
         display: flex;
+      }
+      /* arming options as toggle chips (was a ⋮ menu) */
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        padding: 4px 10px 8px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 12px 4px 8px;
+        border-radius: 16px;
+        border: 1px solid var(--divider-color);
+        background: none;
+        cursor: pointer;
+        font-family: var(--hmac-chip-font, inherit);
+        font-size: var(--hmac-chip-size, 12px);
+        font-weight: var(--hmac-chip-weight, 500);
+        font-style: var(--hmac-chip-style, normal);
+        text-transform: var(--hmac-chip-transform, none);
+        color: var(--hmac-chip-color, var(--secondary-text-color));
+        --mdc-icon-size: 16px;
+      }
+      .chip.on {
+        border-color: var(--primary-color);
+        background: rgba(var(--rgb-primary-color, 3, 169, 244), 0.15);
+        color: var(--hmac-chip-color, var(--primary-text-color));
+      }
+      .chip:focus-visible {
+        outline: 2px solid var(--primary-color);
       }
       .actions {
         margin: 0;
@@ -769,24 +794,6 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
         display: flex;
         justify-self: center;
         margin-bottom: 10px;
-      }
-      ha-dropdown {
-        display: block;
-        position: absolute;
-        right: 4px;
-        top: 4px;
-      }
-      ha-dropdown span.title {
-        font-weight: bold;
-        display: flex;
-        height: 32px;
-        align-items: center;
-        padding: 0px 8px;
-      }
-      @media all and (max-width: 250px) {
-        ha-dropdown {
-          display: none;
-        }
       }
     `;
   }

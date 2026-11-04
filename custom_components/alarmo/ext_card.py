@@ -70,7 +70,8 @@ def card_data(hass, user_id: str | None, is_admin: bool) -> dict:
             "source": s["source"],
             "last_result": ext.house.last_result,
             "modes": [
-                {"id": m["id"], "name": m["name"], "icon": m["icon"], "color": mode_color(m)} for m in s["modes"]
+                {"id": m["id"], "name": m["name"], "icon": m["icon"], "color": mode_color(m), "targets": m["targets"]}
+                for m in s["modes"]
             ],
         },
         "alarms": [{"key": t["key"], "entity_id": t["entity_id"], "name": t["name"]} for t in _link_targets(hass)],

@@ -39,3 +39,30 @@ test('messages after a House Mode button', () => {
   assert.equal(resultMessage({ result: 'shadow', would: 'changed' }, name), null);
   assert.equal(resultMessage({ result: 'shadow', requested: 'Away', would: 'not_ready' }, name), 'Shadow: Away would be not ready');
 });
+
+import { styleVars, pruneStyles, armColors } from '../card/src/data.ts';
+
+test('style variables: only what is set, safe values', () => {
+  assert.equal(styleVars(undefined), '');
+  assert.equal(styleVars({ mode_name: { size: 30, weight: 700, font: 'serif', italic: false, caps: false, color: 'var(--accent-color)' } }),
+    '--hmac-mode-name-size:30px;--hmac-mode-name-weight:700;--hmac-mode-name-color:var(--accent-color);--hmac-mode-name-font:Georgia, "Times New Roman", serif;--hmac-mode-name-style:normal;--hmac-mode-name-transform:none');
+  assert.equal(styleVars({ mode_icon: { size: 40, active_color: '#fff' }, card: { border_width: 0 } }),
+    '--hmac-mode-icon-size:40px;--hmac-mode-icon-active-color:#fff;--hmac-border-width:0px');
+  assert.ok(!styleVars({ line1: { color: 'red;}body{x' } }).includes(';}'));
+});
+
+test('prune: empty styles disappear, a 0 px border stays', () => {
+  assert.equal(pruneStyles({ line1: {}, line2: { size: 0, color: '' } }), undefined);
+  assert.deepEqual(pruneStyles({ card: { border_width: 0 }, chip: { italic: false } }), { card: { border_width: 0 }, chip: { italic: false } });
+});
+
+test('arm button colours follow the House Modes', () => {
+  const d = { ...data, alarms: [{ key: 'gf', entity_id: 'alarm_control_panel.gf', name: 'GF' }], house: { ...data.house, modes: [
+    { id: 'stay', name: 'Stay', icon: '', color: '#123456', targets: { gf: 'armed_home' } },
+    { id: 'sleep', name: 'Sleep', icon: '', color: '#654321', targets: { other: 'armed_night' } },
+  ] } };
+  const c = armColors(d, 'alarm_control_panel.gf');
+  assert.equal(c.armed_home, '#123456'); // this partition
+  assert.equal(c.armed_night, '#654321'); // another partition
+  assert.equal(c.armed_away, '#f44336'); // default
+});

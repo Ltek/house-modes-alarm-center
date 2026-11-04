@@ -27,18 +27,45 @@ Each one can be turned off.
 
 ## Options
 
+Everything below is in the visual editor (*Card*, *Sections*, *Header*, *House Mode buttons*, *Alarm*, *Physical
+panel keypad*). Only options you change are written to the YAML.
+
 | Option | Default | |
 |---|---|---|
-| `entity` | first Alarmo alarm | Alarmo `alarm_control_panel` for the alarm section and the panel link |
+| `entity` | first linked alarm | Alarmo `alarm_control_panel` for the alarm section and the panel link |
 | `name` | | Title when House Modes are off |
 | `show_header`, `show_house_modes`, `show_alarm` | `true` | |
 | `show_panel_keypad` | `false` | |
-| `collapsible` / `start_collapsed` | `false` / `true` | Tap the header to open or close |
-| `show_chevron` | `false` | The open / close arrow at the right of the header (when collapsible) |
+| `collapsible` / `start_collapsed` | `false` / `true` | Tap the header to open or close the card |
+| `show_chevron` | `false` | The open / close arrow (card and alarm bar) |
+| `show_mode_name`, `show_line1`, `show_line2` | `true` | The header's status lines |
+| `modes_align` | `grid` | `grid`: fixed columns, the last row wraps left; `center`: every row centred across the width |
 | `columns` | `5` | House Mode buttons per row (2–9) |
+| `show_mode_labels` | `true` | Text under the House Mode buttons |
 | `hidden_modes` | | House Modes (id or name) without a button |
+| `alarm_collapsible` / `alarm_start_collapsed` | `false` / `true` | The alarm section as a bar with the state, tap to open |
+| `show_alarm_name`, `show_alarm_state` | `true` | The alarm section's status lines |
+| `show_arm_options` | `true` | Chips *Skip exit delay* and *Bypass open sensors* (when disarmed) |
+| `alarm_colors_from_modes` | `true` | Each arm button in the colour of the House Mode that sets that arm mode |
 | `keypad_labels` | Vista | e.g. `{"6": "BYP"}` |
 | `alarm` | | alarmo-card options: `keep_keypad_visible`, `use_code_dialog`, `hide_keypad`, `show_messages`, `show_ready_indicator`, `show_bypassed_sensors`, `button_scale_actions`, `button_scale_keypad`, `states` |
+| `styles` | | Per element, see below |
+
+### Styles
+
+```yaml
+styles:
+  mode_name: { size: 26, weight: 600, font: sans, italic: false, caps: true, color: var(--accent-color) }
+  mode_icon: { size: 40, color: var(--secondary-text-color), active_color: "#ffffff" }
+  card: { border_width: 2, radius: 12 }
+```
+
+- **Text** (`size` px, `weight` 300–800, `font` `monospace` / `sans` / `serif`, `italic`, `caps`, `color`):
+  `mode_name`, `line1`, `line2`, `mode_label`, `alarm_bar`, `alarm_name`, `alarm_state`, `alarm_button`, `chip`,
+  `key_digit`, `key_label`.
+- **Icons** (`size`, `color`, `active_color` for the selected one): `header_icon`, `mode_icon`, `alarm_icon`.
+- **Frame**: `card.border_width`, `card.radius`.
+- Colours: `#rrggbb`, a theme colour `var(--…)`, or any CSS colour. Unset keys keep the card's defaults.
 
 ## Who may use the panel keypad
 

@@ -3,6 +3,24 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.04.42 — 2026-11-04
+
+Dashboard card:
+- **New visual editor** following the Ltek card design guide: Card, Sections, Header, House Mode buttons, Alarm and
+  Physical panel keypad panels; sliders for sizes, the four-mode colour control (card default / theme / custom /
+  CSS), three-state italic and capitals; only changed options are written.
+- **Styles for every text and icon**: size, weight, font (monospace / sans / serif), italic, capitals and colour for
+  the House Mode name, both panel display lines, House Mode button text, alarm bar / name / state, arm button text,
+  option chips and keypad keys; size and colours for the header icon, House Mode button icons and arm button icons;
+  border width and corner radius.
+- **Show / hide each status line** (House Mode name, display lines, alarm name, alarm state).
+- **Collapsible alarm section** (a bar with the alarm's state), optional.
+- **House Mode button alignment**: standard (fixed columns) or centred across the width.
+- **Arm buttons in the House Mode colours** (the House Mode that sets each arm mode); can be turned off.
+- **Skip exit delay / Bypass open sensors are chips** under the arm buttons; the ⋮ menu is gone.
+- Icons: Disarmed `lock-open-variant`, Custom `lock-percent-open` (alarm section); Local `map-marker-radius` (House
+  Mode, also replacing an old automatic icon).
+
 ## v2026.11.04.41 — 2026-11-04
 
 - Card header laid out like a button-card header: 48 px icon, 12 px gap, the pair nudged 10 px left, so the text

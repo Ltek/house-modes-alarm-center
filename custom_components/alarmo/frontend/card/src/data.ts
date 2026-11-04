@@ -48,6 +48,8 @@ export type CardConfig = {
   show_panel_keypad?: boolean;
   collapsible?: boolean;
   start_collapsed?: boolean;
+  /** chevron at the right of the header when collapsible (tapping the header works without it) */
+  show_chevron?: boolean;
   columns?: number;
   hidden_modes?: string[];
   keypad_labels?: Record<string, string>;
@@ -55,13 +57,14 @@ export type CardConfig = {
 };
 
 export const DEFAULTS: Required<Pick<CardConfig,
-  'show_header' | 'show_house_modes' | 'show_alarm' | 'show_panel_keypad' | 'collapsible' | 'start_collapsed' | 'columns'>> = {
+  'show_header' | 'show_house_modes' | 'show_alarm' | 'show_panel_keypad' | 'collapsible' | 'start_collapsed' | 'show_chevron' | 'columns'>> = {
   show_header: true,
   show_house_modes: true,
   show_alarm: true,
   show_panel_keypad: false,
   collapsible: false,
   start_collapsed: true,
+  show_chevron: false,
   columns: 5,
 };
 

@@ -180,7 +180,7 @@ const CARD_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${THE
   cols.forEach(c => { c.className = 'col'; document.body.appendChild(c); });
   cols[0].appendChild(mk({ entity: 'alarm_control_panel.ground_floor' }));
   cols[1].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_house_modes: false, show_alarm: false, show_panel_keypad: true }));
-  cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', collapsible: true, start_collapsed: true }));
+  cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', collapsible: true, start_collapsed: true, show_chevron: true }));
   cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_alarm: false, columns: 5 }));
   window.cardsReady = true;
 </script></body></html>`;

@@ -24,6 +24,7 @@ const LABELS: Record<string, string> = {
   show_panel_keypad: 'Physical panel keypad',
   collapsible: 'Collapsible (tap the header)',
   start_collapsed: 'Start collapsed',
+  show_chevron: 'Show the open / close arrow',
   columns: 'House Mode buttons per row',
   hidden_modes: 'Hide these House Modes',
   alarm: 'Alarm options',
@@ -62,7 +63,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
       {
         type: 'grid',
         name: '',
-        schema: ['show_header', 'show_house_modes', 'show_alarm', 'show_panel_keypad', 'collapsible', 'start_collapsed'].map(n => ({
+        schema: ['show_header', 'show_house_modes', 'show_alarm', 'show_panel_keypad', 'collapsible', 'start_collapsed', 'show_chevron'].map(n => ({
           name: n,
           selector: { boolean: {} },
         })),

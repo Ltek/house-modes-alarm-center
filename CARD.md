@@ -34,6 +34,7 @@ Each one can be turned off.
 | `show_header`, `show_house_modes`, `show_alarm` | `true` | |
 | `show_panel_keypad` | `false` | |
 | `collapsible` / `start_collapsed` | `false` / `true` | Tap the header to open or close |
+| `show_chevron` | `false` | The open / close arrow at the right of the header (when collapsible) |
 | `columns` | `5` | House Mode buttons per row (2–9) |
 | `hidden_modes` | | House Modes (id or name) without a button |
 | `keypad_labels` | Vista | e.g. `{"6": "BYP"}` |

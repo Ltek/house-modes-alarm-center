@@ -183,7 +183,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const [l1, l2] = lcdLines((kp?.attributes as any)?.alpha ?? kp?.state);
     const title = h.enabled ? (mode ? mode.name : 'unknown') : this.config!.name || (alarmState ? alarmState.replace(/_/g, ' ') : '');
     return html`
-      <div class="head ${this.config!.collapsible ? 'clickable' : ''}" @click=${this.toggle}
+      <div class="head ${this.config!.collapsible ? 'clickable' : ''} ${this.config!.collapsible && this.config!.show_chevron ? 'chevron' : ''}" @click=${this.toggle}
         @contextmenu=${(e: Event) => { e.preventDefault(); this.moreInfo(link?.keypad_entity || this.alarmEntity); }}
         role=${this.config!.collapsible ? 'button' : nothing} aria-expanded=${this.config!.collapsible ? String(!this.collapsed) : nothing}>
         <ha-icon class="mode-icon" icon=${mode?.icon || 'mdi:shield-home'} style=${`color:${mode?.color || 'var(--secondary-text-color)'}`}></ha-icon>
@@ -192,7 +192,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
           ${kp ? html`<div class="lcd" aria-label="Panel display"><div>${l1 || ' '}</div><div>${l2 || ' '}</div></div>` : nothing}
         </div>
         ${h.shadow ? html`<span class="tag" title="House Modes run in Shadow: your automations are in charge">shadow</span>` : nothing}
-        ${this.config!.collapsible ? html`<ha-icon class="chev" icon=${this.collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'}></ha-icon>` : nothing}
+        ${this.config!.collapsible && this.config!.show_chevron ? html`<ha-icon class="chev" icon=${this.collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'}></ha-icon>` : nothing}
       </div>
     `;
   }
@@ -244,27 +244,28 @@ export class HouseModesAlarmCenterCard extends LitElement {
       border: 2px solid var(--hmac-border, var(--divider-color));
       border-radius: var(--ha-card-border-radius, 12px);
     }
-    /* icon + text centred together in the card (chevron at the right edge) */
+    /* icon + text centred together, as in a button-card header: 48 px icon, 12 px gap, the pair nudged 10 px left
+       so the text (not the icon) sits near the middle */
     .head {
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 20px;
-      padding: 12px 44px;
-      min-height: 72px;
+      gap: 12px;
+      padding: 10px 20px 10px 0;
+      min-height: 70px;
     }
     .head.clickable {
       cursor: pointer;
     }
     /* a box (ha-icon is inline in Home Assistant): its middle is the text block's middle */
     .mode-icon {
-      --mdc-icon-size: 64px;
+      --mdc-icon-size: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 64px;
-      height: 64px;
+      width: 48px;
+      height: 48px;
       flex: none;
       line-height: 0;
     }
@@ -272,7 +273,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
       flex: none;
       text-align: center;
       min-width: 0;
-      max-width: calc(100% - 84px);
+      max-width: calc(100% - 80px);
     }
     .mode-name {
       font-family: var(--code-font-family, monospace);
@@ -292,7 +293,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
       border: 1px solid var(--secondary-text-color);
       color: var(--secondary-text-color);
     }
-    .head.clickable .tag {
+    .head.chevron .tag {
       right: 40px;
     }
     .lcd {

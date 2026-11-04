@@ -3,6 +3,13 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.04.41 — 2026-11-04
+
+- Card header laid out like a button-card header: 48 px icon, 12 px gap, the pair nudged 10 px left, so the text
+  sits near the middle of the card (it was about twice as far right).
+- New option `show_chevron` (default off): the open / close arrow of a collapsible card. Tapping the header still
+  opens and closes it.
+
 ## v2026.11.04.40 — 2026-11-04
 
 - **Shield icons** for Disarmed (`shield-lock-open-outline`), Away (`shield-lock`), Stay (`shield-home`) and Vacation

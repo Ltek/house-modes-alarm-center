@@ -36,6 +36,7 @@ export type PanelSettings = {
   mirrors: Record<string, { hold: 'last' | 'unknown' }>;
   ignored_zones?: string[];
   bypass_entity?: string | null;
+  keypad_input?: { mode: 'off' | 'admins' | 'users' | 'all'; users: string[]; blocked_keys: string };
 };
 export type PanelZone = {
   entity_id: string;

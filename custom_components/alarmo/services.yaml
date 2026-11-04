@@ -109,3 +109,16 @@ set_house_mode:
       default: false
       selector:
         boolean:
+panel_keypress:
+  fields:
+    keys:
+      example: "*"
+      required: true
+      selector:
+        text:
+    entity_id:
+      example: "alarm_control_panel.alarm_partition_1"
+      required: false
+      selector:
+        entity:
+          domain: alarm_control_panel

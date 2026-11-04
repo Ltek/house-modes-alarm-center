@@ -28,6 +28,7 @@ from .house_config import (
     find_mode,
     normalize,
     steps_for,
+    timer_due,
     permission,
     timers_for,
     derive_mode,
@@ -66,6 +67,7 @@ class HouseModeManager:
         # partition targets on top of the current mode (keypad actions); cleared on a mode change
         self.overrides: dict[str, str] = {}
         self.shadow_log = HouseShadow(self)
+        self.last_result: dict[str, Any] | None = None
 
     @property
     def shadow(self) -> bool:
@@ -151,7 +153,33 @@ class HouseModeManager:
         force: bool = False,
         replay_delay: bool = False,
     ) -> dict[str, Any]:
-        """Change the House Mode. Returns {"result": ...}."""
+        """Change the House Mode. Returns {"result": ...}; also kept as ``last_result`` for cards."""
+        try:
+            res = await self._set_mode(ref, source, force, replay_delay)
+        except HouseModeError as err:
+            self._last({"result": "error", "reason": str(err)}, ref, source)
+            raise
+        self._last(res, ref, source)
+        return res
+
+    def _last(self, res: dict, ref: str, source: str) -> None:
+        mode = find_mode(self.settings, ref)
+        self.last_result = {
+            **res,
+            "requested": mode["name"] if mode else ref,
+            "source": source,
+            "at": dt_util.utcnow().isoformat(),
+        }
+        async_dispatcher_send(self.hass, SIGNAL_HOUSE)
+
+    async def _set_mode(
+        self,
+        ref: str,
+        source: str = "manual",
+        force: bool = False,
+        replay_delay: bool = False,
+    ) -> dict[str, Any]:
+        """Change the House Mode (see async_set_mode)."""
         settings = self.settings
         if not settings["enabled"]:
             raise HouseModeError("House Modes are turned off")
@@ -335,14 +363,15 @@ class HouseModeManager:
                     {
                         "id": uuid.uuid4().hex[:12],
                         "kind": "timer",
-                        "due": time.time() + t["after_minutes"] * 60,
+                        "due": timer_due(t, now),
                         "context": mode_id,
                         "target": t["then"]
                         if t["then"] != "previous"
                         else (prev or ""),
                         "source": "timer",
                         "notify": t["notify"],
-                        "minutes": t["after_minutes"],
+                        "minutes": t.get("after_minutes"),
+                        "at": t.get("at"),
                     }
                 )
         data["pending"] = new_pending
@@ -354,7 +383,7 @@ class HouseModeManager:
                 await self._notify(
                     f"House Mode {mode['name']}",
                     f"Changes to {tgt['name'] if tgt else p['target']} "
-                    f"in {p['minutes']} min",
+                    f"{'at ' + p['at'] if p.get('at') else 'in ' + str(p['minutes']) + ' min'}",
                 )
         self._event(EVENT_CHANGED, mode, source, previous=prev, result=result)
         self._mirror_to_select(mode)

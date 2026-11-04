@@ -46,6 +46,11 @@ node --check "$FE/dist/alarm-panel.js"
 node /shared/user/code/_tests/probe.mjs "$FE/dist/alarm-panel.js" alarm-panel alarm-view-general \
   alarm-view-actions alarm-view-sensors alarm-view-sensor-table alarm-view-backup alarm-view-codes \
   alarm-view-panel alarm-view-house alarm-view-house-actions alarm-view-mirrors alarm-view-connections alarm-view-ha-zones | head -1
+# the dashboard card (served by the integration)
+CARD="$FE/dist/house-modes-alarm-center-card.js"
+grep -q "$VER" "$CARD"
+node --check "$CARD"
+node /shared/user/code/_tests/probe.mjs "$CARD" house-modes-alarm-center-card house-modes-alarm-center-card-editor hmac-alarm | grep "PROBE OK"
 (cd "$FE" && npm test 2>&1 | grep -E "^ℹ (pass|fail)")
 (cd "$ROOT" && uv run ruff check custom_components/alarmo tests tools scripts | tail -1)
 # failures get one rerun: upstream's test_ready_to_arm_modes_changed_event_on_sensor_state_change is flaky
@@ -58,7 +63,7 @@ done
 find "$ROOT/custom_components" -name __pycache__ -type d -prune -exec rm -rf {} +
 rm -f "$OUT"
 EXTRA=""; [ -d "$ROOT/blueprints" ] && EXTRA="blueprints"; [ -d "$ROOT/docs" ] && EXTRA="$EXTRA docs"
-(cd "$ROOT" && zip -qr "$OUT" custom_components/alarmo CHANGELOG.md INSTALL-EXT.md HOUSE-MODES.md MIGRATION.md README.md LICENSE hacs.json $EXTRA \
+(cd "$ROOT" && zip -qr "$OUT" custom_components/alarmo CHANGELOG.md CARD.md INSTALL-EXT.md HOUSE-MODES.md MIGRATION.md README.md LICENSE hacs.json $EXTRA \
   -x 'custom_components/alarmo/frontend/node_modules/*' -x 'custom_components/alarmo/frontend/test/*' \
   -x '*/__pycache__/*' -x '*.pyc' -x '*/package-lock.json' -x '*.DS_Store')
 if unzip -l "$OUT" | grep -qE "node_modules|__pycache__|\.pyc|package-lock|/test/|tools/|PLAN-|ROADMAP|archive/|release/|configs/|logs/|_automations/"; then
@@ -68,6 +73,7 @@ TMP="$(mktemp -d)"
 (cd "$TMP" && unzip -q "$OUT" && "$HOME/.venvs/alarmo/bin/python" -m py_compile custom_components/alarmo/*.py \
   && grep -q "\"version\": \"$VER\"" custom_components/alarmo/manifest.json \
   && grep -q "STORAGE_VERSION_MAJOR = 6" custom_components/alarmo/store.py \
-  && cmp custom_components/alarmo/frontend/dist/alarm-panel.js "$FE/dist/alarm-panel.js")
+  && cmp custom_components/alarmo/frontend/dist/alarm-panel.js "$FE/dist/alarm-panel.js" \
+  && cmp custom_components/alarmo/frontend/dist/house-modes-alarm-center-card.js "$CARD")
 rm -rf "$TMP"
 echo "OK $OUT"

@@ -167,7 +167,26 @@ const PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${THEME}</
   document.body.appendChild(el);
 </script></body></html>`;
 
+// the dashboard card, three ways: everyday (House Modes + alarm), the panel keypad, collapsed
+const CARD_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${THEME}
+  body{padding:16px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+  .col{width:420px;display:flex;flex-direction:column;gap:16px}</style></head><body>
+<script type="module">
+  await import('/shim.js');
+  window.loadCardHelpers = async () => ({ createCardElement: async () => ({ constructor: { getConfigElement: async () => {} } }) });
+  await import('/card.js');
+  const mk = (cfg) => { const c = document.createElement('house-modes-alarm-center-card'); c.setConfig({ type: 'custom:house-modes-alarm-center-card', ...cfg }); c.hass = window.demoHass; return c; };
+  const cols = [document.createElement('div'), document.createElement('div'), document.createElement('div')];
+  cols.forEach(c => { c.className = 'col'; document.body.appendChild(c); });
+  cols[0].appendChild(mk({ entity: 'alarm_control_panel.ground_floor' }));
+  cols[1].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_house_modes: false, show_alarm: false, show_panel_keypad: true }));
+  cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', collapsible: true, start_collapsed: true }));
+  cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_alarm: false, columns: 5 }));
+  window.cardsReady = true;
+</script></body></html>`;
+
 const files = {
+  '/card.js': [path.join(FE, 'dist/house-modes-alarm-center-card.js'), 'text/javascript'],
   '/shim.js': [path.join(HERE, 'shim.js'), 'text/javascript'],
   '/demo.json': [path.join(HERE, 'demo.json'), 'application/json'],
   '/alarm-panel.js': [path.join(FE, 'dist/alarm-panel.js'), 'text/javascript'],
@@ -181,7 +200,7 @@ const server = http.createServer((req, res) => {
     return res.end(fs.readFileSync(f[0]));
   }
   res.writeHead(200, { 'content-type': 'text/html' });
-  res.end(PAGE);
+  res.end(url.pathname === '/card' ? CARD_PAGE : PAGE);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -206,6 +225,17 @@ for (const [url, name, action] of SHOTS) {
   // long pages (the zone table) are cut at MAX_HEIGHT so the gallery stays readable
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   await page.screenshot({ path: file, fullPage: true, clip: { x: 0, y: 0, width: 1360, height: Math.min(height, MAX_HEIGHT) } });
+  console.log('saved', path.relative(ROOT, file));
+}
+// dashboard card
+await page.setViewportSize({ width: 1360, height: 760 });
+await page.goto(base + '/card');
+await page.waitForFunction(() => window.cardsReady, null, { timeout: 15000 });
+await page.waitForTimeout(1500);
+{
+  const file = path.join(OUT, '15-dashboard-card.png');
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  await page.screenshot({ path: file, clip: { x: 0, y: 0, width: 1360, height: Math.min(height, MAX_HEIGHT) } });
   console.log('saved', path.relative(ROOT, file));
 }
 await browser.close();

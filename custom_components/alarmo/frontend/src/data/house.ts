@@ -15,7 +15,9 @@ export const SOURCE_LABELS: Record<string, string> = {
 export const TARGET_STATES = ['armed_away', 'armed_home', 'armed_night', 'armed_vacation', 'armed_custom_bypass', 'disarmed'];
 
 export type HouseTimer = {
-  after_minutes: number;
+  /** after N minutes, or `at` a clock time (HH:MM) — exactly one */
+  after_minutes?: number | null;
+  at?: string | null;
   then: string;
   from_modes: string[];
   window_start?: string | null;
@@ -26,6 +28,8 @@ export type HouseMode = {
   id: string;
   name: string;
   icon: string;
+  /** '' = from the name */
+  color?: string;
   targets: Record<string, string>;
   enter_sources: string[];
   leave_sources: string[];
@@ -184,6 +188,36 @@ export const defaultModeIcon = (name: string): string => {
     [/local/, 'mdi:map-marker-radius'],
   ];
   return rules.find(([re]) => re.test(n))?.[1] || 'mdi:home';
+};
+
+/** Default card colour for a House Mode name (same rules as the backend's mode_color). */
+export const defaultModeColor = (name: string): string => {
+  const n = name.trim().toLowerCase();
+  const rules: [RegExp, string][] = [
+    [/late.?night/, '#00b0ff'],
+    [/vacation|holiday|travel/, '#dc143c'],
+    [/disarm|^off$|wake|^day/, '#4caf50'],
+    [/away|out|leave/, '#f44336'],
+    [/sleep|night|bed/, '#5c6bc0'],
+    [/stay|home/, '#ff9800'],
+    [/spa|bypass|custom|pool|hot.?tub/, '#00bcd4'],
+    [/guest|party|visitor|clean/, '#e040fb'],
+    [/local/, '#9c27b0'],
+  ];
+  return rules.find(([re]) => re.test(n))?.[1] || '#9e9e9e';
+};
+
+const NAMED: Record<string, string> = {
+  green: '#008000', red: '#ff0000', orange: '#ffa500', magenta: '#ff00ff', purple: '#800080', cyan: '#00ffff',
+  midnightblue: '#191970', deepskyblue: '#00bfff', crimson: '#dc143c', blue: '#0000ff', yellow: '#ffff00',
+  gray: '#808080', grey: '#808080', white: '#ffffff', black: '#000000', pink: '#ffc0cb',
+};
+/** #rrggbb for an <input type=color> (CSS names and #rgb converted; anything else → grey). */
+export const toHex = (c: string): string => {
+  const s = (c || '').trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(s)) return s;
+  if (/^#[0-9a-f]{3}$/.test(s)) return '#' + [...s.slice(1)].map(x => x + x).join('');
+  return NAMED[s] || '#9e9e9e';
 };
 
 export const newMode = (name: string, existing: HouseMode[]): HouseMode => {

@@ -1,0 +1,40 @@
+{
+  "arm_options": {
+    "heading": "Opties voor inschakelen",
+    "skip_delay": "Sla vertraging over",
+    "force": "Negeer open sensoren"
+  },
+  "editor": {
+    "keep_keypad_visible": "Houd het keypad altijd zichtbaar, ook wanneer er geen code vereist is.",
+    "button_scale_actions": "Schaalfactor actieknoppen",
+    "button_scale_keypad": "Schaalfactor keypadknoppen",
+    "show_messages": "Toon diagnostische berichten wanneer het alarm wordt geactiveerd of niet kan worden ingeschakeld.",
+    "show_ready_indicator": "Toon gereed/niet gereed-indicator op inschakelmodusknoppen.",
+    "show_bypassed_sensors": "Toon melding wanneer het alarm is ingeschakeld met omzeilde sensoren.",
+    "use_code_dialog": "Geef het toetsenbord voor het invoeren van de code weer als een pop-upvenster.",
+    "hide_keypad": "Verberg het toetsenbord voor het invoeren van de code.",
+    "available_actions": "Beschikbare acties:",
+    "action_dialog": {
+      "title": "Weergave van actie '{action}' aanpassen",
+      "show_button": {
+        "title": "Actieknop weergave",
+        "options": {
+          "always": "Altijd zichtbaar",
+          "never": "Nooit zichtbaar",
+          "disarmed": "Toon alleen bij uitgeschakeld",
+          "armed": "Zichtbaar tenzij uitgeschakeld"
+        }
+      },
+      "button_label": "Weergegeven naam voor actie",
+      "button_icon": "Weergegeven icoon voor actie",
+      "state_label": "Weergegeven status",
+      "color": "Weergegeven kleur voor action"
+    }
+  },
+  "errors": {
+    "invalid_pin": "Ongeldig",
+    "blocking_sensors": "Kon niet inschakelen vanwege de volgende sensoren",
+    "triggered_sensors": "Alarm werd geactiveerd door de volgende sensoren",
+    "bypassed_sensors": "Er zijn omzeilde sensoren"
+  }
+}

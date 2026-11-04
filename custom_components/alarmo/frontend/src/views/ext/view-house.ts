@@ -25,6 +25,8 @@ import {
   modeErrors,
   newMode,
   removeMode,
+  defaultModeColor,
+  toHex,
   saveHouse,
   setHouseMode,
 } from '../../data/house';
@@ -298,7 +300,7 @@ export class AlarmViewHouse extends LitElement {
                   const toggle = () => (this.open = open ? this.open.filter(x => x !== m.id) : [...this.open, m.id]);
                   return html`
                     <tr>
-                      <td class="icon"><ha-icon icon=${m.icon}></ha-icon></td>
+                      <td class="icon"><ha-icon icon=${m.icon} style=${`color:${m.color || defaultModeColor(m.name)}`}></ha-icon></td>
                       <td class="name">${m.name}${m.id === this.info!.settings.current ? html`<span class="secondary">current</span>` : nothing}</td>
                       <td>${describeTargets(m, names, s => STATE_LABEL[s] || s) || html`<span class="secondary" style="display:inline">leaves the partitions alone</span>`}</td>
                       <td class="row-actions">
@@ -434,6 +436,10 @@ export class AlarmViewHouse extends LitElement {
           <label>Name <input type="text" .value=${m.name} @change=${(e: any) => upd(x => (x.name = e.target.value))} /></label>
           <alarmo-ext-icon-field .hass=${this.hass} .value=${m.icon} .placeholder=${'home'}
             @value-changed=${(e: CustomEvent) => upd(x => (x.icon = e.detail.value || 'mdi:home'))}></alarmo-ext-icon-field>
+          <label>Colour
+            <input type="color" .value=${toHex(m.color || defaultModeColor(m.name))} @input=${(e: any) => upd(x => (x.color = e.target.value))} />
+            ${m.color ? html`<button class="link" @click=${() => upd(x => (x.color = ''))}>automatic</button>` : html`<span class="secondary" style="display:inline">automatic</span>`}
+          </label>
           <label title="What happens when a partition does not arm">If arming fails
             <select @change=${(e: any) => upd(x => (x.on_failure = e.target.value))}>
               <option value="undo" ?selected=${m.on_failure === 'undo'}>undo (back to how it was)</option>
@@ -484,8 +490,20 @@ export class AlarmViewHouse extends LitElement {
         <h4 class="subhead" style="margin:8px 0 4px">Timers</h4>
         <button class="link" @click=${() => upd(x => x.timers.push({ after_minutes: 10, then: 'previous', from_modes: [], window_start: null, window_end: null, notify: true }))}>+ Add timer</button>
         ${m.timers.map((t, i) => html`<div class="detail-grid">
-          <alarmo-ext-slider .label=${'After'} .min=${1} .max=${720} unit="min" .value=${t.after_minutes}
-            @value-changed=${(e: CustomEvent) => upd(x => (x.timers[i].after_minutes = Math.max(1, e.detail.value || 1)))}></alarmo-ext-slider>
+          <label>
+            <select aria-label="When" @change=${(e: any) => upd(x => {
+              const tm = x.timers[i];
+              if (e.target.value === 'at') { tm.at = tm.at || '01:00'; tm.after_minutes = null; }
+              else { tm.after_minutes = tm.after_minutes || 10; tm.at = null; }
+            })}>
+              <option value="after" ?selected=${!t.at}>after</option>
+              <option value="at" ?selected=${!!t.at}>at</option>
+            </select>
+          </label>
+          ${t.at
+            ? html`<label><input type="time" aria-label="At" .value=${t.at} @change=${(e: any) => upd(x => (x.timers[i].at = e.target.value || '01:00'))} /></label>`
+            : html`<alarmo-ext-slider .label=${''} .min=${1} .max=${720} unit="min" .value=${t.after_minutes || 10}
+                @value-changed=${(e: CustomEvent) => upd(x => (x.timers[i].after_minutes = Math.max(1, e.detail.value || 1)))}></alarmo-ext-slider>`}
           <label>go to <select @change=${(e: any) => upd(x => (x.timers[i].then = e.target.value))}>
             <option value="previous" ?selected=${t.then === 'previous'}>the previous mode</option>
             ${other.map(o => html`<option value=${o.id} ?selected=${t.then === o.id}>${o.name}</option>`)}
@@ -496,7 +514,7 @@ export class AlarmViewHouse extends LitElement {
           <label><input type="checkbox" .checked=${t.notify} @change=${(e: any) => upd(x => (x.timers[i].notify = e.target.checked))} /> notify</label>
           <button class="link" @click=${() => upd(x => x.timers.splice(i, 1))}>Remove</button>
         </div>`)}
-        <span class="secondary" style="display:block">Timers start when this mode begins, survive restarts, and are cancelled when the mode changes. A timer only switches if the target mode allows the "House Mode timers" source.</span>
+        <span class="secondary" style="display:block">"At" is the next time that clock time comes round after the mode began (e.g. Late Night → Sleep at 01:00). Timers start when this mode begins, survive restarts, and are cancelled when the mode changes. A timer only switches if the target mode allows the "House Mode timers" source.</span>
         ${this.renderSteps(m, other)}
         ${this.renderRelated(m)}
       </div>

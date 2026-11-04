@@ -79,6 +79,7 @@ class HouseModeSelect(SelectEntity):
             "previous": prev["name"] if prev else None,
             "source": s["source"],
             "changed_at": s["changed_at"],
+            "last_result": self.ext.house.last_result,
             "pending": [
                 {"target": p.get("target"), "kind": p.get("kind"), "due": p.get("due")}
                 for p in s["pending"]

@@ -37,6 +37,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from . import const, yaml_io, ext_extras_io
 from .backup import BackupError, BackupManager
 from .sensors import ATTR_GROUP
+from .ext_card import CARD_COMMANDS, register_card_services
 from .recorder import ACTIVITY_COMMANDS, ActivityRecorder
 from .ext_locks import LOCK_COMMANDS, LockManager
 from .ext_rules import RulesError, RulesManager
@@ -536,6 +537,7 @@ COMMANDS = (
     *STATUS_COMMANDS,
     *ACTIVITY_COMMANDS,
     *HOUSE_ACTION_COMMANDS,
+    *CARD_COMMANDS,
 )
 
 
@@ -586,6 +588,7 @@ async def async_setup_ext(hass: HomeAssistant, store) -> None:
         _prune_later()
         manager.rules.async_start()
         register_house_service(hass)
+        register_card_services(hass)
 
         # panel links need the Alarmo alarm entities, which are added after setup
         @callback

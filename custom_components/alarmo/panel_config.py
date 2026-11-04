@@ -20,6 +20,24 @@ TRIP_METHODS = ("siren", "relay", "panic", "none")
 HOLD_MODES = ("last", "unknown")
 FAILURE_POLICIES = ("disarm", "keep")
 PANEL_TYPES = ("generic", "envisalink")
+KEYPAD_INPUT_MODES = ("off", "admins", "users", "all")
+KEYPAD_KEYS = r"^[0-9*#A-D]{1,32}$"
+
+
+def keypad_allowed(settings: dict, user_id: str | None, is_admin: bool, keys: str = "") -> tuple[bool, str]:
+    """May this Home Assistant user send ``keys`` to the panel from a dashboard? (allowed, reason)."""
+    cfg = settings.get("keypad_input") or {}
+    mode = cfg.get("mode", "admins")
+    if mode == "off":
+        return False, "keypad input is turned off"
+    if mode == "admins" and not is_admin:
+        return False, "keypad input is for administrators only"
+    if mode == "users" and not is_admin and user_id not in (cfg.get("users") or []):
+        return False, "keypad input is not allowed for this user"
+    blocked = sorted({k for k in keys if k in (cfg.get("blocked_keys") or "")})
+    if blocked:
+        return False, f"key(s) {' '.join(blocked)} may not be sent from a dashboard"
+    return True, ""
 MASTER_KEY = "master"
 
 ALARM_STATES = (
@@ -159,6 +177,15 @@ SETTINGS_SCHEMA = vol.Schema(
         # helper that means "zones are bypassed" while on (e.g. input_boolean.bypass_alarm_zones): mirrors hold
         vol.Optional("bypass_entity", default=None): vol.Any(
             None, vol.Match(r"^(input_boolean|switch|binary_sensor)\.[a-z0-9_]+$")
+        ),
+        # keypresses sent from dashboards (alarmo.panel_keypress): off, admins only, these users, everyone
+        vol.Optional("keypad_input", default={}): vol.Schema(
+            {
+                vol.Optional("mode", default="admins"): vol.In(KEYPAD_INPUT_MODES),
+                vol.Optional("users", default=[]): [str],
+                # keys that are never sent from a dashboard, e.g. "6" (bypass)
+                vol.Optional("blocked_keys", default=""): vol.All(str, vol.Match(r"^[0-9*#A-D]*$")),
+            }
         ),
         # panel zones the user does not want in Alarmo (not offered by "Add all")
         vol.Optional("ignored_zones", default=[]): [vol.Match(r"^binary_sensor\.[a-z0-9_]+$")],

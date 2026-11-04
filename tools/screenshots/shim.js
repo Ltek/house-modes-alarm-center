@@ -161,10 +161,17 @@ def('state-badge', class extends Base {
   }
 });
 for (const n of ['ha-menu-button', 'ha-tooltip', 'paper-tooltip', 'ha-panel-config', 'ha-slider', 'partial-panel-resolver',
-  'ha-dialog', 'ha-dialog-header', 'ha-dialog-footer', 'ha-yaml-editor', 'ha-selector', 'ha-generic-picker', 'ha-dropdown',
+  'ha-dialog', 'ha-dialog-header', 'ha-dialog-footer', 'ha-yaml-editor', 'ha-selector', 'ha-generic-picker',
   'ha-dropdown-item', 'mwc-list-item', 'ha-select']) {
   def(n, class extends HTMLElement {});
 }
+
+// a closed dropdown menu: only its trigger button shows
+def('ha-dropdown', class extends HTMLElement {
+  connectedCallback() {
+    if (!this.shadowRoot) this.attachShadow({ mode: 'open' }).innerHTML = '<slot name="trigger"></slot>';
+  }
+});
 
 // ---------------------------------------------------------------- mock hass
 const reply = (msg) => {

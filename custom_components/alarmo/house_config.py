@@ -39,20 +39,30 @@ def icon_name(value: str) -> str:
     return v if ":" in v else "mdi:" + re.sub(r"[\s_]+", "-", v.lower())
 
 
+COLOR_RE = r"^(|#[0-9a-fA-F]{3,8}|[a-zA-Z]+|var\(--[a-z0-9-]+\))$"
 _time = vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")
 
-TIMER_SCHEMA = vol.Schema(
+def _one_when(timer: dict) -> dict:
+    """A timer runs after N minutes or at a clock time (exactly one of them)."""
+    if bool(timer.get("after_minutes")) == bool(timer.get("at")):
+        raise vol.Invalid("a timer needs either 'after_minutes' or 'at' (HH:MM)")
+    return timer
+
+
+TIMER_SCHEMA = vol.All(vol.Schema(
     {
-        vol.Required("after_minutes"): vol.All(
+        vol.Optional("after_minutes"): vol.Any(None, vol.All(
             vol.Coerce(int), vol.Range(min=1, max=1440)
-        ),
+        )),
+        # at a clock time instead (the next HH:MM after the mode was entered, local time)
+        vol.Optional("at"): vol.Any(None, _time),
         vol.Required("then"): vol.All(str, vol.Length(min=1)),
         vol.Optional("from_modes", default=[]): [str],
         vol.Optional("window_start"): vol.Any(None, _time),
         vol.Optional("window_end"): vol.Any(None, _time),
         vol.Optional("notify", default=True): bool,
     }
-)
+), _one_when)
 
 STEP_SCHEMA = vol.Schema(
     {
@@ -73,6 +83,8 @@ MODE_SCHEMA = vol.Schema(
         vol.Required("id"): vol.Match(r"^[a-z0-9_]{1,32}$"),
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=40)),
         vol.Optional("icon", default="mdi:home"): vol.All(str, icon_name),
+        # colour on cards: #rrggbb, a CSS colour name or var(--…); empty = from the name
+        vol.Optional("color", default=""): vol.All(str, vol.Match(COLOR_RE)),
         vol.Optional("targets", default={}): {str: vol.In(TARGET_STATES)},
         vol.Optional("enter_sources", default=list(SOURCES)): [vol.In(SOURCES)],
         vol.Optional("leave_sources", default=list(SOURCES)): [vol.In(SOURCES)],
@@ -243,6 +255,43 @@ def timers_for(mode: dict, previous: str | None, now: dt.time) -> list[dict]:
             continue
         out.append(t)
     return out
+
+
+DEFAULT_COLORS: list[tuple[str, str]] = [
+    (r"late.?night", "#00b0ff"),
+    (r"vacation|holiday|travel", "#dc143c"),
+    (r"disarm|^off$|wake|^day", "#4caf50"),
+    (r"away|out|leave", "#f44336"),
+    (r"sleep|night|bed", "#5c6bc0"),
+    (r"stay|home", "#ff9800"),
+    (r"spa|bypass|custom|pool|hot.?tub", "#00bcd4"),
+    (r"guest|party|visitor|clean", "#e040fb"),
+    (r"local", "#9c27b0"),
+]
+
+
+def mode_color(mode: dict) -> str:
+    """The mode's colour, or a default from its name."""
+    if mode.get("color"):
+        return mode["color"]
+    n = mode["name"].strip().lower()
+    return next((c for pat, c in DEFAULT_COLORS if re.search(pat, n)), "#9e9e9e")
+
+
+def timer_due(timer: dict, now: dt.datetime) -> float:
+    """Unix time the timer fires when the mode is entered at ``now`` (aware, local)."""
+    if timer.get("at"):
+        hh, mm = (int(x) for x in timer["at"].split(":"))
+        when = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+        if when <= now:
+            when += dt.timedelta(days=1)
+        return when.timestamp()
+    return now.timestamp() + int(timer["after_minutes"]) * 60
+
+
+def timer_text(timer: dict) -> str:
+    """'in 45 min' / 'at 01:00'."""
+    return f"at {timer['at']}" if timer.get("at") else f"in {timer['after_minutes']} min"
 
 
 def steps_for(

@@ -1,6 +1,6 @@
 # House Modes & Alarm Center
 
-> **Current build: v2026.11.04.37** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
+> **Current build: v2026.11.04.38** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
 
 A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber: one place for
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via
@@ -73,6 +73,12 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
       <a href="screenshots/14-house-mode-editor.png"><img src="screenshots/14-house-mode-editor.png" width="100%" alt="House mode editor"></a><br><sub>House mode editor</sub>
     </td>
   </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/15-dashboard-card.png"><img src="screenshots/15-dashboard-card.png" width="100%" alt="Dashboard card"></a><br><sub>Dashboard card</sub>
+    </td>
+    <td></td>
+  </tr>
 </table>
 <!-- SCREENSHOTS:END -->
 
@@ -113,6 +119,10 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 **Arm Check** — *Why won't it arm?* (Alarmo's own check, live, per partition and Arm Mode, plus the panel's Ready) and
 a **walk test**.
 
+**Dashboard card** — *House Modes & Alarm Center Card*, included ([CARD.md](CARD.md)): the House Mode with its icon and
+colour, the panel's display, House Mode buttons, Alarmo's arm / disarm and code entry, and the panel keypad (who may
+use it is set in the integration). No separate download or resource.
+
 **Activity** — a recorder of sequences: House Mode helpers, Alarmo, the panel and its keypad text, locks, bypasses,
 mirrors, automations that ran (as the *cause*), commands and notifications, grouped from the trigger until things go
 quiet. Daily files, filters, download, a summary with panel timings. Only observes; never records codes.
@@ -140,6 +150,7 @@ from template mirrors: [MIGRATION.md](MIGRATION.md).
 | | |
 |---|---|
 | [HOUSE-MODES.md](HOUSE-MODES.md) | House Modes, sources, timers, lock codes and keypad actions |
+| [CARD.md](CARD.md) | The dashboard card: sections, options, panel keypad permissions |
 | [INSTALL-EXT.md](INSTALL-EXT.md) | Install, checks per build, backups, rolling back to upstream Alarmo |
 | [MIGRATION.md](MIGRATION.md) | From partitions-per-device to one partition; replacing template mirrors |
 | [CHANGELOG.md](CHANGELOG.md) | Every build |
@@ -161,4 +172,6 @@ from template mirrors: [MIGRATION.md](MIGRATION.md).
 
 Based on [Alarmo](https://github.com/nielsfaber/alarmo) © Niels Faber and contributors, licensed under the
 [Apache License 2.0](LICENSE). This build is modified extensively; the changes are listed in [CHANGELOG.md](CHANGELOG.md).
+The dashboard card's alarm section is forked from [alarmo-card](https://github.com/nielsfaber/alarmo-card) © Niels Faber
+(Apache License 2.0).
 Alarmo's issue tracker is for upstream Alarmo only — please do not report problems with this build there.

@@ -3,6 +3,25 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.04.38 — 2026-11-04
+
+- **House Modes & Alarm Center Card** ([CARD.md](CARD.md)), served by the integration (no download, no resource):
+  `custom:house-modes-alarm-center-card` with a visual editor. Sections, each optional:
+  - header: House Mode icon in its colour and name, the panel's 2×16 display, a border for the state (alarm, delay /
+    not ready, armed in the mode's colour, ready), collapsible;
+  - House Mode buttons with the reason when a change is blocked, not ready or delayed (in Shadow they set your own
+    input_select);
+  - the alarm: arm / disarm, code, countdown and messages, forked from nielsfaber/alarmo-card 1.6.9 (Apache-2.0,
+    elements renamed so an installed alarmo-card keeps working);
+  - the physical panel keypad (12 keys with their Vista functions).
+- **Panel keypad on dashboards** (Physical Panel tab): off, administrators only (default), chosen users, everyone,
+  and keys never sent. New service `alarmo.panel_keypress` checks the logged-in user and logs every press (digits
+  hidden); automations are not checked.
+- **House Mode colours** (automatic from the name, or chosen).
+- **Timers at a clock time** ("at 01:00 → Sleep"), next to "after N minutes".
+- `select.alarmo_house_mode` has a `last_result` attribute (blocked / not ready / delayed, with the reason).
+- `alarmo/ext/card/get`: card data for every user (modes, colours, panel link entities, keypad permission).
+
 ## v2026.11.04.37 — 2026-11-04
 
 - **House Modes list** uses the standard table: icon first, name, partitions, and a pencil (edit / close) and a

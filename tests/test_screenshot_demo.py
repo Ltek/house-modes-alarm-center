@@ -170,7 +170,7 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
             "modes": [
                 {"id": "disarmed", "name": "Disarmed", "icon": "mdi:shield-off-outline", "targets": {GF: "disarmed", UP: "disarmed", GAR: "disarmed"}},
                 {"id": "stay", "name": "Stay", "icon": "mdi:home", "targets": {GF: "armed_home", UP: "disarmed", GAR: "armed_away"}},
-                {"id": "sleep", "name": "Sleep", "icon": "mdi:weather-night", "targets": {GF: "armed_night", UP: "armed_night", GAR: "armed_away"},
+                {"id": "sleep", "name": "Sleep", "icon": "mdi:bed", "targets": {GF: "armed_night", UP: "armed_night", GAR: "armed_away"},
                  "readiness": {"entities": ["binary_sensor.front_door", "binary_sensor.back_door"], "action": "block"}},
                 {"id": "away", "name": "Away", "icon": "mdi:car", "targets": {GF: "armed_away", UP: "armed_away", GAR: "armed_away"},
                  "enter_sources": ["manual", "automation", "presence_away", "lock", "timer", "schedule"]},
@@ -291,12 +291,15 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
         "alarmo/ext/panel/get", "alarmo/ext/panel/log", "alarmo/ext/house_actions/get", "alarmo/ext/rules/list", "alarmo/ext/rules/preview",
         "alarmo/ext/backup/list", "alarmo/ext/locks/get", "alarmo/ext/locks/legacy", "alarmo/ext/activity/get",
         "config/area_registry/list", "config/floor_registry/list", "config/label_registry/list",
+        "alarmo/ext/card/get",
     ]:
         i += 1
         try:
             ws[t] = await _ws(client, i, type=t)
         except AssertionError:
             ws[t] = []
+    for e in hass.data["alarmo"]["areas"].values():
+        ws[f"alarmo/ready_to_arm_modes|{e.entity_id}"] = {"modes": list(e._ready_to_arm_modes or [])}
     for lock in (FRONT, BACK):
         i += 1
         ws[f"alarmo/ext/locks/read|{lock}"] = await _ws(client, i, type="alarmo/ext/locks/read", entity_id=lock)

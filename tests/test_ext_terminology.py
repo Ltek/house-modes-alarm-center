@@ -115,13 +115,13 @@ def test_other_languages_untouched(git_available) -> None:
 
 
 def test_service_field_keys_unchanged(git_available) -> None:
-    """Backend translation keys (service fields) stay as upstream + create_backup."""
+    """Backend translation keys (service fields) stay as upstream + the ext services."""
     rel = "custom_components/alarmo/translations/en.json"
     old = json.loads(_head(rel))
     new = json.loads((ROOT / rel).read_text(encoding="utf-8"))
     added = set(_keys(new)) - set(_keys(old))
     assert set(_keys(old)) <= set(_keys(new))
     assert all(
-        k.startswith(("services.create_backup.", "services.set_house_mode."))
+        k.startswith(("services.create_backup.", "services.set_house_mode.", "services.panel_keypress."))
         for k in added
     ), added

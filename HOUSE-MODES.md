@@ -92,6 +92,14 @@ Vacation - Force All People Not Home*.
 Blueprints are in `blueprints/automation/alarmo/` in the ZIP: copy them to
 `/config/blueprints/automation/alarmo/` and reload automations.
 
+## Colours and clock-time timers
+
+- **Colour** (open a mode with the pencil): used by the dashboard card for the mode's icon and the armed border.
+  *Automatic* picks one from the name.
+- **Timers** can run *after* N minutes or *at* a clock time: the next time that time comes round after the mode
+  began. Example **Late Night**: partitions Home; under *Who may change it* untick **Schedule** in *Out of this mode*
+  (the 23:30 Sleep schedule is then blocked); timer *at 01:00 → Sleep*.
+
 ## Sources
 
 `manual` (dashboard / a person), `automation` (anything else without a source), `schedule`,

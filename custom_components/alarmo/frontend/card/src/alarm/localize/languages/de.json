@@ -1,0 +1,40 @@
+{
+  "arm_options": {
+    "heading": "Scharfschaltungsoptionen",
+    "skip_delay": "Ausgangsverzögerung überspringen",
+    "force": "Offene Sensoren ignorieren"
+  },
+  "editor": {
+    "keep_keypad_visible": "Zeige das Pin-Eingabefeld immer an, auch wenn kein Code erfordert ist.",
+    "button_scale_actions": "Skalierungsfaktor für Buttongröße der Aktionen.",
+    "button_scale_keypad": "Skalierungsfaktor für Buttongröße der Pin-Eingabefeld.",
+    "show_messages": "Anzeige von Diagnosemeldungen, wenn der Alarm ausgelöst wird oder nicht scharf geschaltet werden kann.",
+    "show_ready_indicator": "Zeigt die Bereitschafts-/Nicht-Bereitschaftsanzeige auf den Scharfschaltmodus-Tasten an.",
+    "show_bypassed_sensors": "Warnung anzeigen, wenn der Alarm mit umgangenen Sensoren aktiviert wird.",
+    "use_code_dialog": "Zeigen Sie die Tastatur zur Codeeingabe als Popup-Dialog an.",
+    "hide_keypad": "Blenden Sie die Tasten der Tastatur zur Codeeingabe aus.",
+    "available_actions": "Verfügbare Aktionen:",
+    "action_dialog": {
+      "title": "Anzeige der Aktion '{action}' anpassen",
+      "show_button": {
+        "title": "Sichtbarkeit der Aktionsschaltfläche",
+        "options": {
+          "always": "Immer angezeigt",
+          "never": "Nie angezeigt",
+          "disarmed": "Nur im deaktivierten Zustand anzeigen",
+          "armed": "Nur im aktivierten Zustand anzeigen"
+        }
+      },
+      "button_label": "Überschreibung der Tastenbeschriftung",
+      "button_icon": "Angezeigtes Schaltflächensymbol",
+      "state_label": "Überschreibung der Statusbezeichnung",
+      "color": "Die für die Aktion verwendete Farbe überschreiben"
+    }
+  },
+  "errors": {
+    "invalid_pin": "Ungültig",
+    "blocking_sensors": "Konnte nicht scharf geschaltet werden, da folgende Sensoren geöffnet sind",
+    "triggered_sensors": "Alarm wurde durch folgende Sensoren ausgelöst",
+    "bypassed_sensors": "Es gibt umgangene Sensoren"
+  }
+}

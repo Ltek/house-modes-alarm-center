@@ -1,0 +1,40 @@
+{
+  "arm_options": {
+    "heading": "Opzioni di inserimento",
+    "skip_delay": "Ignorare il ritardo di uscita",
+    "force": "Ignorare i sensori aperti"
+  },
+  "editor": {
+    "keep_keypad_visible": "Mantenere la tastiera sempre visibile, anche quando nessun codice è richiesto.",
+    "button_scale_actions": "Fattore di scala da applicare per ridimensionare i pulsanti di azione.",
+    "button_scale_keypad": "Fattore di scala da applicare per ridimensionare i pulsanti della tastiera.",
+    "show_messages": "Mostrare messaggi diagnostici quando l'allarme viene attivato o non può essere inserito.",
+    "show_ready_indicator": "Mostra l'indicatore pronto/non pronto sui pulsanti della modalità di inserimento.",
+    "show_bypassed_sensors": "Mostra avviso quando l'allarme è armato con sensori esclusi.",
+    "use_code_dialog": "Visualizza la tastiera per l'immissione del codice come finestra di dialogo popup.",
+    "hide_keypad": "Nascondi i pulsanti della tastiera per l'inserimento del codice.",
+    "available_actions": "Azioni disponibili:",
+    "action_dialog": {
+      "title": "Personalizzare la visualizzazione dell'azione '{action}'",
+      "show_button": {
+        "title": "Visibilità del pulsante di azione",
+        "options": {
+          "always": "Sempre visualizzato",
+          "never": "Mai visualizzato",
+          "disarmed": "Mostra solo quando disarmato",
+          "armed": "Mostra solo quando disarmato"
+        }
+      },
+      "button_label": "Sovrascrivere l'etichetta del pulsante",
+      "button_icon": "Icona del pulsante visualizzato",
+      "state_label": "Sovrascrivere l'etichetta di stato",
+      "color": "Sostituisci il colore utilizzato per l'azione"
+    }
+  },
+  "errors": {
+    "invalid_pin": "Non valido",
+    "blocking_sensors": "Impossibile inserire l'allarme a causa dei seguenti sensori",
+    "triggered_sensors": "L'allarme è stato attivato dai seguenti sensori",
+    "bypassed_sensors": "Sono presenti sensori esclusi"
+  }
+}

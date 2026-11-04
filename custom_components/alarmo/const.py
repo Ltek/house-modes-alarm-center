@@ -15,7 +15,7 @@ from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntityFeature,
 )
 
-VERSION = "2026.11.04.37"
+VERSION = "2026.11.04.38"
 NAME = "Alarmo"
 MANUFACTURER = "@nielsfaber"
 
@@ -27,6 +27,9 @@ PANEL_FOLDER = "frontend"
 PANEL_FILENAME = "dist/alarm-panel.js"
 
 PANEL_URL = "/api/panel_custom/alarmo"
+# ext: the House Modes & Alarm Center dashboard card, loaded on every dashboard (no resource entry needed)
+CARD_FILENAME = "dist/house-modes-alarm-center-card.js"
+CARD_URL = "/alarmo_ext/house-modes-alarm-center-card.js"
 PANEL_TITLE = NAME
 PANEL_ICON = "mdi:shield-home"
 PANEL_NAME = "alarm-panel"

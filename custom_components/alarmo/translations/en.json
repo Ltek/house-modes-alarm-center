@@ -97,6 +97,20 @@
           "description": "Ignore the permission table and readiness checks."
         }
       }
+    },
+    "panel_keypress": {
+      "name": "Panel keypress",
+      "description": "Send keys to a linked physical panel (Envisalink), as typed on its keypad. Dashboard users are checked against the Physical Panel tab's keypad setting; automations are not.",
+      "fields": {
+        "keys": {
+          "name": "Keys",
+          "description": "0-9, *, # and A-D, up to 32 keys."
+        },
+        "entity_id": {
+          "name": "Panel",
+          "description": "The Alarmo partition or the panel entity of the link. Default: the first linked panel."
+        }
+      }
     }
   },
   "selector": {

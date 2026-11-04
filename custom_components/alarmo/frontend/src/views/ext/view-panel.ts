@@ -54,6 +54,8 @@ export class AlarmViewPanel extends LitElement {
   @state() private openLinks: Record<string, boolean> = {};
   @state() private newTarget = '';
   @state() private newPanel = '';
+  private usersAsked = false;
+  @state() private haUsers: { id: string; name: string; is_admin?: boolean; system_generated?: boolean }[] = [];
 
   firstUpdated() {
     this.refresh();
@@ -86,7 +88,7 @@ export class AlarmViewPanel extends LitElement {
     const warnings = settingsWarnings(this.draft, this.info.panels);
     return html`
       ${this.error ? html`<div class="notice error" style="white-space:pre-line;margin:0 0 12px">${this.error}</div>` : nothing}
-      ${this.renderLinks()}
+      ${this.renderLinks()} ${this.renderKeypadInput()}
       <alarm-view-mirrors .hass=${this.hass} .narrow=${this.narrow} embedded></alarm-view-mirrors>
       <alarm-view-ha-zones .hass=${this.hass} .narrow=${this.narrow} embedded></alarm-view-ha-zones>
       <ha-card><div class="toolbar"><ha-icon icon="mdi:history"></ha-icon>The physical panel link's log is on the <a href="/alarmo/activity">Activity</a> tab, together with everything else that happened.</div></ha-card>
@@ -100,6 +102,67 @@ export class AlarmViewPanel extends LitElement {
             <ha-button ?disabled=${this.busy} @click=${this.save}>${this.busy ? 'Saving…' : 'Save'}</ha-button>
           </div>`
         : nothing}
+    `;
+  }
+
+  // ------------------------------------------------------------------ keypad input from dashboards
+
+  private renderKeypadInput() {
+    const d = this.draft!;
+    if (!Object.values(d.links).some(l => l.panel_type === 'envisalink')) return nothing;
+    const k = d.keypad_input || { mode: 'admins', users: [], blocked_keys: '' };
+    const set = (fn: (x: NonNullable<PanelSettings['keypad_input']>) => void) => {
+      const n = clone(this.draft!);
+      n.keypad_input = { ...k, users: [...k.users] };
+      fn(n.keypad_input);
+      this.draft = n;
+    };
+    if (!this.usersAsked) {
+      this.usersAsked = true;
+      this.hass
+        .callWS<any[]>({ type: 'config/auth/list' })
+        .then(u => (this.haUsers = u.filter(x => !x.system_generated)))
+        .catch(() => undefined);
+    }
+    const labels: Record<string, string> = {
+      off: 'Off — ignore every keypress',
+      admins: 'Administrators only',
+      users: 'Administrators and these users',
+      all: 'Everyone',
+    };
+    return html`
+      <ha-card>${sectionHead('Panel keypad on dashboards', 'settings')}
+        <div class="card-content desc">
+          <p>The House Modes &amp; Alarm Center Card can show your panel's keypad. Its keys go through Alarmo, which checks
+            who is logged in before passing them to the panel. Refused presses are shown on the card and in the Activity log.</p>
+          <ul>
+            <li>Automations calling <code>alarmo.panel_keypress</code> are not checked.</li>
+            <li>This limits the card, not Home Assistant: a logged-in user can still call the Envisalink service directly.
+              The panel code remains the real protection.</li>
+          </ul>
+        </div>
+        <div class="toolbar">
+          ${(['off', 'admins', 'users', 'all'] as const).map(
+            m => html`<label><input type="radio" name="kp-mode" .checked=${k.mode === m} @change=${() => set(x => (x.mode = m))} />${labels[m]}</label>`
+          )}
+        </div>
+        ${k.mode === 'users'
+          ? html`<div class="toolbar">
+              ${this.haUsers.filter(u => !u.is_admin).map(
+                u => html`<label><input type="checkbox" .checked=${k.users.includes(u.id)}
+                  @change=${(e: any) => set(x => (x.users = e.target.checked ? [...x.users, u.id] : x.users.filter(i => i !== u.id)))} />${u.name}</label>`
+              )}
+              ${!this.haUsers.filter(u => !u.is_admin).length ? html`<span class="secondary" style="display:inline">No other users.</span>` : nothing}
+            </div>`
+          : nothing}
+        ${k.mode !== 'off'
+          ? html`<div class="field-row" style="padding:0 16px 12px">
+              <label>Keys never sent from a dashboard
+                <input type="text" placeholder="e.g. 6 (bypass)" .value=${k.blocked_keys}
+                  @change=${(e: any) => set(x => (x.blocked_keys = String(e.target.value).toUpperCase().replace(/[^0-9*#A-D]/g, '')))} /></label>
+            </div>`
+          : nothing}
+      </ha-card>
     `;
   }
 

@@ -24,7 +24,9 @@ from .house_config import (
     HISTORY_SIZE,
     find_mode,
     steps_for,
+    timer_due,
     permission,
+    timer_text,
     timers_for,
     derive_mode,
     open_entities,
@@ -347,7 +349,7 @@ class HouseShadow:
             tgt = find_mode(self.mgr.settings, tgt_id)
             if not tgt:
                 continue
-            self.add("timer", f"{mode['name']}: would change to {tgt['name']} in {t['after_minutes']} min")
+            self.add("timer", f"{mode['name']}: would change to {tgt['name']} {timer_text(t)}")
 
             @callback
             def _fire(_now, tgt=tgt, context=mode["id"], key=f"timer{i}") -> None:
@@ -357,7 +359,8 @@ class HouseShadow:
                 self.add("timer", f"timer due: {tgt['name']} now", starter=True)
                 self.hass.async_create_task(self.request(tgt, "timer"))
 
-            self._timer(f"timer{i}", t["after_minutes"], _fire)
+            now = dt_util.now()
+            self._timer(f"timer{i}", (timer_due(t, now) - now.timestamp()) / 60, _fire)
 
     # ------------------------------------------------------------ shadow state
 

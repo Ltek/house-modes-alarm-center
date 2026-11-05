@@ -151,3 +151,17 @@ test('color mapping: card-only House Mode colors, arm modes matched to a House M
   assert.equal(c.armed_away, '#222222');
   assert.equal(c.armed_home, '#ffa500'); // unknown House Mode: the standard color stays
 });
+
+import { sectionOrder, migrateConfig as mc2 } from '../card/src/data.ts';
+
+test('section order: unknown dropped, missing appended', () => {
+  assert.deepEqual(sectionOrder(), ['house_status', 'house_modes', 'alarm_status', 'alarm', 'keypad']);
+  assert.deepEqual(sectionOrder(['alarm_status', 'x', 'alarm_status', 'keypad']), ['alarm_status', 'keypad', 'house_status', 'house_modes', 'alarm']);
+});
+
+test('old settings: strip becomes replacements; no alarm section means no alarm status', () => {
+  assert.deepEqual(mc2({ type: 'x', display_strip: '**', display_replace: [{ from: 'A', to: 'B' }] }),
+    { type: 'x', display_replace: [{ from: '*' }, { from: 'A', to: 'B' }] });
+  assert.equal(mc2({ type: 'x', show_alarm: false }).show_alarm_status, false);
+  assert.equal(mc2({ type: 'x' }).show_alarm_status, undefined);
+});

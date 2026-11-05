@@ -85,7 +85,7 @@ export class AlarmoActionsBar extends LitElement {
           @click=${(ev: Event) => this._handleClick(ev, e)}>
           <div class="content ${hasTextLabel && (this.config as any).show_labels !== false ? 'has-text' : ''}">
             ${(this.config as any).show_icons === false ? nothing : html`<ha-icon icon="${isEmpty(stateConfig.button_icon) ? ActionToIcon[e] : stateConfig.button_icon}"></ha-icon>`}
-            ${ActionToState[e] != selectedOption && isDefined(this.readyForArmModes)
+            ${ActionToState[e] != selectedOption && isDefined(this.readyForArmModes) && isDisabled  /* ext: only "cannot arm" */
           ? html`
               <ha-icon
                 icon="${isDisabled ? 'mdi:circle-medium' : 'mdi:circle-medium'}"

@@ -27,6 +27,8 @@ import {
   FX_TRIGGERS,
   FX_TRIGGER_LABELS,
   EffectsConfig,
+  SECTION_INFO,
+  sectionOrder,
 } from './data';
 
 const THEME_COLORS: [string, string][] = [
@@ -159,10 +161,6 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     const setRep = (next: { from: string; to?: string }[]) => this.set('display_replace', next.length ? next : undefined);
     return html`
       ${this.group('Panel display text')}
-      <div class="row"><span class="lab">Strip from both ends</span>
-        <input class="ctl" type="text" placeholder="e.g. *" .value=${c.display_strip || ''}
-          @change=${(e: any) => this.set('display_strip', e.target.value || undefined)} /></div>
-      <p class="hint">Characters removed from the start and end of each line: "*" turns ****DISARMED**** into DISARMED.</p>
       <div class="row"><span class="lab">Replace</span>
         <button class="add" @click=${() => setRep([...rep, { from: '', to: '' }])}>+ Replacement</button></div>
       ${rep.map((x, i) => html`<div class="row rep">
@@ -174,7 +172,8 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
         <button class="icon-btn del" title="Remove" aria-label="Remove" @click=${() => setRep(rep.filter((_, j) => j !== i))}>
           <ha-icon icon="mdi:trash-can-outline"></ha-icon></button>
       </div>`)}
-      ${rep.length ? html`<p class="hint">Applied in order, after stripping; exact text, case sensitive.</p>` : nothing}
+      <p class="hint">Applied in order, to each line; exact text, case sensitive. Replace "*" with nothing to turn
+        ****DISARMED**** into DISARMED.</p>
     `;
   }
 
@@ -317,18 +316,27 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
   // ------------------------------------------------------------ layout pieces
 
   private panel(id: string, icon: string, title: string, hint: string, body: TemplateResult | TemplateResult[], open = false) {
-    return html`<details class="panel" ?open=${open} data-id=${id}>
+    return html`<details class="panel" ?open=${open} data-id=${id} @toggle=${this.onlyOne}>
       <summary><ha-icon icon=${icon}></ha-icon><span>${title}</span><ha-icon class="chev" icon="mdi:chevron-down"></ha-icon></summary>
       <div class="body"><p class="hint">${hint}</p>${body}</div>
     </details>`;
   }
 
   private sub(title: string, body: TemplateResult | TemplateResult[] | typeof nothing) {
-    return html`<details class="sub">
+    return html`<details class="sub" @toggle=${this.onlyOne}>
       <summary><span>${title}</span><ha-icon class="chev" icon="mdi:chevron-down"></ha-icon></summary>
       <div class="sub-body">${body}</div>
     </details>`;
   }
+
+  /** Only one panel open at a time: opening one closes its open siblings (top-level panels, and sub-panels). */
+  private onlyOne = (e: Event) => {
+    const d = e.currentTarget as HTMLDetailsElement;
+    if (!d.open) return;
+    const cls = d.classList.contains('panel') ? 'panel' : 'sub';
+    for (const other of Array.from(d.parentElement?.children || []))
+      if (other !== d && other instanceof HTMLDetailsElement && other.classList.contains(cls) && other.open) other.open = false;
+  };
 
   private group(title: string) {
     return html`<div class="group">${title}</div>`;
@@ -404,18 +412,31 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
   }
 
   /** One section in the Sections panel: [show] name · [collapse] · [start closed] (the last two only when shown). */
-  private sectionRow(name: string, hint: string, show: string, collapse: string, start: string, collapseHint?: string) {
+  /** One row of the Sections panel: [show] name · [collapse] · [start closed] · order ↑ ↓. */
+  private sectionRow(id: string, index: number, all: string[]) {
     const c: any = this.cfg;
+    const info = (SECTION_INFO as any)[id];
+    const move = (d: number) => {
+      const next = [...all];
+      [next[index], next[index + d]] = [next[index + d], next[index]];
+      this.set('section_order', next.join() === sectionOrder().join() ? undefined : next);
+    };
     return html`<div class="sec-row">
-      <input type="checkbox" aria-label=${`Show ${name}`} .checked=${!!c[show]} @change=${(e: any) => this.set(show, e.target.checked)} />
-      <span class="sec-name">${name}${hint ? html`<span class="hint inline"> · ${hint}</span>` : nothing}</span>
-      ${c[show]
-        ? html`<input type="checkbox" aria-label=${`Collapse ${name}`} title=${collapseHint || 'a bar opens and closes this section'}
-              .checked=${!!c[collapse]} @change=${(e: any) => this.set(collapse, e.target.checked)} />
-            ${c[collapse]
-              ? html`<input type="checkbox" aria-label=${`Start ${name} closed`} .checked=${!!c[start]} @change=${(e: any) => this.set(start, e.target.checked)} />`
+      <input type="checkbox" aria-label=${`Show ${info.title}`} .checked=${!!c[info.show]} @change=${(e: any) => this.set(info.show, e.target.checked)} />
+      <span class="sec-name">${info.title}${info.hint ? html`<span class="hint inline"> · ${info.hint}</span>` : nothing}</span>
+      ${c[info.show]
+        ? html`<input type="checkbox" aria-label=${`Collapse ${info.title}`} title="a bar opens and closes this section"
+              .checked=${!!c[info.collapse]} @change=${(e: any) => this.set(info.collapse, e.target.checked)} />
+            ${c[info.collapse]
+              ? html`<input type="checkbox" aria-label=${`Start ${info.title} closed`} .checked=${!!c[info.start]} @change=${(e: any) => this.set(info.start, e.target.checked)} />`
               : html`<span></span>`}`
         : html`<span></span><span></span>`}
+      <span class="order">
+        <button class="icon-btn" title="Move up" aria-label=${`Move ${info.title} up`} ?disabled=${index === 0} @click=${() => move(-1)}>
+          <ha-icon icon="mdi:arrow-up"></ha-icon></button>
+        <button class="icon-btn" title="Move down" aria-label=${`Move ${info.title} down`} ?disabled=${index === all.length - 1} @click=${() => move(1)}>
+          <ha-icon icon="mdi:arrow-down"></ha-icon></button>
+      </span>
     </div>`;
   }
 
@@ -449,18 +470,18 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
       `, true)}
 
       ${this.panel('sections', 'mdi:view-agenda-outline', 'Sections', 'Turn each part of the card on or off, and choose which ones can be collapsed.', html`
-        <div class="sec-head"><span></span><span>Section</span><span>Collapse</span><span>Start closed</span></div>
-        ${this.sectionRow('Header', 'House Mode and panel display', 'show_header', 'collapsible', 'start_collapsed', 'the whole card folds to the header')}
-        ${this.sectionRow('House Mode buttons', '', 'show_house_modes', 'modes_collapsible', 'modes_start_collapsed')}
-        ${this.sectionRow('Alarm', 'arm / disarm, code, messages', 'show_alarm', 'alarm_collapsible', 'alarm_start_collapsed')}
-        ${this.sectionRow('Physical panel keypad', '', 'show_panel_keypad', 'keypad_collapsible', 'keypad_start_collapsed')}
-        ${c.collapsible || c.modes_collapsible || c.alarm_collapsible || c.keypad_collapsible
+        <div class="sec-head"><span></span><span>Section</span><span>Collapse</span><span>Start closed</span><span>Order</span></div>
+        ${sectionOrder(c.section_order).map((id, i, all) => this.sectionRow(id, i, all))}
+        ${this.group('Folding the card')}
+        ${this.toggle('Fold the whole card to its first section (tap it)', c.collapsible, v => this.set('collapsible', v))}
+        ${c.collapsible ? this.toggle('Start folded', c.start_collapsed, v => this.set('start_collapsed', v)) : nothing}
+        ${c.collapsible || Object.values(SECTION_INFO).some(x => (c as any)[x.collapse])
           ? html`${this.group('Collapsing')}${this.toggle('Show the open / close arrow', c.show_chevron, v => this.set('show_chevron', v))}
               ${this.textStyle('alarm_bar')}`
           : nothing}
       `)}
 
-      ${this.panel('header', 'mdi:page-layout-header', 'Header', "The House Mode icon and name, and the physical panel's two display lines.", c.show_header
+      ${this.panel('header', 'mdi:home-circle-outline', 'House Mode Status', "The House Mode's icon and name, and the physical panel's two display lines.", c.show_header
         ? html`
           ${this.group('Show')}
           ${this.toggle('House Mode icon', c.show_header_icon, v => this.set('show_header_icon', v))}
@@ -513,12 +534,26 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           ${c.show_mode_labels ? this.textStyle('mode_label') : nothing}`
         : html`<p class="hint">Turned off under Sections.</p>`)}
 
-      ${this.panel('alarm', 'mdi:shield-lock-outline', 'Alarm', 'Arm and disarm Alarmo, enter the code, see why it will not arm.', c.show_alarm
+      ${this.panel('alarm_status', 'mdi:shield-check-outline', 'Alarm Panel Status', "The alarm's state icon (with the countdown during a delay), its name and state, and optionally the physical panel's display.", c.show_alarm_status
         ? html`
           ${this.group('Show')}
-          ${this.toggle('State icon', c.show_alarm_icon, v => this.set('show_alarm_icon', v))}
+          ${this.toggle('State icon and countdown', c.show_alarm_icon, v => this.set('show_alarm_icon', v))}
           ${this.toggle('Alarm name', c.show_alarm_name, v => this.set('show_alarm_name', v))}
           ${this.toggle('Alarm state', c.show_alarm_state, v => this.set('show_alarm_state', v))}
+          ${this.toggle('Panel display, line 1', c.show_alarm_line1, v => this.set('show_alarm_line1', v))}
+          ${this.toggle('Panel display, line 2', c.show_alarm_line2, v => this.set('show_alarm_line2', v))}
+          ${c.show_alarm_line1 || c.show_alarm_line2 ? html`<p class="hint">The display text and its replacements are set under House Mode Status.</p>` : nothing}
+          ${this.sectionBg('alarm_status_section' as any)}
+          ${this.group('Styles')}
+          ${c.show_alarm_name ? this.textStyle('alarm_name') : nothing}
+          ${c.show_alarm_state ? this.textStyle('alarm_state') : nothing}
+          ${c.show_alarm_line1 ? this.textStyle('line1') : nothing}
+          ${c.show_alarm_line2 ? this.textStyle('line2') : nothing}`
+        : html`<p class="hint">Turned off under Sections.</p>`)}
+
+      ${this.panel('alarm', 'mdi:shield-lock-outline', 'Alarm Panel buttons', 'Arm and disarm Alarmo, enter the code, see why it will not arm.', c.show_alarm
+        ? html`
+          ${this.group('Show')}
           ${this.toggle('Arm button icons', c.show_arm_icons, v => this.set('show_arm_icons', v))}
           ${this.toggle('Arm button text', c.show_arm_labels, v => this.set('show_arm_labels', v))}
           ${this.toggle('Option chips: Skip exit delay, Bypass open sensors', c.show_arm_options, v => this.set('show_arm_options', v))}
@@ -547,8 +582,6 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
             bg: 'Card default (transparent)', abg: 'Arm mode color', ic: 'Arm mode color', aic: 'Card default (white)' })}
           ${c.show_arm_icons ? this.iconStyle('alarm_icon') : nothing}
           ${c.show_arm_labels ? this.textStyle('alarm_button') : nothing}
-          ${c.show_alarm_name ? this.textStyle('alarm_name') : nothing}
-          ${c.show_alarm_state ? this.textStyle('alarm_state') : nothing}
           ${c.show_arm_options ? this.textStyle('chip') : nothing}`
         : html`<p class="hint">Turned off under Sections.</p>`)}
 
@@ -804,7 +837,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     .sec-head,
     .sec-row {
       display: grid;
-      grid-template-columns: 22px 1fr 70px 84px;
+      grid-template-columns: 22px 1fr 64px 76px 52px;
       align-items: center;
       gap: var(--ltek-sp-3);
       padding: var(--ltek-sp-1) 0;
@@ -817,6 +850,15 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     .sec-head span:nth-child(n + 3),
     .sec-row input:nth-of-type(n + 2) {
       justify-self: center;
+    }
+    .order {
+      display: flex;
+      gap: 4px;
+      justify-self: end;
+    }
+    .order .icon-btn:disabled {
+      opacity: 0.25;
+      cursor: default;
     }
     .sec-row input {
       accent-color: var(--ltek-c-accent);

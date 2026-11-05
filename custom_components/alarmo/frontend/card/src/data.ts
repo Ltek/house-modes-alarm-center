@@ -120,9 +120,10 @@ export type CardStyles = Partial<Record<TextElement, TextStyle>> &
 
 /** Sections with their own background (unset = the card background shows through). */
 export const SECTIONS = {
-  header_section: 'Header',
+  header_section: 'House Mode Status',
   modes_section: 'House Mode buttons',
-  alarm_section: 'Alarm',
+  alarm_status_section: 'Alarm Panel Status',
+  alarm_section: 'Alarm Panel buttons',
   keypad_section: 'Physical panel keypad',
 } as const;
 export type SectionKey = keyof typeof SECTIONS;
@@ -170,6 +171,16 @@ export type CardConfig = {
   /** @deprecated v2026.11.04.42–.44; false → alarm_colors: standard */
   alarm_colors_from_modes?: boolean;
   styles?: CardStyles;
+  /** the order of the sections (missing ones are added at the end) */
+  section_order?: SectionId[];
+  show_alarm_status?: boolean;
+  house_status_collapsible?: boolean;
+  house_status_start_collapsed?: boolean;
+  alarm_status_collapsible?: boolean;
+  alarm_status_start_collapsed?: boolean;
+  /** the physical panel's display lines in the Alarm Panel Status section */
+  show_alarm_line1?: boolean;
+  show_alarm_line2?: boolean;
   /** card-only House Mode colors (id → color), over the House Modes tab's */
   mode_colors?: Record<string, string>;
   /** arm mode colors (state → color); 'house:<mode id>' = that House Mode's color */
@@ -209,7 +220,8 @@ export const DEFAULTS: Required<Pick<CardConfig,
   | 'show_alarm_name' | 'show_alarm_state' | 'show_arm_options' | 'alarm_colors' | 'modes_collapsible'
   | 'modes_start_collapsed' | 'keypad_collapsible' | 'keypad_start_collapsed' | 'show_header_icon' | 'show_mode_icons'
   | 'show_alarm_icon' | 'show_arm_icons' | 'show_arm_labels' | 'show_key_labels' | 'modes_shape' | 'arm_shape' | 'keypad_shape'
-  | 'modes_width' | 'arm_width' | 'header_countdown' | 'border_color'>> = {
+  | 'modes_width' | 'arm_width' | 'header_countdown' | 'border_color' | 'show_alarm_status' | 'house_status_collapsible'
+  | 'house_status_start_collapsed' | 'alarm_status_collapsible' | 'alarm_status_start_collapsed' | 'show_alarm_line1' | 'show_alarm_line2'>> = {
   show_header: true,
   show_house_modes: true,
   show_alarm: true,
@@ -246,6 +258,32 @@ export const DEFAULTS: Required<Pick<CardConfig,
   arm_width: 'fill',
   header_countdown: false,
   border_color: 'mode',
+  show_alarm_status: true,
+  house_status_collapsible: false,
+  house_status_start_collapsed: true,
+  alarm_status_collapsible: false,
+  alarm_status_start_collapsed: true,
+  show_alarm_line1: false,
+  show_alarm_line2: false,
+};
+
+/** The card's sections, in their default order. */
+export const SECTION_IDS = ['house_status', 'house_modes', 'alarm_status', 'alarm', 'keypad'] as const;
+export type SectionId = (typeof SECTION_IDS)[number];
+/** Per section: its title, and the config keys that show it and make it collapsible. */
+export const SECTION_INFO: Record<SectionId, { title: string; hint: string; show: string; collapse: string; start: string }> = {
+  house_status: { title: 'House Mode Status', hint: 'icon, name, panel display', show: 'show_header', collapse: 'house_status_collapsible', start: 'house_status_start_collapsed' },
+  house_modes: { title: 'House Mode buttons', hint: '', show: 'show_house_modes', collapse: 'modes_collapsible', start: 'modes_start_collapsed' },
+  alarm_status: { title: 'Alarm Panel Status', hint: 'state, countdown', show: 'show_alarm_status', collapse: 'alarm_status_collapsible', start: 'alarm_status_start_collapsed' },
+  alarm: { title: 'Alarm Panel buttons', hint: 'arm / disarm, code, messages', show: 'show_alarm', collapse: 'alarm_collapsible', start: 'alarm_start_collapsed' },
+  keypad: { title: 'Physical panel keypad', hint: '', show: 'show_panel_keypad', collapse: 'keypad_collapsible', start: 'keypad_start_collapsed' },
+};
+
+/** The section order: the configured one, unknown ids dropped, missing ones appended in the default order. */
+export const sectionOrder = (order?: string[]): SectionId[] => {
+  const known = (order || []).filter((x): x is SectionId => (SECTION_IDS as readonly string[]).includes(x));
+  const uniq = known.filter((x, i) => known.indexOf(x) === i);
+  return [...uniq, ...SECTION_IDS.filter(x => !uniq.includes(x))];
 };
 
 /** The card's view of the House Modes: the card-only color overrides applied. */
@@ -527,6 +565,14 @@ export const linkFor = (data: CardData, entity?: string): CardLink | undefined =
 /** Old configs: alarm_colors_from_modes false → standard colors (that is what people expected it to mean). */
 export const migrateConfig = (config: CardConfig): CardConfig => {
   if (config.effects) config = { ...config, effects: migrateEffects(config.effects) };
+  // v2026.11.05.46–.49 had a separate "strip" field: each character becomes a replacement that removes it
+  if (config.display_strip) {
+    const { display_strip, ...rest } = config;
+    const extra = [...new Set([...display_strip])].filter(ch => ch.trim()).map(ch => ({ from: ch }));
+    config = { ...rest, display_replace: [...extra, ...(config.display_replace || [])] } as CardConfig;
+  }
+  // before v2026.11.05.50 the alarm's status (name, state) was part of the alarm section
+  if (config.show_alarm === false && config.show_alarm_status === undefined) config = { ...config, show_alarm_status: false };
   if (config.alarm_colors_from_modes === undefined) return config;
   const { alarm_colors_from_modes, ...rest } = config;
   return { ...rest, ...(config.alarm_colors ? {} : alarm_colors_from_modes === false ? { alarm_colors: 'standard' } : {}) } as CardConfig;

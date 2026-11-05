@@ -23,6 +23,9 @@ import {
   FX_PREVIEW,
   FX_TRIGGERS,
   ALARM_STATE_ICONS,
+  SECTION_INFO,
+  sectionOrder,
+  SectionId,
   resolveColor,
   keypadKeys,
   lcdLines,
@@ -89,11 +92,9 @@ export class HouseModesAlarmCenterCard extends LitElement {
         this.closed = { ...kept.closed };
       } else {
         this.collapsed = !!(this.config.collapsible && this.config.start_collapsed);
-        this.closed = {
-          modes: !!(this.config.modes_collapsible && this.config.modes_start_collapsed),
-          alarm: !!(this.config.alarm_collapsible && this.config.alarm_start_collapsed),
-          keypad: !!(this.config.keypad_collapsible && this.config.keypad_start_collapsed),
-        };
+        const cf: any = this.config;
+        this.closed = {};
+        for (const [id, info] of Object.entries(SECTION_INFO)) this.closed[id] = !!(cf[info.collapse] && cf[info.start]);
         this.saveView();
       }
     }
@@ -276,23 +277,69 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const active = FX_PREVIEW.on ? [...FX_TRIGGERS] : fxTriggers(alarmState, panelState, h.changing_to);
     const fx = fxClasses(c.effects, active);
     this.fxRun = fxRunning(c.effects, active);
+    const shown = (id: SectionId): boolean => {
+      const cf: any = c;
+      if (!cf[SECTION_INFO[id].show]) return false;
+      if (id === 'house_modes') return h.enabled;
+      if (id === 'alarm_status' || id === 'alarm') return !!alarmEnt;
+      if (id === 'keypad') return link?.panel_type === 'envisalink';
+      return true;
+    };
+    const order = sectionOrder(c.section_order).filter(shown);
+    // a collapsed card shows only its first section, which opens it again
+    const visible = this.collapsed && c.collapsible ? order.slice(0, 1) : order;
     return html`
       <ha-card class=${fx.join(' ')} style=${`--hmac-border:${border};${styleVars(c.styles)};${fxVars(c.effects)}`}>
-        ${c.show_header || this.collapsed ? this.renderHeader(mode, alarmState, link) : nothing}
+        ${visible.map((id, i) => {
+          const body = this.renderSectionById(id, i === 0, { mode, alarmEnt, alarmState, link });
+          return i === 0 && c.collapsible && id !== 'house_status'
+            ? html`<div class="first clickable" @click=${this.toggle}>${body}
+                ${c.show_chevron ? html`<ha-icon class="first-chev" icon=${this.collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'}></ha-icon>` : nothing}</div>`
+            : body;
+        })}
         ${this.message ? html`<div class="message" role="status">${this.message}</div>` : nothing}
-        ${this.collapsed
-          ? nothing
-          : html`
-              ${c.show_house_modes && h.enabled
-                ? this.section('modes', !!c.modes_collapsible, mode?.icon || 'mdi:home-switch', mode?.color, `House Mode · ${mode?.name || 'unknown'}`, () => this.renderModes())
-                : nothing}
-              ${c.show_alarm && alarmEnt ? this.renderAlarm(alarmEnt, alarmState) : nothing}
-              ${c.show_panel_keypad && link?.panel_type === 'envisalink'
-                ? this.section('keypad', !!c.keypad_collapsible, 'mdi:dialpad', undefined, 'Panel keypad', () => this.renderKeypad(link))
-                : nothing}
-            `}
       </ha-card>
     `;
+  }
+
+  private renderSectionById(id: SectionId, first: boolean, x: { mode: any; alarmEnt?: string; alarmState?: string; link: any }) {
+    const c = this.config!;
+    const cf: any = c;
+    // the first section of a collapsible card is its title: no bar of its own
+    const bar = !first || !c.collapsible ? !!cf[SECTION_INFO[id].collapse] : false;
+    switch (id) {
+      case 'house_status':
+        return this.section('house_status', bar, x.mode?.icon || 'mdi:home', x.mode?.color, `House Mode · ${x.mode?.name || 'unknown'}`,
+          () => this.renderHeader(x.mode, x.alarmState, x.link, first));
+      case 'house_modes':
+        return this.section('modes', bar, x.mode?.icon || 'mdi:home-switch', x.mode?.color, `House Mode buttons · ${x.mode?.name || 'unknown'}`, () => this.renderModes());
+      case 'alarm_status':
+        return this.renderAlarmStatus(x.alarmEnt!, x.alarmState, x.link, bar);
+      case 'alarm':
+        return this.renderAlarm(x.alarmEnt!, x.alarmState, bar);
+      case 'keypad':
+        return this.section('keypad', bar, 'mdi:dialpad', undefined, 'Panel keypad', () => this.renderKeypad(x.link));
+      default:
+        return nothing;
+    }
+  }
+
+  private renderAlarmStatus(alarmEnt: string, alarmState: string | undefined, link: any, bar: boolean) {
+    const c = this.config!;
+    const st = this.hass!.states[alarmEnt];
+    const name = c.name || (st?.attributes as any)?.friendly_name || alarmEnt;
+    const stateText = alarmState ? this.hass!.localize(`component.alarm_control_panel.entity_component._.state.${alarmState}`) || alarmState.replace(/_/g, ' ') : '';
+    const color = this.arm(alarmEnt)[(alarmState === 'arming' || alarmState === 'pending' ? (st?.attributes as any)?.arm_mode : alarmState) || ''];
+    const kp = link?.keypad_entity ? this.hass!.states[link.keypad_entity] : undefined;
+    const [l1, l2] = lcdLines((kp?.attributes as any)?.alpha ?? kp?.state, c.display_strip, c.display_replace);
+    return this.section('alarm_status', bar, ALARM_STATE_ICONS[alarmState || ''] || 'mdi:shield-home', color, `${name} · ${stateText}`, () => html`
+      <hmac-alarm class="alarm-status" piece="status" embedded .hass=${this.hass} .cardConfig=${{ ...this.alarmConfig(alarmEnt), part: 'status' }}></hmac-alarm>
+      ${kp && (c.show_alarm_line1 || c.show_alarm_line2)
+        ? html`<div class="lcd alarm-lcd" aria-label="Panel display">
+            ${c.show_alarm_line1 ? html`<div class="line1">${l1 || ' '}</div>` : nothing}
+            ${c.show_alarm_line2 ? html`<div class="line2">${l2 || ' '}</div>` : nothing}
+          </div>`
+        : nothing}`);
   }
 
   private alarmConfig(alarmEnt: string) {
@@ -349,18 +396,15 @@ export class HouseModesAlarmCenterCard extends LitElement {
     `;
   }
 
-  private renderAlarm(alarmEnt: string, alarmState: string | undefined) {
-    const c = this.config!;
+  private renderAlarm(alarmEnt: string, alarmState: string | undefined, bar: boolean) {
     const st = this.hass!.states[alarmEnt];
-    const name = c.name || (st?.attributes as any)?.friendly_name || alarmEnt;
-    const stateText = alarmState ? this.hass!.localize(`component.alarm_control_panel.entity_component._.state.${alarmState}`) || alarmState.replace(/_/g, ' ') : '';
     const color = this.arm(alarmEnt)[(alarmState === 'arming' || alarmState === 'pending' ? (st?.attributes as any)?.arm_mode : alarmState) || ''];
-    const icon = alarmState === 'disarmed' ? 'mdi:lock-open-variant' : alarmState === 'triggered' ? 'mdi:bell-ring' : 'mdi:lock';
-    return this.section('alarm', !!c.alarm_collapsible, icon, color, `${name} · ${stateText}`,
-      () => html`<hmac-alarm embedded .hass=${this.hass} .cardConfig=${this.alarmConfig(alarmEnt)}></hmac-alarm>`);
+    return this.section('alarm', bar, 'mdi:shield-lock-outline', color, 'Arm / disarm',
+      () => html`<hmac-alarm class="alarm-controls" piece="controls" embedded .hass=${this.hass} .cardConfig=${{ ...this.alarmConfig(alarmEnt), part: 'controls' }}></hmac-alarm>`);
   }
 
-  private renderHeader(mode: CardData['house']['modes'][0] | undefined, alarmState: string | undefined, link: ReturnType<typeof linkFor>) {
+  private renderHeader(mode: CardData['house']['modes'][0] | undefined, alarmState: string | undefined, link: ReturnType<typeof linkFor>, first = true) {
+    const folds = first && !!this.config!.collapsible;
     const h = this.dv.house;
     const kp = link?.keypad_entity ? this.hass!.states[link.keypad_entity] : undefined;
     const [l1, l2] = lcdLines((kp?.attributes as any)?.alpha ?? kp?.state, this.config!.display_strip, this.config!.display_replace);
@@ -372,9 +416,9 @@ export class HouseModesAlarmCenterCard extends LitElement {
       ? mode?.color || 'var(--secondary-text-color)'
       : this.arm(this.alarmEntity)[alarmSt || ''] || 'var(--secondary-text-color)';
     return html`
-      <div class="head ${this.config!.collapsible ? 'clickable' : ''} ${this.config!.collapsible && this.config!.show_chevron ? 'chevron' : ''}" @click=${this.toggle}
+      <div class="head ${folds ? 'clickable' : ''} ${folds && this.config!.show_chevron ? 'chevron' : ''}" @click=${() => folds && this.toggle()}
         @contextmenu=${(e: Event) => { e.preventDefault(); this.moreInfo(link?.keypad_entity || this.alarmEntity); }}
-        role=${this.config!.collapsible ? 'button' : nothing} aria-expanded=${this.config!.collapsible ? String(!this.collapsed) : nothing}>
+        role=${folds ? 'button' : nothing} aria-expanded=${folds ? String(!this.collapsed) : nothing}>
         ${this.config!.show_header_icon
           ? this.config!.header_countdown && this.alarmEntity && (alarmState === 'arming' || alarmState === 'pending')
             ? html`<hmac-state-badge class="mode-icon countdown" .hass=${this.hass} .entity=${this.alarmEntity}
@@ -392,7 +436,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
             : nothing}
         </div>
         ${h.shadow ? html`<span class="tag" title="House Modes run in Shadow: your automations are in charge">shadow</span>` : nothing}
-        ${this.config!.collapsible && this.config!.show_chevron ? html`<ha-icon class="chev" icon=${this.collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'}></ha-icon>` : nothing}
+        ${folds && this.config!.show_chevron ? html`<ha-icon class="chev" icon=${this.collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'}></ha-icon>` : nothing}
       </div>
     `;
   }
@@ -601,6 +645,9 @@ export class HouseModesAlarmCenterCard extends LitElement {
     }
     .sec-alarm {
       background: var(--hmac-alarm-bg, transparent);
+    }
+    .sec-alarm_status {
+      background: var(--hmac-alarm_status-bg, transparent);
     }
     .sec-keypad {
       background: var(--hmac-keypad-bg, transparent);
@@ -856,6 +903,20 @@ export class HouseModesAlarmCenterCard extends LitElement {
       color: var(--hmac-key-label-color, var(--secondary-text-color));
     }
     /* a collapsible section's divider (as on the other Ltek cards): line · icon · title · arrow · line */
+    .first.clickable {
+      position: relative;
+      cursor: pointer;
+    }
+    .first-chev {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      color: var(--secondary-text-color);
+    }
+    .alarm-lcd {
+      text-align: center;
+      padding: 0 12px 8px;
+    }
     .bar {
       display: flex;
       align-items: center;

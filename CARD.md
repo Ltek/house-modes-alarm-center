@@ -12,17 +12,20 @@ Or *Edit dashboard → Add card → House Modes & Alarm Center Card*; every opti
 
 ## Sections
 
-Each one can be turned off.
+Five sections, each can be turned on or off, collapsed behind a bar, and moved up or down (editor: *Sections*):
 
-- **Header** — the House Mode's icon in its color and its name, and the physical panel's 2×16 display (when a panel
-  link has a keypad sensor). The border is the House Mode's color (or, with `border_color: state`, the alarm state). "shadow" while House Modes run in Shadow. Long-press (right-click) opens the
-  panel display's details.
+- **House Mode Status** — the House Mode's icon in its color and its name, and the physical panel's 2×16 display
+  (when a panel link has a keypad sensor). With House Modes off it shows the alarm's state icon and state.
 - **House Mode buttons** — one per House Mode, with the icon and color from the House Modes tab. When a change is
-  blocked, not ready or delayed, the card says why ("Away not set: open Front Door"). In Shadow the buttons set your
-  own House Mode input_select, so your automations stay in charge.
-- **Alarm** — Alarmo's arm / disarm buttons, code entry, countdown and messages (from nielsfaber/alarmo-card).
-- **Physical panel keypad** — the panel's 12 keys with their functions (OFF, AWAY, STAY, MAX, …), sent through
-  `alarmo.panel_keypress`.
+  blocked, not ready or delayed, the card says why ("Away not set: open Front Door").
+- **Alarm Panel Status** — Alarmo's state icon (with the countdown during an exit or entry delay), the alarm's name
+  and state, and optionally the physical panel's display lines.
+- **Alarm Panel buttons** — arm / disarm, code entry and messages (from nielsfaber/alarmo-card). A red dot on an
+  arm button means that mode cannot be armed now (open zones).
+- **Physical panel keypad** — the panel's 12 keys with their functions, sent through `alarmo.panel_keypress`.
+
+*Fold the whole card to its first section* turns the first section into the card's title: tap it to open or close
+the rest. The border is the House Mode's color (or, with `border_color: state`, the alarm state).
 
 ## Options
 
@@ -34,15 +37,17 @@ panel keypad*). Only options you change are written to the YAML.
 | `entity` | first linked alarm | Alarmo `alarm_control_panel` for the alarm section and the panel link |
 | `name` | | Title when House Modes are off |
 | **Sections** (*Sections* panel) | | |
-| `show_header`, `show_house_modes`, `show_alarm` / `show_panel_keypad` | `true` / `false` | Turn a section on or off |
-| `collapsible` / `start_collapsed` | `false` / `true` | Header: the whole card folds to the header (tap it) |
-| `modes_collapsible`, `alarm_collapsible`, `keypad_collapsible` | `false` | The section sits behind a bar that opens and closes it |
-| `modes_start_collapsed`, `alarm_start_collapsed`, `keypad_start_collapsed` | `true` | |
+| `section_order` | `[house_status, house_modes, alarm_status, alarm, keypad]` | The order of the sections |
+| `show_header`, `show_house_modes`, `show_alarm_status`, `show_alarm` / `show_panel_keypad` | `true` / `false` | Turn a section on or off |
+| `collapsible` / `start_collapsed` | `false` / `true` | The whole card folds to its first section (tap it) |
+| `house_status_collapsible`, `modes_collapsible`, `alarm_status_collapsible`, `alarm_collapsible`, `keypad_collapsible` | `false` | The section sits behind a bar that opens and closes it |
+| `…_start_collapsed` (same names) | `true` | |
 | `show_chevron` | `false` | The open / close arrow on the header and the bars |
 | **Show / hide**, per set | `true` | |
 | header | | `show_header_icon`, `show_mode_name`, `show_line1`, `show_line2` |
 | House Mode buttons | | `show_mode_icons`, `show_mode_labels` |
-| alarm | | `show_alarm_icon`, `show_alarm_name`, `show_alarm_state`, `show_arm_icons`, `show_arm_labels`, `show_arm_options` (the chips) |
+| alarm status | | `show_alarm_icon`, `show_alarm_name`, `show_alarm_state`, `show_alarm_line1`, `show_alarm_line2` |
+| alarm buttons | | `show_arm_icons`, `show_arm_labels`, `show_arm_options` (the chips) |
 | keypad | | `show_key_labels` (OFF, AWAY, …) |
 | **Layout** | | |
 | `modes_align` | `grid` | `grid`: fixed columns, the last row wraps left; `center`: every row centered across the width |
@@ -60,8 +65,7 @@ panel keypad*). Only options you change are written to the YAML.
 | `hidden_modes` | | House Modes (id or name) without a button |
 | `alarm_colors` | `modes` | Arm mode colors (arm buttons, alarm bar, the `mode` keyword): `modes` = the House Mode that sets each arm mode, `standard` = green disarmed / red away / orange home / …, `theme` = Home Assistant's alarm state colors |
 | `keypad_labels` | Vista | e.g. `{"6": "BYP"}` |
-| `display_strip` | | Characters stripped from both ends of each panel display line, e.g. `"*"` (****DISARMED**** → DISARMED) |
-| `display_replace` | | Text replaced in the display lines, in order, after stripping: `[{from: "DISARMED", to: "Disarmed"}]` (`to` empty = remove) |
+| `display_replace` | | Text replaced in the display lines, in order: `[{from: "*"}, {from: "DISARMED", to: "Disarmed"}]` (no `to` = remove) |
 | `effects` | | Glow / pulse while something is under way, see below |
 | `alarm` | | alarmo-card options: `keep_keypad_visible`, `use_code_dialog`, `hide_keypad`, `show_messages`, `show_ready_indicator`, `show_bypassed_sensors`, `button_scale_actions`, `button_scale_keypad`, `states` |
 | `styles` | | Per element, see below |

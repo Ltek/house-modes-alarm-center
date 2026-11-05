@@ -3,6 +3,19 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.50 — 2026-11-05
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **Five separate sections, in any order**: House Mode Status (the old header), House Mode buttons, **Alarm Panel
+  Status** (new: the alarm's state icon with the countdown, name, state, and optionally the panel display),
+  Alarm Panel buttons, Physical panel keypad. Each can be shown, collapsed behind a bar and moved up or down.
+  *Fold the whole card to its first section* replaces the header-only collapse. Old configs look the same.
+- **Ready dots only when an arm mode cannot be armed** (red); no green dots.
+- **Panel display text: Replace only.** The separate Strip field is gone; an old strip value becomes a replacement
+  (`*` → nothing).
+- **Editor: one panel open at a time** (and one sub-panel within a panel).
+
 ## v2026.11.05.49 — 2026-11-05
 
 Restart Home Assistant after the update (the default House Mode colors are set by the integration).

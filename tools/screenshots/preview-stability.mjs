@@ -16,7 +16,7 @@ await new Promise(r=>srv.listen(0,'127.0.0.1',r)); const b=await chromium.launch
 await p.goto(`http://127.0.0.1:${srv.address().port}/`); await p.waitForFunction(()=>window.ready);
 const cfg={type:'x',entity:'alarm_control_panel.ground_floor',collapsible:true,start_collapsed:false,alarm_collapsible:true,alarm_start_collapsed:true,keypad_collapsible:true,show_panel_keypad:true};
 const view = () => p.evaluate(() => { const c=document.querySelector('house-modes-alarm-center-card'); const r=c.shadowRoot;
-  return { loading: !!r.querySelector('.loading'), modes: !!r.querySelector('.modes'), alarmOpen: !!r.querySelector('hmac-alarm'), keypadOpen: !!r.querySelector('.keys'), alarmDrawn: !!(r.querySelector('hmac-alarm')?.shadowRoot?.querySelector('hmac-actions-bar')) }; });
+  return { loading: !!r.querySelector('.loading'), modes: !!r.querySelector('.modes'), alarmOpen: !!r.querySelector('hmac-alarm.alarm-controls'), keypadOpen: !!r.querySelector('.keys'), alarmDrawn: !!(r.querySelector('hmac-alarm.alarm-controls')?.shadowRoot?.querySelector('hmac-actions-bar')) }; });
 const mount = (cfg) => p.evaluate((cfg) => { const box=document.getElementById('box'); box.innerHTML=''; const c=document.createElement('house-modes-alarm-center-card'); c.setConfig(cfg); c.hass=window.demoHass; box.appendChild(c); }, cfg);
 await mount(cfg); await p.waitForTimeout(1200);
 const want = (name, got, exp) => { for (const [k, v] of Object.entries(exp)) if (got[k] !== v) { console.error(`FAIL ${name}: ${k} is ${got[k]}, expected ${v}`); process.exitCode = 1; } };

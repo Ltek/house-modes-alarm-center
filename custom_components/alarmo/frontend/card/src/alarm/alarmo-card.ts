@@ -260,6 +260,7 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
 
     return html`
       <ha-card>
+        ${(this._config as any).part === 'controls' ? '' : html`
         <div class="header">
 ${(this._config as any).show_icon === false ? '' : html`<div class="icon">
             <hmac-state-badge
@@ -278,7 +279,8 @@ ${(this._config as any).show_icon === false ? '' : html`<div class="icon">
             </div>`}
           </div>
         </div>
-
+        `}
+        ${(this._config as any).part === 'status' ? '' : html`
         ${this._renderWarning()}
 
         <div id="actions" class="actions">
@@ -348,6 +350,7 @@ ${(this._config as any).show_icon === false ? '' : html`<div class="icon">
             `;
         })}
           </div>
+        `}
         `}
       </ha-card>
     `;
@@ -587,6 +590,9 @@ ${(this._config as any).show_icon === false ? '' : html`<div class="icon">
         border: none;
         background: none;
         padding-bottom: 8px;
+      }
+      :host([piece='status']) ha-card {
+        padding-bottom: 0;
       }
       :host([embedded]) .header {
         padding: 8px 0px;

@@ -66,11 +66,49 @@ export class AlarmViewQuickStart extends LitElement {
   @state() private plans: Record<string, Plan> = {};
   @state() private error = '';
   @state() private busy = '';
-  /** virtual setup: the sensors the user unticked */
-  @state() private skipZones: string[] = [];
+  /** virtual setup: the sensors the user picked (null = the defaults: doors and windows) */
+  @state() private pickZones: string[] | null = null;
+  /** dashboards that already have the card (null = not checked yet) */
+  @state() private cardOn: string[] | null = null;
 
   firstUpdated() {
     this.load();
+    this.findCard();
+  }
+
+  /** Is the card on a dashboard? Only that it exists matters, not how it is set up. */
+  private async findCard() {
+    const found: string[] = [];
+    try {
+      const boards = await this.hass.callWS<{ url_path: string; title: string; mode: string }[]>({ type: 'lovelace/dashboards/list' });
+      const all: { url_path: string | null; title: string }[] = [{ url_path: null, title: 'Overview' }, ...boards];
+      for (const b of all) {
+        try {
+          const cfg = await this.hass.callWS<any>({ type: 'lovelace/config', url_path: b.url_path });
+          if (JSON.stringify(cfg).includes('custom:house-modes-alarm-center-card')) found.push(b.title || b.url_path || 'Overview');
+        } catch (_e) {
+          /* a dashboard without a stored config (auto-generated): no card */
+        }
+      }
+    } catch (_e) {
+      /* dashboards cannot be listed: leave the step as it is */
+      this.cardOn = null;
+      return;
+    }
+    this.cardOn = found;
+  }
+
+  private static GROUPS: { id: string; title: string; icon: string; classes: string[]; on: boolean }[] = [
+    { id: 'door', title: 'Doors', icon: 'mdi:door', classes: ['door', 'garage_door', 'opening'], on: true },
+    { id: 'window', title: 'Windows', icon: 'mdi:window-closed-variant', classes: ['window'], on: true },
+    { id: 'motion', title: 'Motion', icon: 'mdi:motion-sensor', classes: ['motion'], on: false },
+    { id: 'occupancy', title: 'Occupancy and presence', icon: 'mdi:account-search-outline', classes: ['occupancy', 'presence'], on: false },
+  ];
+
+  private picked(cands: { entity_id: string; device_class: string }[]): string[] {
+    if (this.pickZones) return this.pickZones;
+    const on = ([] as string[]).concat(...AlarmViewQuickStart.GROUPS.filter(g => g.on).map(g => g.classes));
+    return cands.filter(c => on.includes(c.device_class)).map(c => c.entity_id);
   }
 
   private async load() {
@@ -91,7 +129,7 @@ export class AlarmViewQuickStart extends LitElement {
     this.busy = id;
     try {
       const zones = plan.steps.find(s => s.id === 'zones');
-      const entities = zones?.candidates ? zones.candidates.map(c => c.entity_id).filter(e => !this.skipZones.includes(e)) : undefined;
+      const entities = zones?.candidates ? this.picked(zones.candidates) : undefined;
       const res = await this.hass.callWS<{ plan: Plan; done: string[]; status: Status }>({
         type: 'alarmo/ext/quickstart/apply',
         setup: id,
@@ -166,17 +204,45 @@ export class AlarmViewQuickStart extends LitElement {
     </ha-card>`;
   }
 
-  private renderStep(st: Step) {
+  private renderZoneGroups(cands: NonNullable<Step['candidates']>) {
+    const picked = this.picked(cands);
+    const set = (ids: string[]) => (this.pickZones = ids);
+    return html`<div class="zgroups">
+      <p class="secondary" style="display:block;margin:2px 0 6px">${picked.length} of ${cands.length} picked. Doors and windows are
+        picked to start with; motion sensors (cameras often have several) only if you tick them.</p>
+      ${AlarmViewQuickStart.GROUPS.map(g => {
+        const list = cands.filter(c => g.classes.includes(c.device_class));
+        if (!list.length) return nothing;
+        const n = list.filter(c => picked.includes(c.entity_id)).length;
+        const ids = list.map(c => c.entity_id);
+        return html`<details class="zgroup">
+          <summary>
+            <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+            <ha-icon icon=${g.icon}></ha-icon>
+            <span class="zg-title">${g.title}</span>
+            <span class="secondary" style="display:inline">${n} of ${list.length}</span>
+            <span class="grow"></span>
+            <button class="link" @click=${(e: Event) => { e.preventDefault(); set([...new Set([...picked, ...ids])]); }}>all</button>
+            <button class="link" @click=${(e: Event) => { e.preventDefault(); set(picked.filter(x => !ids.includes(x))); }}>none</button>
+          </summary>
+          <div class="cands">${list.map(c => html`<label><input type="checkbox" .checked=${picked.includes(c.entity_id)}
+              @change=${(e: any) => set(e.target.checked ? [...picked, c.entity_id] : picked.filter(x => x !== c.entity_id))} />${c.name}</label>`)}</div>
+        </details>`;
+      })}
+    </div>`;
+  }
+
+  private renderStep(st0: Step) {
+    // the card: done when it is on a dashboard (however it is set up)
+    const st: Step = st0.id === 'card' && this.cardOn?.length
+      ? { ...st0, status: 'done', detail: `on ${this.cardOn.join(', ')}`, yaml: undefined }
+      : st0.id === 'card' ? { ...st0, detail: 'not on a dashboard yet — add it:' } : st0;
     return html`<li class="step ${st.status}">
       <ha-icon icon=${ICON[st.status]}></ha-icon>
       <div class="step-body">
         <div><strong>${st.title}</strong>${st.detail ? html` <span class="secondary" style="display:inline">· ${st.detail}</span>` : nothing}
           ${st.link ? html` <a href=${st.link} @click=${(e: Event) => { e.preventDefault(); navigate(this, st.link!, true); }}>open</a>` : nothing}</div>
-        ${st.candidates && st.status === 'todo'
-          ? html`<div class="cands">${st.candidates.map(c => html`<label><input type="checkbox" .checked=${!this.skipZones.includes(c.entity_id)}
-              @change=${(e: any) => (this.skipZones = e.target.checked ? this.skipZones.filter(x => x !== c.entity_id) : [...this.skipZones, c.entity_id])} />
-              ${c.name} <span class="secondary" style="display:inline">${c.device_class}</span></label>`)}</div>`
-          : nothing}
+        ${st.candidates && st.status === 'todo' ? this.renderZoneGroups(st.candidates) : nothing}
         ${st.yaml
           ? html`<pre class="yaml">${st.yaml}</pre>
               <button class="link" @click=${() => navigator.clipboard?.writeText(st.yaml!).then(() => toast(this, 'Copied'), () => toast(this, 'Select the text and copy it'))}>Copy</button>
@@ -240,11 +306,48 @@ export class AlarmViewQuickStart extends LitElement {
         flex: 1;
         min-width: 0;
       }
-      .cands {
+      .zgroup {
+        border-top: 1px solid var(--divider-color);
+      }
+      .zgroup[open] {
+        border: 1px solid var(--accent-color, var(--primary-color));
+        border-radius: 6px;
+        margin: 4px 0;
+      }
+      .zgroup summary {
         display: flex;
-        flex-wrap: wrap;
-        gap: 4px 16px;
-        padding: 6px 0 0;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 6px;
+        cursor: pointer;
+        list-style: none;
+        --mdc-icon-size: 18px;
+      }
+      .zgroup summary::-webkit-details-marker {
+        display: none;
+      }
+      .zgroup .chev {
+        transition: transform 0.15s;
+      }
+      .zgroup[open] .chev {
+        transform: rotate(90deg);
+      }
+      .zg-title {
+        font-weight: 600;
+      }
+      .grow {
+        flex: 1;
+      }
+      .cands {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 2px 16px;
+        padding: 4px 10px 8px 30px;
+      }
+      .cands label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .yaml {
         margin: 6px 0 4px;

@@ -126,7 +126,7 @@ export class AlarmViewHouse extends LitElement {
     const errors = modeErrors(this.draft.modes);
     return html`
       ${this.error ? html`<div class="notice error" style="white-space:pre-line;margin:0 0 12px">${this.error}</div>` : nothing}
-      ${this.renderCurrent()} ${this.renderShadow()} ${this.renderModes()}
+      ${this.renderCurrent()} ${this.renderShadow()}
       <ha-card><div class="toolbar"><ha-icon icon="mdi:history"></ha-icon>House Mode history and every sequence around it are on the <a href="/alarmo/activity">Activity</a> tab.</div></ha-card>
       ${this.dirty
         ? html`<div class="savebar" role="region" aria-label="Unsaved House Mode settings">
@@ -145,7 +145,7 @@ export class AlarmViewHouse extends LitElement {
     const s = this.info!.settings;
     const cur = s.modes.find(m => m.id === s.current);
     return html`
-      <ha-card>${sectionHead('House Mode', 'settings')}
+      <ha-card>${sectionHead('House Modes', 'settings')}
         <div class="card-content desc">
           <p>A House Mode says what is going on at home — Away, Stay, Guest, Spa, … Each mode:</p>
           <ul>
@@ -198,6 +198,7 @@ export class AlarmViewHouse extends LitElement {
               return html`<div>${p.kind === 'delayed' ? 'Delayed request' : 'Timer'}: ${t ? t.name : p.target} at ${new Date(p.due * 1000).toLocaleTimeString()}</div>`;
             })}</div>`
           : nothing}
+        ${this.renderModes()}
       </ha-card>
     `;
   }
@@ -280,8 +281,8 @@ export class AlarmViewHouse extends LitElement {
     const names: Record<string, string> = {};
     this.info!.targets.forEach(t => (names[t.key] = t.name));
     return html`
-      <ha-card>${sectionHead(`Modes (${d.modes.length})`, 'settings')}
-        <div class="card-content desc">
+      <div class="subhead" style="padding:8px 16px 0;border-top:1px solid var(--divider-color);margin-top:8px">Modes (${d.modes.length})</div>
+        <div class="card-content desc" style="padding-top:4px">
           <p>Edit a mode (pencil) to set which partitions it arms, who may switch into or out of it, readiness checks, what
             happens if arming fails, and timers. Save at the bottom of the page.</p>
         </div>
@@ -317,7 +318,6 @@ export class AlarmViewHouse extends LitElement {
               </tbody>
             </table></div>`
           : nothing}
-      </ha-card>
     `;
   }
 

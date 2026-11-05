@@ -1,6 +1,6 @@
 # House Modes & Alarm Center
 
-> **Current build: v2026.11.05.58** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
+> **Current build: v2026.11.05.59** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
 
 A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber: one place for
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via
@@ -119,7 +119,7 @@ the remaining Alarm Events (scripts, and legacy ones to migrate).
   state while the zone is bypassed — a **Vista** stops reporting bypassed zones (DSC does not need mirrors).
 - Vista bypasses are read from the panel itself (BYPASS indicator and the "BYPAS zz" keypad list), across restarts.
 
-**Zones** (Zone Assignments)
+**Zones** (the Zones tab)
 - One table with drafts (edit many, review, save once), lock/unlock, live state, *Copy settings to…*, bulk changes.
 - **Zone rules:** assign zones from HA labels, areas and floors, with per-zone overrides.
 - Garage doors (covers) and locks as zones; per-zone *When tripped* for zones only HA watches.

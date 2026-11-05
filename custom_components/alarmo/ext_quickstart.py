@@ -29,11 +29,7 @@ SETUPS = ("house", "virtual", "panel")
 LABEL = "quick-start"
 ZONE_CLASSES = {"door", "window", "garage_door", "opening", "motion", "occupancy", "presence"}
 HOUSE_ONLY_MODES = ["Home", "Away", "Sleep", "Guest", "Vacation"]
-CARD_YAML = {
-    "house": "type: custom:house-modes-alarm-center-card\nshow_alarm: false",
-    "virtual": "type: custom:house-modes-alarm-center-card\nshow_house_modes: false",
-    "panel": "type: custom:house-modes-alarm-center-card\nshow_panel_keypad: true",
-}
+CARD_YAML = "type: custom:house-modes-alarm-center-card"
 
 
 def _ext(hass):
@@ -257,7 +253,7 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912
             )
             steps.append(_step("house_modes", "House Modes", "todo", how))
 
-    steps.append(_step("card", "The dashboard card", "manual", "add it to a dashboard:", None, yaml=CARD_YAML[setup]))
+    steps.append(_step("card", "The dashboard card", "manual", "add it to a dashboard:", None, yaml=CARD_YAML))
     if setup == "panel":
         steps.append(
             _step(

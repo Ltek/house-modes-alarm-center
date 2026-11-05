@@ -3,6 +3,18 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.59 — 2026-11-05
+
+Restart Home Assistant after the update.
+
+- Quick Start, *Alarm without a physical panel*: the candidate zones are grouped in collapsible panels (Doors,
+  Windows, Motion, Occupancy and presence) with *all* / *none*; doors and windows are picked to start with, motion
+  sensors only when ticked.
+- Quick Start: the dashboard card step is done when the card is on any dashboard, however it is set up; the YAML to
+  copy is only the card type.
+- House Modes tab: the House Mode and Modes cards are one.
+- The Zone Assignments tab is now **Zones**.
+
 ## v2026.11.05.58 — 2026-11-05
 
 Card only; no Home Assistant restart needed (reload the browser).

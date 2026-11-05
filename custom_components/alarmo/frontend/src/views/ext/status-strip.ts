@@ -87,8 +87,8 @@ export class StatusStrip extends LitElement {
           const kind = !l.running && l.mode !== 'off' ? 'bad' : l.mode === 'live' ? 'on' : '';
           return this.chip('mdi:alarm-panel-outline', `${pname}: ${pretty(p?.state)}${ready} · ${l.mode}`, `Physical panel link (${l.running ? 'running' : 'not running'})`, '/alarmo/panel', kind);
         })}
-        ${i.rules_pending ? this.chip('mdi:auto-fix', `${i.rules_pending} zone rule change(s) pending`, 'Review on Zone Assignments', '/alarmo/zones', 'warn') : nothing}
-        ${draft ? this.chip('mdi:pencil-circle', 'Unsaved zone edits', 'Zone Assignments has unsaved changes', '/alarmo/zones', 'warn') : nothing}
+        ${i.rules_pending ? this.chip('mdi:auto-fix', `${i.rules_pending} zone rule change(s) pending`, 'Review on Zones', '/alarmo/zones', 'warn') : nothing}
+        ${draft ? this.chip('mdi:pencil-circle', 'Unsaved zone edits', 'Zones has unsaved changes', '/alarmo/zones', 'warn') : nothing}
         <span class="grow"></span>
         ${this.chip('mdi:help-circle-outline', "Why won't it arm?", 'What blocks arming right now', '/alarmo/activity/arm_check')}
       </div>

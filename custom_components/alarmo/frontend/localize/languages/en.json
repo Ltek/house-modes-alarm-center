@@ -576,7 +576,7 @@
       }
     },
     "sensor_table": {
-      "title": "Zone Assignments"
+      "title": "Zones"
     },
     "backup": {
       "title": "Integrations & Backup"
@@ -591,7 +591,7 @@
       "title": "Notifications"
     },
     "zones": {
-      "title": "Zone Assignments"
+      "title": "Zones"
     },
     "zones_legacy": {
       "title": "Zones (legacy)"

@@ -87,20 +87,20 @@ EXACT = {
     "panels.sensors.cards.editor.errors.no_auto_bypass_modes": (
         "No modes are selected in which the zone may be automatically bypassed"
     ),
-    "panels.sensor_table.title": "Zone Assignments",
+    "panels.sensor_table.title": "Zones",
     "panels.general.cards.areas.table.summary": "This partition contains {summary_sensors}, {summary_automations}.",
 }
 
 # Keys added by the ext build (tabs); created if missing.
 EXT_KEYS = {
     ("panels", "general", "title"): "Quick Start",
-    ("panels", "sensor_table", "title"): "Zone Assignments",
+    ("panels", "sensor_table", "title"): "Zones",
     ("panels", "backup", "title"): "Integrations & Backup",
     # ext.4 tabs
     ("panels", "partitions", "title"): "Partitions & Arm Modes",
     ("panels", "modes", "title"): "Alarmo Arm Modes",
     ("panels", "notifications", "title"): "Notifications",
-    ("panels", "zones", "title"): "Zone Assignments",
+    ("panels", "zones", "title"): "Zones",
     ("panels", "zones_legacy", "title"): "Zones (legacy)",
     # phase 4
     ("panels", "panel", "title"): "Physical Panel",

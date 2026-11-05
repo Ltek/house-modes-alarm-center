@@ -1,6 +1,6 @@
 // Physical Panel page, "Panel zones" card (was the Zone Mirrors tab): every physical panel zone with its live
 // state, mirror, how it is used in Alarmo, and "Ignore". Panel zones not in Alarmo are flagged and can be added
-// with suggested settings as drafts on Zone Assignments (reviewed there before saving).
+// with suggested settings as drafts on Zones (reviewed there before saving).
 import { LitElement, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { AlarmoArea, AlarmoSensor, Dictionary, HomeAssistant } from '../../types';
@@ -16,7 +16,7 @@ import { entityBadge, lockToggle, sectionHead } from './page-intro';
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 
-// defaults for fields the panel import does not set (same as a new zone on Zone Assignments)
+// defaults for fields the panel import does not set (same as a new zone on Zones)
 const ZONE_DEFAULTS = {
   enabled: true,
   use_exit_delay: true,
@@ -153,7 +153,7 @@ export class AlarmViewMirrors extends LitElement {
                   : nothing}
                 <ha-button ?disabled=${this.busy || !this.addTo} @click=${() => this.addAllAsDrafts(notIn.map(r => r.source))}>
                   <ha-icon slot="start" icon="mdi:playlist-plus"></ha-icon>Add all with suggested settings…</ha-button>
-                <span class="secondary" style="display:inline">They become unsaved drafts on Zone Assignments (type and Arm Modes
+                <span class="secondary" style="display:inline">They become unsaved drafts on Zones (type and Arm Modes
                   guessed from the device class) for you to review and Save. Ignore the ones you don't want first.</span>
               </div>
             </div>`
@@ -419,7 +419,7 @@ export class AlarmViewMirrors extends LitElement {
     this.busy = true;
     try {
       const res = await importZones(this.hass, this.addTo, ids);
-      toast(this, `${res.create.length} zone(s) added to ${this.areas[this.addTo]?.name}. Set their Arm Modes on Zone Assignments.${res.backup ? ` Backup: ${res.backup.name}` : ''}`);
+      toast(this, `${res.create.length} zone(s) added to ${this.areas[this.addTo]?.name}. Set their Arm Modes on Zones.${res.backup ? ` Backup: ${res.backup.name}` : ''}`);
       this.selection = [];
       await this.refresh();
     } catch (err) {
@@ -429,13 +429,13 @@ export class AlarmViewMirrors extends LitElement {
     }
   }
 
-  /** Suggested settings for every flagged zone → unsaved drafts on Zone Assignments. */
+  /** Suggested settings for every flagged zone → unsaved drafts on Zones. */
   private async addAllAsDrafts(sources: string[]) {
     const area = this.areas[this.addTo];
     if (!area) return;
     // a zone with a mirror is added as the mirror
     const ids = sources.map(s => (this.mirrors[s] && this.hass.states[mirrorId(s)] ? mirrorId(s) : s));
-    if (!window.confirm(`Add ${ids.length} zone(s) to ${area.name} as drafts? Nothing is saved until you click Save on Zone Assignments.`)) return;
+    if (!window.confirm(`Add ${ids.length} zone(s) to ${area.name} as drafts? Nothing is saved until you click Save on Zones.`)) return;
     this.busy = true;
     try {
       const res = await importZones(this.hass, this.addTo, ids, true);

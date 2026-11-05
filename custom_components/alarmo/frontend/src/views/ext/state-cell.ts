@@ -1,4 +1,4 @@
-// Live zone state as a colored icon with the state text underneath (Zone Assignments, Panel zones).
+// Live zone state as a colored icon with the state text underneath (Zones, Panel zones).
 import { html, nothing } from 'lit';
 import { LiveState } from '../../data/status';
 

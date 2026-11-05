@@ -155,7 +155,9 @@ const SHOTS = [
     await p.evaluate(async () => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-quick-start');
       await new Promise(r => setTimeout(r, 300));
-      v.shadowRoot.querySelectorAll('details.collapse')[2].open = true;
+      v.shadowRoot.querySelectorAll('details.collapse')[1].open = true;
+      await new Promise(r => setTimeout(r, 100));
+      v.shadowRoot.querySelector('details.zgroup')?.setAttribute('open', '');
     });
   }],
 ];

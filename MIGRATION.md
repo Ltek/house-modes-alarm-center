@@ -2,7 +2,7 @@
 
 The ext build reads your existing Alarmo configuration as-is: installing it changes nothing
 until you use the new pages. This guide covers what to change afterwards, so the new features
-(Zone Assignments, zone rules, panel link, House Modes) work well.
+(Zones, zone rules, panel link, House Modes) work well.
 
 Before any of the steps: **Backup tab → Create backup** (label e.g. `before-migration`).
 Every save on the new pages also makes a backup first, and **Import / restore** can put any of
@@ -10,12 +10,12 @@ them back.
 
 ## 1. Every install
 
-1. **Check the Zone Assignments tab.** It shows all your zones with their partition and Arm Modes.
+1. **Check the Zones tab.** It shows all your zones with their partition and Arm Modes.
    Nothing has moved; the old page is still there as *Zones (legacy)*.
 2. **Garage doors and locks** (cover and lock entities) can now be zones: Zones → Add zones.
    A cover that is opening or closing counts as open.
 3. **Optional: zone rules.** Put HA labels on your entities (e.g. `alarm_window`,
-   `alarm_interior_motion`) and add rules on the Zone Assignments tab so new sensors get the right modes
+   `alarm_interior_motion`) and add rules on the Zones tab so new sensors get the right modes
    automatically. Rules only change zones when you click Apply.
 4. **Optional: physical panel.** Physical Panel tab → link it in **shadow** mode first (see INSTALL-EXT.md
    section 3d).
@@ -30,10 +30,10 @@ differently. That is no longer needed:
 
 | What the partition did | Now |
 |---|---|
-| Which modes a group is active in | Each zone has its own Arm Modes (Zone Assignments; or a label + zone rule) |
-| Turning a whole group off | Zone Assignments → filter by type/label → select → Disable (or Remove mode) |
-| Different behaviour for outdoor motion | **Zone Assignments** → open the zone (›) → *When tripped*: notify only / set off the alarm / nothing |
-| Different delays for a group | Per zone: entry delay override and *Delay on* (expanded row on Zone Assignments) |
+| Which modes a group is active in | Each zone has its own Arm Modes (Zones; or a label + zone rule) |
+| Turning a whole group off | Zones → filter by type/label → select → Disable (or Remove mode) |
+| Different behaviour for outdoor motion | **Zones** → open the zone (›) → *When tripped*: notify only / set off the alarm / nothing |
+| Different delays for a group | Per zone: entry delay override and *Delay on* (expanded row on Zones) |
 | One notification per group | One partition → one set of notifications |
 
 Why merge: partitions are meant for parts of a building that are **armed separately**. With
@@ -53,12 +53,12 @@ and a physical panel or House Mode has to drive many partitions instead of one.
    - **Entry delay:** your panel's entry delay (30 s if unknown); it only applies to zones with
      *Use entry delay* (doors, motion), not to windows or smoke.
    - **Trigger time:** 0 keeps Alarmo triggered until it is disarmed.
-3. **Zone Assignments → select all → Set partition → (the new partition) → Save.** Each zone keeps its own modes and
+3. **Zones → select all → Set partition → (the new partition) → Save.** Each zone keeps its own modes and
    options; only the partition changes.
-4. **Per-zone settings that the old partition used to give** (expanded row on Zone Assignments):
+4. **Per-zone settings that the old partition used to give** (expanded row on Zones):
    - zones you come in through that the panel does not watch (garage motion, garage doors):
      *Entry delay override* = your panel's entry delay;
-   - outdoor motion: **Zone Assignments** → open the zone → *When tripped* → *notify only*.
+   - outdoor motion: **Zones** → open the zone → *When tripped* → *notify only*.
 5. **Check every old partition shows 0 zones**, then delete them on the Partitions & Arm Modes tab.
    Deleting a partition also deletes its zones and its notifications/actions — that is why the
    zones move first.

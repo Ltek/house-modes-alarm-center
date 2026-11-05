@@ -30,7 +30,7 @@ export const PAGE_INTROS: Record<string, { role: IntroRole; text: string }> = {
     role: 'legacy',
     text:
       "Upstream Alarmo's original zone page, kept for reference." +
-      '\n\nZone Assignments does the same and more. Changes made here are not backed up first.',
+      '\n\nZones does the same and more. Changes made here are not backed up first.',
   },
   codes: {
     role: 'settings',

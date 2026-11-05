@@ -70,7 +70,7 @@ In your Home Assistant `/config` folder (Samba, SSH, or File editor):
 - [ ] Notifications → open one, change something, save → you are back on Notifications.
 - [ ] Actions → open one, save → you are back on Actions.
 - [ ] The links on a Partitions card ("N zones", "N actions") still open the filtered lists.
-- [ ] Old bookmarks: `/alarmo/sensors` opens Zone Assignments; `/alarmo/sensor_table` opens Zones.
+- [ ] Old bookmarks: `/alarmo/sensors` opens Zones; `/alarmo/sensor_table` opens Zones.
 
 ## 3d. Phase 4: linking your Vista (shadow mode first)
 

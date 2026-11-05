@@ -438,7 +438,7 @@ export class AlarmViewSensorTable extends SubscribeMixin(LitElement) {
           `
         : nothing}
       <ha-card>
-        ${sectionHead('Zone Assignments', 'settings')}
+        ${sectionHead('Zones', 'settings')}
         <div class="card-content desc">
           <p><strong>The main place for zones.</strong> Every zone Alarmo watches, with its partition, the Arm Modes it
             is active in, its zone type and its options. Hover a column title for help; click a zone's icon for its details.</p>

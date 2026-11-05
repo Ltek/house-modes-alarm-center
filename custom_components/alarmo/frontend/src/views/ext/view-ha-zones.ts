@@ -1,5 +1,5 @@
 // Physical Panel page, "How HA-only zones raise the alarm": what happens when a zone that only Home Assistant watches
-// (not the physical panel) triggers the alarm. The per-zone choice is on Zone Assignments (zone editor → When tripped).
+// (not the physical panel) triggers the alarm. The per-zone choice is on Zones (zone editor → When tripped).
 // Settings are stored with the panel settings.
 import { LitElement, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -84,7 +84,7 @@ export class AlarmViewHaZones extends LitElement {
           <p>Some Alarmo zones are watched only by Home Assistant — Zigbee/Z-Wave motion, garage covers, smoke detectors
             — not by your physical panel. When one of them triggers the alarm while armed, the physical panel knows
             nothing about it.</p>
-          <p>Choose here what Alarmo does then, by default. Each zone can do something else: Zone Assignments → open the
+          <p>Choose here what Alarmo does then, by default. Each zone can do something else: Zones → open the
             zone (›) → <em>When tripped</em>. Now: ${zones.length} HA-only zone(s)${custom ? `, ${custom} with their own choice` : ''}; default
             <em>${defLabel}</em>. Use <em>notify only</em> for zones that give false alarms, like outdoor motion.</p>
           ${!linked

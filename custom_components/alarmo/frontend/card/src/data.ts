@@ -33,6 +33,8 @@ export type CardData = {
     last_result: LastResult | null;
     /** name of the House Mode a change is under way to (being applied, delayed, or watched in Shadow) */
     changing_to?: string | null;
+    /** Shadow: the user's own House Mode helper, whose state the card shows as the current mode */
+    display_entity?: string | null;
     modes: CardMode[];
   };
   alarms: { key: string; entity_id: string; name: string }[];

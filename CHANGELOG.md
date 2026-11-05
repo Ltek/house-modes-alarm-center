@@ -3,6 +3,16 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.52 — 2026-11-05
+
+Restart Home Assistant after the update (the integration tells the card which helper to show in Shadow).
+
+- **Shadow: the card shows your own House Mode**, the state of your House Mode input_select (as your old card did),
+  instead of the mode Shadow works out. Picking a mode that sets the same partitions as another one (Late Night and
+  Stay) now shows the one you picked.
+- **Status text centered on the icon**: an empty panel display line no longer counts as a line (it pushed the text
+  up when the panel's second line was blank).
+
 ## v2026.11.05.51 — 2026-11-05
 
 Card only; no Home Assistant restart needed (reload the browser).

@@ -196,13 +196,19 @@ export class HouseModesAlarmCenterCard extends LitElement {
   private get dv(): CardData {
     const d = this.data!;
     const o = this.config?.mode_colors;
-    if (this._dvFor?.d === d && this._dvFor.o === o) return this._dvFor.v;
-    const v = withModeColors(d, o);
-    this._dvFor = { d, o, v };
+    // Shadow: your automations own the House Mode, so the card shows your helper's mode (as your old card did)
+    const own = d.house.display_entity ? this.hass?.states[d.house.display_entity]?.state : undefined;
+    if (this._dvFor?.d === d && this._dvFor.o === o && this._dvFor.own === own) return this._dvFor.v;
+    let v = withModeColors(d, o);
+    if (own) {
+      const m = v.house.modes.find(x => x.name.toLowerCase() === own.toLowerCase());
+      v = { ...v, house: { ...v.house, current: m ? m.id : null } };
+    }
+    this._dvFor = { d, o, own, v };
     return v;
   }
 
-  private _dvFor?: { d: CardData; o?: Record<string, string>; v: CardData };
+  private _dvFor?: { d: CardData; o?: Record<string, string>; own?: string; v: CardData };
 
   private arm(alarmEnt: string | undefined) {
     return armColorsFor(this.dv, alarmEnt, this.config!.alarm_colors, this.config!.arm_colors);
@@ -370,9 +376,9 @@ export class HouseModesAlarmCenterCard extends LitElement {
         case 'alarm_state':
           return delay && armMode ? `${stateText} · ${this.hass!.localize(`component.alarm_control_panel.entity_component._.state.${armMode}`) || armMode}` : stateText;
         case 'panel_line1':
-          return kp ? l1 || ' ' : null;
+          return kp ? l1 || null : null;
         case 'panel_line2':
-          return kp ? l2 || ' ' : null;
+          return kp ? l2 || null : null;
         case 'changing':
           return h.changing_to ? `Changing to ${h.changing_to}…` : null;
         case 'since':

@@ -64,6 +64,8 @@ def card_data(hass, user_id: str | None, is_admin: bool) -> dict:
             "shadow": shadow,
             # in Shadow the user's own automations still own the House Mode: buttons go to their input_select
             "select_entity": (s.get("input_select") if shadow else None) or "select.alarmo_house_mode",
+            # in Shadow your own automations own the House Mode: the card shows your helper's mode, not Shadow's
+            "display_entity": (s.get("input_select") or s.get("current_entity")) if shadow else None,
             "current": cur["id"] if cur else None,
             "previous": prev["id"] if prev else None,
             "changed_at": s["changed_at"],

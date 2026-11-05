@@ -47,6 +47,7 @@ async def test_card_data_for_ordinary_users(hass: Any, hass_storage: Any, hass_w
     res = (await client.receive_json())["result"]
     assert res["house"]["modes"] == [{"id": "stay", "name": "Stay", "icon": "mdi:shield-home", "color": "#ffa500", "targets": {GF: "armed_home"}}]
     assert res["house"]["shadow"] and res["house"]["select_entity"] == "input_select.sel"
+    assert res["house"]["display_entity"] == "input_select.sel"
     assert res["links"][0]["panel_entity"] == PANEL and res["links"][0]["mode"] == "shadow"
     assert res["keypad"]["allowed"] is False and "administrators" in res["keypad"]["reason"]
 

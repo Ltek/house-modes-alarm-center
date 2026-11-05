@@ -583,7 +583,8 @@ export type EffectsConfig = Partial<Record<FxTarget, FxParts>> & {
   speed?: number; // pulse period s
   color?: string; // default: the border's state color
 };
-export const FX_DEFAULTS = { size: 16, speed: 1.6, when: [...FX_TRIGGERS] as FxTrigger[] };
+/** By default only while something is changing: an exit delay (Alarmo or the panel arming) or a House Mode change. */
+export const FX_DEFAULTS = { size: 16, speed: 1.6, when: ['arming', 'changing'] as FxTrigger[] };
 
 /** Which triggers are true right now. */
 export const fxTriggers = (alarm: string | undefined, panel: string | undefined, changingTo: string | null | undefined): FxTrigger[] => {
@@ -652,8 +653,12 @@ export const fxVars = (fx: EffectsConfig | undefined): string => {
 export const FX_PREVIEW = {
   on: false,
   listeners: new Set<() => void>(),
+  timer: 0 as any,
+  /** on for 20 s at most, so a preview can never keep running */
   set(v: boolean) {
     this.on = v;
+    clearTimeout(this.timer);
+    if (v) this.timer = setTimeout(() => this.set(false), 20000);
     this.listeners.forEach(f => f());
   },
 };

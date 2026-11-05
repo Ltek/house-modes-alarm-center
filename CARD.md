@@ -117,7 +117,7 @@ effects:
   status_icon: { icon: glow }
   mode_button: { background: pulse, border: glow, icon: pulse }   # the House Mode being changed to
   arm_button: { border: both, icon: glow }        # the arm mode being set
-  when: [arming, entry, changing, triggered]     # default: all four
+  when: [arming, changing]   # default; also: entry, triggered
   size: 16              # glow size, px
   speed: 1.6            # pulse period, s
   color: var(--warning-color)   # card and status icon; default: the border's state color

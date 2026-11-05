@@ -3,6 +3,18 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.53 — 2026-11-05
+
+Restart Home Assistant after the update.
+
+- **Effects only while something is changing** by default: an exit delay (Alarmo or the panel arming) and a House
+  Mode change. Entry delay and alarm are still there to tick. Cards that chose their own *When* keep it.
+- A House Mode change counts for at most 3 minutes, so effects can never keep running on a stuck report; the
+  editor's *Preview the effects* switches itself off after 20 s.
+- Integration: a delayed House Mode request counts as a change under way only while it is still due, and not in
+  Shadow (Shadow keeps its own).
+- Test: Shadow's "changing to" clears when your automations got there, and after the watch time.
+
 ## v2026.11.05.52 — 2026-11-05
 
 Restart Home Assistant after the update (the integration tells the card which helper to show in Shadow).

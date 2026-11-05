@@ -179,3 +179,21 @@ async def test_shadow_request_lines_reach_the_activity_log(hass: Any, hass_stora
     assert rec.current is not None
     assert any("[shadow] schedule: Disarmed → Stay: would set" in e["text"] for e in rec.current["entries"])
     assert hass.states.get("select.alarmo_house_mode").attributes["friendly_name"] == "House Mode (Alarmo)"
+
+
+async def test_shadow_changing_to_clears(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """changing_to is set while Shadow watches a request and cleared when the user's automations got there."""
+    mgr = await _setup(hass, hass_storage, tmp_path)
+    await _select(hass, REQ, "Stay")
+    assert mgr.changing_to == "Stay"
+    assert hass.states.get("select.alarmo_house_mode").attributes["changing_to"] == "Stay"
+    await _user_arms(hass, "home", E_GF, E_GAR)
+    await _settle(hass)
+    assert mgr.changing_to is None
+    assert hass.states.get("select.alarmo_house_mode").attributes["changing_to"] is None
+    # a request nobody carries out ends after the watch time
+    await _select(hass, REQ, "Away")
+    assert mgr.changing_to == "Away"
+    await advance_time(hass, 181)
+    await _settle(hass)
+    assert mgr.changing_to is None

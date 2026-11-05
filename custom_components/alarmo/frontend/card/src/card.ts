@@ -126,6 +126,27 @@ export class HouseModesAlarmCenterCard extends LitElement {
   }
 
   private onFxPreview = () => this.requestUpdate();
+  /**
+   * A House Mode change the integration reports, for at most 3 minutes: if a report ever got stuck, the effects
+   * stop anyway (an exit delay is limited by the alarm's own state).
+   */
+  private changeSeen?: { name: string; at: number };
+
+  private freshChange(name: string | null | undefined): string | null {
+    if (!name) {
+      this.changeSeen = undefined;
+      return null;
+    }
+    if (this.changeSeen?.name !== name) this.changeSeen = { name, at: Date.now() };
+    if (Date.now() - this.changeSeen.at > 180000) return null;
+    // repaint when the limit passes, so the effect stops without waiting for a state change
+    window.clearTimeout(this.changeTimer);
+    this.changeTimer = window.setTimeout(() => this.requestUpdate(), 180000 - (Date.now() - this.changeSeen.at) + 50);
+    return name;
+  }
+
+  private changeTimer = 0;
+
   /** effects are running in this render (a chosen trigger is true) */
   private fxRun = false;
 
@@ -285,7 +306,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const border = c.border_color === 'state' || !h.enabled || !mode
       ? borderColor(alarmState, panelState, ready, mode?.color)
       : mode.color;
-    const active = FX_PREVIEW.on ? [...FX_TRIGGERS] : fxTriggers(alarmState, panelState, h.changing_to);
+    const active = FX_PREVIEW.on ? [...FX_TRIGGERS] : fxTriggers(alarmState, panelState, this.freshChange(h.changing_to));
     const fx = fxClasses(c.effects, active);
     this.fxRun = fxRunning(c.effects, active);
     const layout = statusLayout(c);

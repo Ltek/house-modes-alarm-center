@@ -244,8 +244,11 @@ class HouseModeManager:
         ref = self._changing
         if ref is None and self.shadow and self.shadow_log.watching:
             ref = self.shadow_log._watch["target"]["id"]
-        if ref is None:
-            ref = next((p.get("target") for p in s["pending"] if p.get("kind") == "delayed"), None)
+        if ref is None and not self.shadow:
+            now = time.time()
+            ref = next(
+                (p.get("target") for p in s["pending"] if p.get("kind") == "delayed" and p.get("due", 0) > now), None
+            )
         mode = find_mode(s, ref)
         return mode["name"] if mode else None
 

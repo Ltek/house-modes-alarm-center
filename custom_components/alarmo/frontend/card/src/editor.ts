@@ -157,7 +157,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
       ${this.toggle('Preview the effects now', FX_PREVIEW.on, v => {
         FX_PREVIEW.set(v);
         this.requestUpdate();
-      }, 'not saved; off when you close the editor')}
+      }, 'for 20 s; not saved')}
     `;
   }
 

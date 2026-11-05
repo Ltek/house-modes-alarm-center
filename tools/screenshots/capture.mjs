@@ -68,7 +68,7 @@ const SHOTS = [
       if (d) d.open = true;
     });
   }],
-  ['/alarmo/why', '08-arm-check'],
+  ['/alarmo/activity/arm_check', '08-arm-check'],
   ['/alarmo/activity', '09-activity', async (p) => {
     await p.evaluate(() => {
       const a = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-activity');

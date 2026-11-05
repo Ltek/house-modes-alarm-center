@@ -1,6 +1,6 @@
 // Activity tab: the sequence recorder (House Mode helpers, locks, Alarmo, the physical panel, bypasses, automations,
 // commands, notifications), plus the panel link log and House Mode history that used to live on their own pages.
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
 import { Path } from '../../common/navigation';
@@ -19,6 +19,7 @@ import { fetchHouse, HouseInfo } from '../../data/house';
 import { extStyles } from './ext-styles';
 import { sectionHead } from './page-intro';
 import './slider-field';
+import './view-why';
 import './multi-picker';
 
 const KIND_ICON: Record<string, string> = {
@@ -125,7 +126,27 @@ export class AlarmViewActivity extends LitElement {
     if (!this.info) return html`<ha-card><div class="empty">${this.error || 'Loading…'}</div></ha-card>`;
     return html`
       ${this.error ? html`<div class="notice error" style="margin:0 0 12px">${this.error}</div>` : nothing}
-      ${this.renderSequences()} ${this.renderSettings()} ${this.renderPanelLog()} ${this.renderHouseHistory()}
+      ${this.renderArmCheck()} ${this.renderSequences()} ${this.renderSettings()} ${this.renderPanelLog()} ${this.renderHouseHistory()}
+    `;
+  }
+
+  // ------------------------------------------------------------ Arm Check (was its own tab)
+
+  private renderArmCheck() {
+    const open = this.path?.subpage === 'arm_check' || this.path?.page === 'why';
+    return html`
+      <ha-card>
+        <details class="collapse" style="margin:12px 16px" ?open=${open}>
+          <summary>
+            <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+            <span class="collapse-title">Arm Check</span>
+            <span class="secondary" style="display:inline">why won't it arm · walk test</span>
+          </summary>
+          <div class="collapse-body arm-check">
+            <alarm-view-why .hass=${this.hass} .narrow=${this.narrow} .path=${this.path}></alarm-view-why>
+          </div>
+        </details>
+      </ha-card>
     `;
   }
 
@@ -147,9 +168,10 @@ export class AlarmViewActivity extends LitElement {
         </div>
         <div class=${`notice ${i.last_error || (i.settings.enabled && !i.running) ? 'error' : ''}`} style="margin:0 16px 8px">
           ${!i.settings.enabled
-            ? html`Recording is off (Recording settings below).`
+            ? html`<span class="rec off"><ha-icon icon="mdi:record-circle-outline"></ha-icon>RECORDING OFF</span>
+                <span class="secondary" style="display:inline">· turn it on under Recording settings below</span>`
             : i.running
-              ? html`Recording · ${Object.keys(i.watched || {}).length} entities watched ·
+              ? html`<span class="rec on"><ha-icon icon="mdi:record-circle"></ha-icon>RECORDING ENABLED</span> · ${Object.keys(i.watched || {}).length} entities watched ·
                   ${i.open ? html`a sequence is open now (started ${clock(i.open.start)})` : 'waiting for the next sequence'} ·
                   ${i.last_write ? html`last saved ${new Date(i.last_write * 1000).toLocaleString()}` : 'nothing saved since Home Assistant started'}`
               : html`<strong>The recorder is not running.</strong> Check Settings → System → Logs for "Alarmo ext" or "Activity recorder".`}
@@ -318,5 +340,29 @@ export class AlarmViewActivity extends LitElement {
     `;
   }
 
-  static styles = extStyles;
+  static styles = [
+    extStyles,
+    css`
+      /* the recording status stands out in the theme's accent color */
+      .rec {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        --mdc-icon-size: 16px;
+      }
+      .rec.on {
+        color: var(--accent-color, var(--primary-color));
+      }
+      .rec.off {
+        color: var(--secondary-text-color);
+      }
+      /* Arm Check's own cards sit flat inside the panel */
+      .arm-check alarm-view-why {
+        display: block;
+        --ha-card-box-shadow: none;
+      }
+    `,
+  ];
 }

@@ -28,10 +28,8 @@ export const TABS: TabDef[] = [
   { id: 'general', view: 'general', section: 'general', titleKey: 'panels.general.title' },
   { id: 'house', view: 'house', titleKey: 'panels.house.title' },
   { id: 'house_actions', view: 'house_actions', titleKey: 'panels.house_actions.title' },
-  { id: 'why', view: 'why', titleKey: 'panels.why.title' },
   { id: 'partitions', view: 'general', section: 'partitions', titleKey: 'panels.partitions.title' },
   { id: 'zones', view: 'sensor_table', titleKey: 'panels.zones.title' },
-  { id: 'zones_legacy', view: 'sensors', titleKey: 'panels.zones_legacy.title' },
   { id: 'codes', view: 'codes', titleKey: 'panels.users_codes.title' },
   { id: 'notifications', view: 'actions', section: 'notifications', titleKey: 'panels.notifications.title' },
   { id: 'actions', view: 'actions', section: 'actions', titleKey: 'panels.actions.title' },
@@ -42,7 +40,10 @@ export const TABS: TabDef[] = [
 
 /** URL page segments kept from upstream / ext.1–3 that now belong to another tab. */
 const ALIASES: Record<string, TabId> = {
-  sensors: 'zones_legacy',
+  // v2026.11.05.56: the Zones (legacy) tab is gone; Zone Assignments replaces it. Arm Check is a panel on Activity.
+  sensors: 'zones',
+  zones_legacy: 'zones',
+  why: 'activity',
   sensor_table: 'zones',
   // ext.14: Zone Mirrors merged into the Physical Panel page
   mirrors: 'panel',

@@ -88,7 +88,7 @@ export class MyAlarmPanel extends LitElement {
         <ha-tab-group
           @wa-tab-show=${this.handlePageSelected}
         >
-          ${TABS.filter(t => t.id !== 'zones_legacy' || this.showLegacy || tab?.id === 'zones_legacy').map(t => html`
+          ${TABS.map(t => html`
             <ha-tab-group-tab slot="nav" panel="${t.id}" .active=${tab?.id === t.id}>
               ${localize(t.titleKey, this.hass.language)}
             </ha-tab-group-tab>
@@ -97,19 +97,7 @@ export class MyAlarmPanel extends LitElement {
       </div>
       <alarmo-ext-status-strip .hass=${this.hass}></alarmo-ext-status-strip>
       <div class="view">
-        ${this.withIntro(path, tab, this.getView(path, tab))}
-      </div>
-    `;
-  }
-
-  /** ext: upstream pages get the same intro card as the ext pages (not on editor sub-pages). */
-  withIntro(path: Path, tab: TabDef | undefined, view: unknown) {
-    // the upstream pages have their own title and description; only the legacy zones page gets a note
-    if (!tab || tab.id !== 'zones_legacy' || isEditorPath(path.subpage, path.params)) return view;
-    return html`
-      <div class="page">
-        <alarmo-ext-page-intro .page=${tab.id} .heading=${localize(tab.titleKey, this.hass.language)}></alarmo-ext-page-intro>
-        ${view}
+        ${this.getView(path, tab)}
       </div>
     `;
   }

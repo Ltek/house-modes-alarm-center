@@ -127,21 +127,7 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
           </alarmo-settings-row>
           ` : ''}
 
-          <alarmo-settings-row .narrow=${this.narrow}>
-            <span slot="heading">Show the Zones (legacy) tab</span>
-            <span slot="description">
-              Upstream Alarmo's original zone page. Zone Assignments does the same and more, so it is hidden unless you
-              turn this on.
-            </span>
-            <ha-switch
-              ?checked=${this.showLegacy}
-              @change=${async (ev: Event) => {
-          this.showLegacy = (ev.target as HTMLInputElement).checked;
-          await setExtUi(this.hass!, { show_legacy_zones: this.showLegacy });
-          window.dispatchEvent(new CustomEvent('alarmo-ext-ui-changed'));
-        }}
-            ></ha-switch>
-          </alarmo-settings-row>
+
 
           <alarmo-settings-row .narrow=${this.narrow}>
             <span slot="heading">

@@ -199,11 +199,11 @@ export const defaultModeColor = (name: string): string => {
     [/vacation|holiday|travel/, '#dc143c'],
     [/disarm|^off$|wake|^day/, '#008000'],
     [/away|out|leave/, '#ff0000'],
-    [/sleep|night|bed/, '#191970'],
+    [/sleep|night|bed/, '#5d5df4'],
     [/stay|home/, '#ffa500'],
-    [/spa|bypass|custom|pool|hot.?tub/, '#00ffff'],
-    [/guest|party|visitor|clean/, '#ff00ff'],
-    [/local/, '#800080'],
+    [/spa|bypass|custom|pool|hot.?tub/, '#00a8a8'],
+    [/guest|party|visitor|clean/, '#990099'],
+    [/local/, '#7bb314'],
   ];
   return rules.find(([re]) => re.test(n))?.[1] || '#808080';
 };

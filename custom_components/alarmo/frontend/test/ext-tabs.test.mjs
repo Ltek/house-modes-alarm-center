@@ -6,12 +6,12 @@ import { TABS, tabForPath, isEditorPath } from '../src/data/ext-tabs.ts';
 test('tab order and sections', () => {
   assert.deepEqual(
     TABS.map(t => t.id),
-    ['general', 'house', 'house_actions', 'why', 'partitions', 'zones', 'zones_legacy', 'codes', 'notifications', 'actions', 'panel', 'activity', 'backup']
+    ['general', 'house', 'house_actions', 'partitions', 'zones', 'codes', 'notifications', 'actions', 'panel', 'activity', 'backup']
   );
   assert.equal(TABS.find(t => t.id === 'partitions').view, 'general');
   assert.equal(TABS.find(t => t.id === 'notifications').section, 'notifications');
   assert.equal(TABS.find(t => t.id === 'zones').view, 'sensor_table');
-  assert.equal(TABS.find(t => t.id === 'zones_legacy').view, 'sensors');
+  assert.equal(TABS.find(t => t.id === 'zones_legacy'), undefined);
 });
 
 test('plain pages map to their tab; empty page is General', () => {
@@ -21,8 +21,10 @@ test('plain pages map to their tab; empty page is General', () => {
 });
 
 test('old addresses still work', () => {
-  assert.equal(tabForPath('sensors').id, 'zones_legacy');
-  assert.equal(tabForPath('sensors', undefined, { edit: 'binary_sensor.x' }).id, 'zones_legacy');
+  assert.equal(tabForPath('sensors').id, 'zones');
+  assert.equal(tabForPath('sensors', undefined, { edit: 'binary_sensor.x' }).id, 'zones');
+  assert.equal(tabForPath('zones_legacy').id, 'zones');
+  assert.equal(tabForPath('why').id, 'activity');
   assert.equal(tabForPath('sensor_table').id, 'zones');
   assert.equal(tabForPath('modes').id, 'partitions');
   assert.equal(tabForPath('mirrors').id, 'panel');

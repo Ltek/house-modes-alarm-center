@@ -77,7 +77,7 @@ export class StatusStrip extends LitElement {
         ${i.alarms.map(a => {
           const s = st(a.entity_id)?.state;
           const kind = s === 'triggered' ? 'bad' : s === 'pending' || s === 'arming' ? 'warn' : s && s !== 'disarmed' ? 'on' : '';
-          return this.chip(ALARM_ICON[s || ''] || 'mdi:shield-outline', `${a.name}: ${pretty(s)}`, a.entity_id, '/alarmo/why', kind);
+          return this.chip(ALARM_ICON[s || ''] || 'mdi:shield-outline', `${a.name}: ${pretty(s)}`, a.entity_id, '/alarmo/activity/arm_check', kind);
         })}
         ${i.links.map(l => {
           const p = st(l.panel_entity);
@@ -90,7 +90,7 @@ export class StatusStrip extends LitElement {
         ${i.rules_pending ? this.chip('mdi:auto-fix', `${i.rules_pending} zone rule change(s) pending`, 'Review on Zone Assignments', '/alarmo/zones', 'warn') : nothing}
         ${draft ? this.chip('mdi:pencil-circle', 'Unsaved zone edits', 'Zone Assignments has unsaved changes', '/alarmo/zones', 'warn') : nothing}
         <span class="grow"></span>
-        ${this.chip('mdi:help-circle-outline', "Why won't it arm?", 'What blocks arming right now', '/alarmo/why')}
+        ${this.chip('mdi:help-circle-outline', "Why won't it arm?", 'What blocks arming right now', '/alarmo/activity/arm_check')}
       </div>
     `;
   }

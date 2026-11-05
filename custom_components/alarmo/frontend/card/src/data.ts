@@ -501,9 +501,9 @@ export const ARM_DEFAULT_COLORS: Record<string, string> = {
   disarmed: '#008000',
   armed_away: '#ff0000',
   armed_home: '#ffa500',
-  armed_night: '#191970',
+  armed_night: '#5d5df4',
   armed_vacation: '#dc143c',
-  armed_custom_bypass: '#00ffff',
+  armed_custom_bypass: '#00a8a8',
 };
 
 /**

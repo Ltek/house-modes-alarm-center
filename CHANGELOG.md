@@ -3,6 +3,17 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.56 — 2026-11-05
+
+Restart Home Assistant after the update (new default House Mode colors).
+
+- **Arm Check is a panel on the Activity tab** (the Arm Check tab is gone). The "Why won't it arm?" chip and the
+  partition chips open it directly.
+- **The Zones (legacy) tab and its switch are gone**; Zone Assignments replaces it. Old links open Zone Assignments.
+- Activity: **RECORDING ENABLED** in the theme's accent color (or *RECORDING OFF*), so the status stands out.
+- Default House Mode colors: Sleep 93,93,244 · Spa 0,168,168 · Guest 153,0,153 · Local 123,179,20 (the standard
+  Night and Custom arm mode colors follow Sleep and Spa).
+
 ## v2026.11.05.55 — 2026-11-05
 
 Card only; no Home Assistant restart needed (reload the browser).

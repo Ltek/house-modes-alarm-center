@@ -284,11 +284,11 @@ DEFAULT_COLORS: list[tuple[str, str]] = [
     (r"vacation|holiday|travel", "#dc143c"),  # crimson
     (r"disarm|^off$|wake|^day", "#008000"),  # green
     (r"away|out|leave", "#ff0000"),  # red
-    (r"sleep|night|bed", "#191970"),  # midnightblue
+    (r"sleep|night|bed", "#5d5df4"),  # 93,93,244
     (r"stay|home", "#ffa500"),  # orange
-    (r"spa|bypass|custom|pool|hot.?tub", "#00ffff"),  # cyan
-    (r"guest|party|visitor|clean", "#ff00ff"),  # magenta
-    (r"local", "#800080"),  # purple
+    (r"spa|bypass|custom|pool|hot.?tub", "#00a8a8"),  # 0,168,168
+    (r"guest|party|visitor|clean", "#990099"),  # 153,0,153
+    (r"local", "#7bb314"),  # 123,179,20
 ]
 
 

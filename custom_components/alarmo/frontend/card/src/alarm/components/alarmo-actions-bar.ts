@@ -32,8 +32,9 @@ export class AlarmoActionsBar extends LitElement {
       if (armMode) state = armMode;
     }
 
+    const bs = (this.config as any).button_style || {};
     return html`
-      <div class="container">
+      <div class="container ${bs.text_follows_icon ? 'follow' : ''}" style=${bs.track ? `--b-track:${String(bs.track === 'none' ? 'transparent' : bs.track).replace(/[;{}<>]/g, '')};--b-track-opacity:1` : ''}>
         ${this._renderOptions(state)}
       </div>
     `;
@@ -77,10 +78,10 @@ export class AlarmoActionsBar extends LitElement {
 
       return html`
         <div class="button ${ActionToState[e] == selectedOption ? 'selected' : ''}"
-          style="--btn-color: ${computeStateColor({ ...stateObj, state: ActionToState[e] } as any, this.config!)}"
+          style="${this._buttonStyle(computeStateColor({ ...stateObj, state: ActionToState[e] } as any, this.config!))}"
           @click=${(ev: Event) => this._handleClick(ev, e)}>
-          <div class="content ${hasTextLabel ? 'has-text' : ''}">
-            <ha-icon icon="${isEmpty(stateConfig.button_icon) ? ActionToIcon[e] : stateConfig.button_icon}"></ha-icon>
+          <div class="content ${hasTextLabel && (this.config as any).show_labels !== false ? 'has-text' : ''}">
+            ${(this.config as any).show_icons === false ? nothing : html`<ha-icon icon="${isEmpty(stateConfig.button_icon) ? ActionToIcon[e] : stateConfig.button_icon}"></ha-icon>`}
             ${ActionToState[e] != selectedOption && isDefined(this.readyForArmModes)
           ? html`
               <ha-icon
@@ -88,18 +89,36 @@ export class AlarmoActionsBar extends LitElement {
                 class="badge ${isDisabled ? 'error' : 'success'}"
               ></ha-icon>
             ` : nothing}
-            <span>
+            ${(this.config as any).show_labels === false ? nothing : html`<span>
               ${!isDefined(stateConfig.button_label)
           ? e == ArmActions.Disarm && stateObj.state !== AlarmStates.Disarmed
             ? this.hass!.localize(`ui.card.alarm_control_panel.${e}`)
             : this.hass!.localize(`ui.card.alarm_control_panel.modes.${ActionToState[e]}`)
           : stateConfig.button_label
         }
-            </span>
+            </span>`}
           </div>
         </div>
       `;
     })
+  }
+
+  /** ext: the button's own arm color + the card's button style ('mode' = this button's arm color) */
+  private _buttonStyle(own: string) {
+    const bs = (this.config as any).button_style || {};
+    const icon = (this.config as any).icon_style || {};
+    const res = (v: string | undefined) =>
+      v === undefined || v === '' ? undefined : v === 'mode' ? own : v === 'none' ? 'transparent' : String(v).replace(/[;{}<>]/g, '');
+    const vars: [string, string | undefined][] = [
+      ['--btn-color', own],
+      ['--b-bg', res(bs.background)],
+      ['--b-abg', res(bs.active_background)],
+      ['--b-bd', res(bs.border)],
+      ['--b-abd', res(bs.active_border)],
+      ['--b-ic', res(icon.color)],
+      ['--b-aic', res(icon.active_color)],
+    ];
+    return vars.filter(([, v]) => v).map(([k, v]) => `${k}:${v}`).join(';');
   }
 
   private _handleClick(ev: Event, action: ArmActions) {
@@ -131,8 +150,8 @@ export class AlarmoActionsBar extends LitElement {
         left: 0;
         height: 100%;
         width: 100%;
-        background: var(--primary-text-color);
-        opacity: 0.05;
+        background: var(--b-track, var(--primary-text-color));
+        opacity: var(--b-track-opacity, 0.05);
         border-radius: calc(var(--content-scale, 1) * 18px);
       }
       div.button {
@@ -164,6 +183,9 @@ export class AlarmoActionsBar extends LitElement {
         overvlow: hidden;
         flex: 1;
         gap: 4px;
+        background: var(--b-bg, none);
+        /* an inset outline, not a border: the buttons have a fixed height */
+        box-shadow: inset 0 0 0 1px var(--b-bd, transparent);
         transition:
           color ease-in-out 180ms;
       }
@@ -178,7 +200,7 @@ export class AlarmoActionsBar extends LitElement {
         left: 0;
         height: 100%;
         width: 100%;
-        background: var(--btn-color, var(--selected-color));
+        background: var(--b-abg, var(--btn-color, var(--selected-color)));
         opacity: 0;
         border-radius: calc(var(--content-scale, 1) * 14px);
         transition:
@@ -192,9 +214,12 @@ export class AlarmoActionsBar extends LitElement {
       div.button.selected .content::before {
         opacity: 1;
       }
+      div.button.selected .content {
+        box-shadow: inset 0 0 0 1px var(--b-abd, var(--b-bd, transparent));
+      }
       div.content ha-icon {
         display: flex;
-        color: var(--hmac-alarm-icon-color, var(--btn-color, inherit));
+        color: var(--b-ic, var(--btn-color, inherit));
       }
       div.content span {
         display: flex;
@@ -217,7 +242,14 @@ export class AlarmoActionsBar extends LitElement {
       }
       div.button.selected div.content ha-icon, div.button.selected div.content,
       div.button.selected div.content span {
-        color: var(--hmac-alarm-icon-active-color, white);
+        color: var(--b-aic, white);
+      }
+      /* text follows the icon color */
+      div.container.follow div.content span {
+        color: var(--b-ic, var(--btn-color, inherit));
+      }
+      div.container.follow div.button.selected div.content span {
+        color: var(--b-aic, white);
       }
       @media (max-width: 280px) {
         div.container {

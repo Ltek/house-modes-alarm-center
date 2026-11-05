@@ -68,7 +68,7 @@ export const lockToggle = (locked: boolean, onToggle: () => void) =>
     <ha-icon slot="start" icon=${locked ? 'mdi:lock' : 'mdi:lock-open-variant'}></ha-icon>${locked ? 'Unlock to edit' : 'Editing — lock'}
   </ha-button>`;
 
-/** Entity icon (like HA's own tables). Click opens the more-info dialog. status colours the icon. */
+/** Entity icon (like HA's own tables). Click opens the more-info dialog. status colors the icon. */
 export const entityBadge = (
   hass: any,
   entityId: string,

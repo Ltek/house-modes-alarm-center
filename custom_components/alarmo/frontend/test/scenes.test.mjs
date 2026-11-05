@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { captureMember, captureMembers, patchMember, hexToRgb, rgbToHex, describeMember, sceneSupported } from '../src/data/scenes.ts';
 
-test('capture lights: off, or on with brightness, one colour format and effect', () => {
+test('capture lights: off, or on with brightness, one color format and effect', () => {
   assert.deepEqual(captureMember('light.a', { state: 'off', attributes: { brightness: 100 } }), { state: 'off' });
   assert.deepEqual(
     captureMember('light.a', { state: 'on', attributes: { brightness: 128, color_mode: 'color_temp', color_temp_kelvin: 2700, rgb_color: [1, 2, 3], effect: 'None' } }, 2),
@@ -20,13 +20,13 @@ test('capture other domains with their settable attributes; unsupported skipped'
   assert.deepEqual(all, { 'lock.front': { state: 'locked' } });
 });
 
-test('patch replaces the colour format; undefined removes', () => {
+test('patch replaces the color format; undefined removes', () => {
   const m = { state: 'on', color_temp_kelvin: 2700, brightness: 10 };
   assert.deepEqual(patchMember(m, { rgb_color: [255, 0, 0] }), { state: 'on', brightness: 10, rgb_color: [255, 0, 0] });
   assert.deepEqual(patchMember(m, { brightness: undefined }), { state: 'on', color_temp_kelvin: 2700 });
 });
 
-test('colour helpers and description', () => {
+test('color helpers and description', () => {
   assert.deepEqual(hexToRgb('#ff8800'), [255, 136, 0]);
   assert.equal(rgbToHex([255, 136, 0]), '#ff8800');
   assert.equal(describeMember({ state: 'on', brightness: 153, color_temp_kelvin: 2700 }), 'on · 60 % · 2700 K');

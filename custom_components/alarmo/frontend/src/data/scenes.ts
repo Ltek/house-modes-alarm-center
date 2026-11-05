@@ -25,7 +25,7 @@ type StateLike = { state: string; attributes: Record<string, any> };
 export const domainOf = (entityId: string) => String(entityId || '').split('.')[0];
 export const sceneSupported = (entityId: string) => Object.prototype.hasOwnProperty.call(SCENE_DOMAINS, domainOf(entityId));
 
-/** One entity's current state as a scene member (lights: on/off, brightness, one colour format, effect). */
+/** One entity's current state as a scene member (lights: on/off, brightness, one color format, effect). */
 export const captureMember = (entityId: string, st: StateLike | undefined, transition = 0): SceneMember | null => {
   if (!st || !sceneSupported(entityId)) return null;
   const a = st.attributes || {};
@@ -61,7 +61,7 @@ export const captureMembers = (ids: string[], states: Record<string, StateLike>,
   return out;
 };
 
-/** A member with a field set (undefined removes it). Light colour formats replace each other. */
+/** A member with a field set (undefined removes it). Light color formats replace each other. */
 export const patchMember = (m: SceneMember, patch: Record<string, any>): SceneMember => {
   const COLOR = ['color_temp_kelvin', 'rgb_color', 'rgbw_color', 'rgbww_color', 'xy_color', 'hs_color'];
   const out = { ...m };
@@ -87,7 +87,7 @@ export const describeMember = (m: SceneMember): string => {
   if (m.brightness != null) parts.push(`${Math.round((m.brightness / 255) * 100)} %`);
   if (m.color_temp_kelvin != null) parts.push(`${m.color_temp_kelvin} K`);
   else if (m.rgb_color) parts.push(rgbToHex(m.rgb_color));
-  else if (m.hs_color || m.xy_color || m.rgbw_color || m.rgbww_color) parts.push('colour');
+  else if (m.hs_color || m.xy_color || m.rgbw_color || m.rgbww_color) parts.push('color');
   if (m.current_position != null) parts.push(`${m.current_position} % open`);
   if (m.percentage != null) parts.push(`${m.percentage} %`);
   if (m.temperature != null) parts.push(`${m.temperature}°`);

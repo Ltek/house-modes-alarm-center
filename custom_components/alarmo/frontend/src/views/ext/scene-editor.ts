@@ -247,8 +247,8 @@ export class SceneEditor extends LitElement {
         ${on ? html`
           ${slider('Brightness', 'brightness', 1, 100, '%', v => (v / 255) * 100, v => Math.round((v / 100) * 255))}
           ${m.color_temp_kelvin != null
-            ? slider('Colour temp', 'color_temp_kelvin', a.min_color_temp_kelvin || 2000, a.max_color_temp_kelvin || 6500, 'K')
-            : html`<label>Colour <input type="color" .value=${rgbToHex(m.rgb_color)} @change=${(e: any) => this.setMember(id, { rgb_color: hexToRgb(e.target.value) })} /></label>`}
+            ? slider('Color temp', 'color_temp_kelvin', a.min_color_temp_kelvin || 2000, a.max_color_temp_kelvin || 6500, 'K')
+            : html`<label>Color <input type="color" .value=${rgbToHex(m.rgb_color)} @change=${(e: any) => this.setMember(id, { rgb_color: hexToRgb(e.target.value) })} /></label>`}
           ${sel('Effect', 'effect', a.effect_list)}
           ${slider('Fade', 'transition', 0, 30, 's')}` : nothing}`;
     } else if (dom === 'switch' || dom === 'input_boolean') controls = stateSel('on', 'off');

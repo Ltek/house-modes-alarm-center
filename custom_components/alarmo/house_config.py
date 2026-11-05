@@ -83,7 +83,7 @@ MODE_SCHEMA = vol.Schema(
         vol.Required("id"): vol.Match(r"^[a-z0-9_]{1,32}$"),
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=40)),
         vol.Optional("icon", default="mdi:home"): vol.All(str, icon_name),
-        # colour on cards: #rrggbb, a CSS colour name or var(--…); empty = from the name
+        # color on cards: #rrggbb, a CSS color name or var(--…); empty = from the name
         vol.Optional("color", default=""): vol.All(str, vol.Match(COLOR_RE)),
         vol.Optional("targets", default={}): {str: vol.In(TARGET_STATES)},
         vol.Optional("enter_sources", default=list(SOURCES)): [vol.In(SOURCES)],
@@ -292,7 +292,7 @@ DEFAULT_COLORS: list[tuple[str, str]] = [
 
 
 def mode_color(mode: dict) -> str:
-    """The mode's colour, or a default from its name."""
+    """The mode's color, or a default from its name."""
     if mode.get("color"):
         return mode["color"]
     n = mode["name"].strip().lower()

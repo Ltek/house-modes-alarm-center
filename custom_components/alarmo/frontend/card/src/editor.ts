@@ -1,6 +1,6 @@
 // Visual editor for the House Modes & Alarm Center Card, following CARD_DESIGN_SYSTEM.md:
 // --ltek-* chrome tokens (§1), collapsible top-level panels with an accent border when open, flat sub-panels with
-// UPPERCASE accent titles, mixed-case group subtitles (§2), sliders for every size, the four-mode colour control
+// UPPERCASE accent titles, mixed-case group subtitles (§2), sliders for every size, the four-mode color control
 // (§3), three-state selects for boolean style overrides (§5) and byte-stable YAML: a key is written only when set.
 import { LitElement, html, css, nothing, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -169,27 +169,34 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
       onChange(v === '' ? undefined : v === 'on'));
   }
 
-  /** §3: the four-mode colour control. */
-  private color(label: string, value: string | undefined, defaultLabel: string, seedHex: string, onChange: (v: string | undefined) => void) {
-    const mode = colorMode(value);
+  /**
+   * §3: the four-mode color control. `presets` add context choices to the mode list (Transparent, None, House Mode
+   * color, …), stored as their keyword.
+   */
+  private color(label: string, value: string | undefined, defaultLabel: string, seedHex: string,
+    onChange: (v: string | undefined) => void, presets: [string, string][] = []) {
+    const preset = presets.find(([v]) => v === value);
+    const mode = preset ? `preset:${preset[0]}` : colorMode(value);
     const swatch = /^#[0-9a-fA-F]{6}$/.test(value || '') ? value! : seedHex;
     return html`<div class="row">
       <span class="lab">${label}</span>
       <div class="ctl color">
         <select aria-label=${`${label}: kind`} @change=${(e: any) => {
           const m = e.target.value;
-          if (m === 'default') onChange(undefined);
+          if (m.startsWith('preset:')) onChange(m.slice(7));
+          else if (m === 'default') onChange(undefined);
           else if (m === 'theme') onChange(THEME_COLORS[0][0]);
           else if (m === 'custom') onChange(swatch);
-          else onChange(value && mode !== 'default' ? value : seedHex);
+          else onChange(value && (mode === 'theme' || mode === 'custom' || mode === 'css') ? value : seedHex);
         }}>
           <option value="default" ?selected=${mode === 'default'}>${defaultLabel}</option>
-          <option value="theme" ?selected=${mode === 'theme'}>Theme colour</option>
-          <option value="custom" ?selected=${mode === 'custom'}>Custom colour</option>
+          ${presets.map(([v, l]) => html`<option value=${`preset:${v}`} ?selected=${mode === `preset:${v}`}>${l}</option>`)}
+          <option value="theme" ?selected=${mode === 'theme'}>Theme color</option>
+          <option value="custom" ?selected=${mode === 'custom'}>Custom color</option>
           <option value="css" ?selected=${mode === 'css'}>CSS value</option>
         </select>
         ${mode === 'theme'
-          ? html`<select aria-label=${`${label}: theme colour`} @change=${(e: any) => onChange(e.target.value)}>
+          ? html`<select aria-label=${`${label}: theme color`} @change=${(e: any) => onChange(e.target.value)}>
               ${THEME_COLORS.map(([v, l]) => html`<option value=${v} ?selected=${v === value}>${l}</option>`)}
             </select>`
           : mode === 'custom'
@@ -234,21 +241,61 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
       ${this.select('Font', t.font || '', [['', `Card default (${FONT_NAME[d.font]})`], ...FONTS], v => this.setStyle(el, 'font', v || undefined))}
       ${this.triState('Italic', t.italic, 'Card default (off)', v => this.setStyle(el, 'italic', v))}
       ${this.triState('Capitals', t.caps, `Card default (${d.caps ? 'on' : 'off'})`, v => this.setStyle(el, 'caps', v))}
-      ${this.group('Colour')}
-      ${this.color('Text colour', t.color, 'Card default', '#e1e1e1', v => this.setStyle(el, 'color', v))}
+      ${this.group('Color')}
+      ${this.color('Text color', t.color, 'Card default', '#e1e1e1', v => this.setStyle(el, 'color', v))}
     `);
   }
 
-  private iconStyle(el: IconElement, colorDefault: string, activeLabel?: string, activeDefault?: string): TemplateResult {
+  private iconStyle(el: IconElement, withColor?: { defaultLabel: string; presets: [string, string][] }): TemplateResult {
     const d = ICON_ELEMENTS[el];
     const i = this.styleOf(el);
     return this.sub(d.label, html`
       ${this.group('Size')}
       ${this.slider('Size', i.size || 0, 12, 96, 1, ' px', d.size, v => this.setStyle(el, 'size', v || undefined))}
-      ${this.group('Colour')}
-      ${this.color(activeLabel ? 'Colour (not selected)' : 'Colour', i.color, colorDefault, '#9e9e9e', v => this.setStyle(el, 'color', v))}
-      ${activeLabel ? this.color(activeLabel, i.active_color, activeDefault || 'Card default', '#ffffff', v => this.setStyle(el, 'active_color', v)) : nothing}
+      ${withColor
+        ? html`${this.group('Color')}
+            ${this.color('Icon color', i.color, withColor.defaultLabel, '#9e9e9e', v => this.setStyle(el, 'color', v), withColor.presets)}`
+        : nothing}
     `);
+  }
+
+  /** Colors of a set of buttons (§3 control everywhere; 'mode' = each button's own House Mode / arm mode color). */
+  private buttonColors(set: 'mode_button' | 'arm_button', icon: 'mode_icon' | 'alarm_icon', own: string, defaults: {
+    bg: string; abg: string; ic: string; aic: string; }): TemplateResult {
+    const b = this.styleOf(set);
+    const i = this.styleOf(icon);
+    const fill: [string, string][] = [['transparent', 'Transparent'], ['mode', own]];
+    const line: [string, string][] = [['none', 'None'], ['mode', own]];
+    const ink: [string, string][] = [['mode', own]];
+    return this.sub('Button colors', html`
+      ${this.group('Background')}
+      ${this.color('Background', b.background, defaults.bg, '#2a2a2a', v => this.setStyle(set, 'background', v), fill)}
+      ${this.color('Background (selected)', b.active_background, defaults.abg, '#3a3a3a', v => this.setStyle(set, 'active_background', v), fill)}
+      ${set === 'arm_button' ? this.color('Bar behind the buttons', b.track, 'Card default (faint)', '#202020', v => this.setStyle(set, 'track', v), [['transparent', 'Transparent']]) : nothing}
+      ${this.group('Border')}
+      ${this.color('Border', b.border, 'Card default (none)', '#444444', v => this.setStyle(set, 'border', v), line)}
+      ${this.color('Border (selected)', b.active_border, 'Same as not selected', '#ffffff', v => this.setStyle(set, 'active_border', v), line)}
+      ${this.group('Icon and text')}
+      ${this.color('Icon color', i.color, defaults.ic, '#9e9e9e', v => this.setStyle(icon, 'color', v), ink)}
+      ${this.color('Icon color (selected)', i.active_color, defaults.aic, '#ffffff', v => this.setStyle(icon, 'active_color', v), ink)}
+      ${this.toggle('Text color follows the icon', !!b.text_follows_icon, v => this.setStyle(set, 'text_follows_icon', v || undefined))}
+    `);
+  }
+
+  /** One section in the Sections panel: [show] name · [collapse] · [start closed] (the last two only when shown). */
+  private sectionRow(name: string, hint: string, show: string, collapse: string, start: string, collapseHint?: string) {
+    const c: any = this.cfg;
+    return html`<div class="sec-row">
+      <input type="checkbox" aria-label=${`Show ${name}`} .checked=${!!c[show]} @change=${(e: any) => this.set(show, e.target.checked)} />
+      <span class="sec-name">${name}${hint ? html`<span class="hint inline"> · ${hint}</span>` : nothing}</span>
+      ${c[show]
+        ? html`<input type="checkbox" aria-label=${`Collapse ${name}`} title=${collapseHint || 'a bar opens and closes this section'}
+              .checked=${!!c[collapse]} @change=${(e: any) => this.set(collapse, e.target.checked)} />
+            ${c[collapse]
+              ? html`<input type="checkbox" aria-label=${`Start ${name} closed`} .checked=${!!c[start]} @change=${(e: any) => this.set(start, e.target.checked)} />`
+              : html`<span></span>`}`
+        : html`<span></span><span></span>`}
+    </div>`;
   }
 
   // ------------------------------------------------------------ render
@@ -271,39 +318,44 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
         ${this.group('Frame')}
         ${this.slider('Border width', frame.border_width ?? 2, 0, 8, 1, ' px', 2, v => this.setStyle('card', 'border_width', v === 2 ? undefined : v), false)}
         ${this.slider('Corner radius', frame.radius ?? 12, 0, 32, 1, ' px', 12, v => this.setStyle('card', 'radius', v === 12 ? undefined : v), false)}
-        <p class="hint">The border shows the state: red alarm, orange arming or not ready, the House Mode's colour while
+        <p class="hint">The border shows the state: red alarm, orange arming or not ready, the House Mode's color while
           armed, green ready.</p>
       `, true)}
 
-      ${this.panel('sections', 'mdi:view-agenda-outline', 'Sections', 'Turn each part of the card on or off.', html`
-        ${this.toggle('Header: House Mode and panel display', c.show_header, v => this.set('show_header', v))}
-        ${this.toggle('House Mode buttons', c.show_house_modes, v => this.set('show_house_modes', v))}
-        ${this.toggle('Alarm: arm / disarm, code, messages', c.show_alarm, v => this.set('show_alarm', v))}
-        ${this.toggle('Physical panel keypad', c.show_panel_keypad, v => this.set('show_panel_keypad', v))}
-        ${this.group('Collapsing')}
-        ${this.toggle('Collapsible card (tap the header)', c.collapsible, v => this.set('collapsible', v))}
-        ${c.collapsible ? this.toggle('Start collapsed', c.start_collapsed, v => this.set('start_collapsed', v)) : nothing}
-        ${c.collapsible || c.alarm_collapsible ? this.toggle('Show the open / close arrow', c.show_chevron, v => this.set('show_chevron', v)) : nothing}
+      ${this.panel('sections', 'mdi:view-agenda-outline', 'Sections', 'Turn each part of the card on or off, and choose which ones can be collapsed.', html`
+        <div class="sec-head"><span></span><span>Section</span><span>Collapse</span><span>Start closed</span></div>
+        ${this.sectionRow('Header', 'House Mode and panel display', 'show_header', 'collapsible', 'start_collapsed', 'the whole card folds to the header')}
+        ${this.sectionRow('House Mode buttons', '', 'show_house_modes', 'modes_collapsible', 'modes_start_collapsed')}
+        ${this.sectionRow('Alarm', 'arm / disarm, code, messages', 'show_alarm', 'alarm_collapsible', 'alarm_start_collapsed')}
+        ${this.sectionRow('Physical panel keypad', '', 'show_panel_keypad', 'keypad_collapsible', 'keypad_start_collapsed')}
+        ${c.collapsible || c.modes_collapsible || c.alarm_collapsible || c.keypad_collapsible
+          ? html`${this.group('Collapsing')}${this.toggle('Show the open / close arrow', c.show_chevron, v => this.set('show_chevron', v))}
+              ${this.textStyle('alarm_bar')}`
+          : nothing}
       `)}
 
-      ${this.panel('header', 'mdi:page-layout-header', 'Header', 'The House Mode icon and name, and the physical panel\'s two display lines.', html`
-        ${this.group('Status lines')}
-        ${this.toggle('House Mode name', c.show_mode_name, v => this.set('show_mode_name', v))}
-        ${this.toggle('Panel display, line 1', c.show_line1, v => this.set('show_line1', v))}
-        ${this.toggle('Panel display, line 2', c.show_line2, v => this.set('show_line2', v))}
-        ${this.group('Styles')}
-        ${this.iconStyle('header_icon', "House Mode's colour")}
-        ${c.show_mode_name ? this.textStyle('mode_name') : nothing}
-        ${c.show_line1 ? this.textStyle('line1') : nothing}
-        ${c.show_line2 ? this.textStyle('line2') : nothing}
-      `)}
-
-      ${this.panel('modes', 'mdi:home-switch-outline', 'House Mode buttons', 'One button per House Mode; icons and colours come from the House Modes tab.', c.show_house_modes
+      ${this.panel('header', 'mdi:page-layout-header', 'Header', "The House Mode icon and name, and the physical panel's two display lines.", c.show_header
         ? html`
+          ${this.group('Show')}
+          ${this.toggle('House Mode icon', c.show_header_icon, v => this.set('show_header_icon', v))}
+          ${this.toggle('House Mode name', c.show_mode_name, v => this.set('show_mode_name', v))}
+          ${this.toggle('Panel display, line 1', c.show_line1, v => this.set('show_line1', v))}
+          ${this.toggle('Panel display, line 2', c.show_line2, v => this.set('show_line2', v))}
+          ${this.group('Styles')}
+          ${c.show_header_icon ? this.iconStyle('header_icon', { defaultLabel: 'House Mode color', presets: [] }) : nothing}
+          ${c.show_mode_name ? this.textStyle('mode_name') : nothing}
+          ${c.show_line1 ? this.textStyle('line1') : nothing}
+          ${c.show_line2 ? this.textStyle('line2') : nothing}`
+        : html`<p class="hint">Turned off under Sections.</p>`)}
+
+      ${this.panel('modes', 'mdi:home-switch-outline', 'House Mode buttons', 'One button per House Mode; icons and colors come from the House Modes tab.', c.show_house_modes
+        ? html`
+          ${this.group('Show')}
+          ${this.toggle('Icons', c.show_mode_icons, v => this.set('show_mode_icons', v))}
+          ${this.toggle('Text', c.show_mode_labels, v => this.set('show_mode_labels', v))}
           ${this.group('Layout')}
-          ${this.select('Alignment', c.modes_align, [['grid', 'Standard (fixed columns, wrap left)'], ['center', 'Centre on width']], v => this.set('modes_align', v))}
+          ${this.select('Alignment', c.modes_align, [['grid', 'Standard (fixed columns, wrap left)'], ['center', 'Center on width']], v => this.set('modes_align', v))}
           ${this.slider('Buttons per row', c.columns, 2, 9, 1, '', 5, v => this.set('columns', v), false)}
-          ${this.toggle('Button text', c.show_mode_labels, v => this.set('show_mode_labels', v))}
           ${modes.length
             ? html`${this.group('Buttons shown')}
                 <div class="chips">${modes.map(m => {
@@ -314,42 +366,47 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
                 })}</div>`
             : nothing}
           ${this.group('Styles')}
-          ${this.iconStyle('mode_icon', 'Secondary text', 'Colour (selected)', "House Mode's colour")}
+          ${this.buttonColors('mode_button', 'mode_icon', 'House Mode color', {
+            bg: 'Card default (transparent)', abg: 'Card default (faint gray)', ic: 'Card default (secondary text)', aic: 'House Mode color' })}
+          ${c.show_mode_icons ? this.iconStyle('mode_icon') : nothing}
           ${c.show_mode_labels ? this.textStyle('mode_label') : nothing}`
         : html`<p class="hint">Turned off under Sections.</p>`)}
 
       ${this.panel('alarm', 'mdi:shield-lock-outline', 'Alarm', 'Arm and disarm Alarmo, enter the code, see why it will not arm.', c.show_alarm
         ? html`
-          ${this.group('Collapsing')}
-          ${this.toggle('Collapsible alarm section (a bar with the state)', c.alarm_collapsible, v => this.set('alarm_collapsible', v))}
-          ${c.alarm_collapsible ? this.toggle('Start collapsed', c.alarm_start_collapsed, v => this.set('alarm_start_collapsed', v)) : nothing}
-          ${this.group('Status lines')}
+          ${this.group('Show')}
+          ${this.toggle('State icon', c.show_alarm_icon, v => this.set('show_alarm_icon', v))}
           ${this.toggle('Alarm name', c.show_alarm_name, v => this.set('show_alarm_name', v))}
           ${this.toggle('Alarm state', c.show_alarm_state, v => this.set('show_alarm_state', v))}
-          ${this.group('Arm buttons')}
-          ${this.toggle('Colours from the House Modes', c.alarm_colors_from_modes, v => this.set('alarm_colors_from_modes', v),
-            'each arm mode in the colour of the House Mode that sets it')}
+          ${this.toggle('Arm button icons', c.show_arm_icons, v => this.set('show_arm_icons', v))}
+          ${this.toggle('Arm button text', c.show_arm_labels, v => this.set('show_arm_labels', v))}
           ${this.toggle('Option chips: Skip exit delay, Bypass open sensors', c.show_arm_options, v => this.set('show_arm_options', v))}
+          ${this.group('Arm buttons')}
+          ${this.toggle('Arm mode colors from the House Modes', c.alarm_colors_from_modes, v => this.set('alarm_colors_from_modes', v),
+            'each arm mode in the color of the House Mode that sets it')}
           ${this.slider('Arm button scale', Math.round(alarm.button_scale_actions * 10) / 10, 1, 2.5, 0.1, '×', 1, v => this.setAlarm('button_scale_actions', v), false)}
           ${this.group('Code entry and messages')}
           ${ALARM_KEYS.map(k => this.toggle(ALARM_LABELS[k], !!alarm[k], v => this.setAlarm(k, v)))}
           ${this.slider('Code keypad scale', Math.round(alarm.button_scale_keypad * 10) / 10, 1, 2.5, 0.1, '×', 1, v => this.setAlarm('button_scale_keypad', v), false)}
           ${this.group('Styles')}
-          ${c.alarm_collapsible ? this.textStyle('alarm_bar') : nothing}
+          ${this.buttonColors('arm_button', 'alarm_icon', 'Arm mode color', {
+            bg: 'Card default (transparent)', abg: 'Arm mode color', ic: 'Arm mode color', aic: 'Card default (white)' })}
+          ${c.show_arm_icons ? this.iconStyle('alarm_icon') : nothing}
+          ${c.show_arm_labels ? this.textStyle('alarm_button') : nothing}
           ${c.show_alarm_name ? this.textStyle('alarm_name') : nothing}
           ${c.show_alarm_state ? this.textStyle('alarm_state') : nothing}
-          ${this.iconStyle('alarm_icon', 'Arm mode colour', 'Colour (selected)', 'White')}
-          ${this.textStyle('alarm_button')}
           ${c.show_arm_options ? this.textStyle('chip') : nothing}`
         : html`<p class="hint">Turned off under Sections.</p>`)}
 
-      ${this.panel('keypad', 'mdi:dialpad', 'Physical panel keypad', 'The panel\'s 12 keys with their functions, sent through Alarmo.', c.show_panel_keypad
+      ${this.panel('keypad', 'mdi:dialpad', 'Physical panel keypad', "The panel's 12 keys with their functions, sent through Alarmo.", c.show_panel_keypad
         ? html`
           <p class="hint">Who may use the keys is set in the integration: Alarmo panel → Physical Panel → <em>Panel keypad on
             dashboards</em>. Other users see the keys disabled.</p>
+          ${this.group('Show')}
+          ${this.toggle('Key functions (OFF, AWAY, STAY, …)', c.show_key_labels, v => this.set('show_key_labels', v))}
           ${this.group('Styles')}
           ${this.textStyle('key_digit')}
-          ${this.textStyle('key_label')}`
+          ${c.show_key_labels ? this.textStyle('key_label') : nothing}`
         : html`<p class="hint">Turned off under Sections.</p>`)}
     </div>`;
   }
@@ -579,6 +636,28 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     .muted {
       color: var(--ltek-c-muted);
       font-weight: var(--ltek-fw-normal);
+    }
+    /* Sections panel: show · name · collapse · start closed */
+    .sec-head,
+    .sec-row {
+      display: grid;
+      grid-template-columns: 22px 1fr 70px 84px;
+      align-items: center;
+      gap: var(--ltek-sp-3);
+      padding: var(--ltek-sp-1) 0;
+      font-size: var(--ltek-fs-label);
+    }
+    .sec-head {
+      color: var(--ltek-c-muted);
+      font-size: var(--ltek-fs-small);
+    }
+    .sec-head span:nth-child(n + 3),
+    .sec-row input:nth-of-type(n + 2) {
+      justify-self: center;
+    }
+    .sec-row input {
+      accent-color: var(--ltek-c-accent);
+      margin: 0;
     }
     .chips {
       display: flex;

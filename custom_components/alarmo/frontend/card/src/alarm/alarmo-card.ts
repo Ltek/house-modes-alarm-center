@@ -245,14 +245,14 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
     return html`
       <ha-card>
         <div class="header">
-          <div class="icon">
+${(this._config as any).show_icon === false ? '' : html`<div class="icon">
             <hmac-state-badge
               .hass=${this.hass}
               .entity=${this._config.entity}
               style="--alarm-state-color: ${computeStateColor(stateObj, this._config)}"
             >
             </hmac-state-badge>
-          </div>
+          </div>`}
           <div class="summary">
             ${(this._config as any).show_name === false ? '' : html`<div class="name">
               ${computeNameDisplay(stateObj, this._config)}

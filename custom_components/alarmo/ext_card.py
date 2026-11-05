@@ -1,7 +1,7 @@
 """Dashboard card support: read-only card data for every user, and the panel keypad service.
 
 The House Modes & Alarm Center Card runs for ordinary (non-admin) users, so it cannot use the admin
-websocket commands. ``alarmo/ext/card/get`` returns only what the card shows (modes, icons, colours,
+websocket commands. ``alarmo/ext/card/get`` returns only what the card shows (modes, icons, colors,
 the panel link's entities and whether this user may use the panel keypad). ``alarmo.panel_keypress``
 sends keys to a linked panel after checking the Physical Panel tab's keypad setting.
 """

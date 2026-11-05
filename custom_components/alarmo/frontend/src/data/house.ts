@@ -190,7 +190,7 @@ export const defaultModeIcon = (name: string): string => {
   return rules.find(([re]) => re.test(n))?.[1] || 'mdi:home';
 };
 
-/** Default card colour for a House Mode name (same rules as the backend's mode_color). */
+/** Default card color for a House Mode name (same rules as the backend's mode_color). */
 export const defaultModeColor = (name: string): string => {
   const n = name.trim().toLowerCase();
   const rules: [RegExp, string][] = [

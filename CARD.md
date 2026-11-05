@@ -14,11 +14,11 @@ Or *Edit dashboard → Add card → House Modes & Alarm Center Card*; every opti
 
 Each one can be turned off.
 
-- **Header** — the House Mode's icon in its colour and its name, and the physical panel's 2×16 display (when a panel
+- **Header** — the House Mode's icon in its color and its name, and the physical panel's 2×16 display (when a panel
   link has a keypad sensor). The border shows the state: red alarm, orange arming / entry delay / not ready, the House
-  Mode's colour while armed, green ready. "shadow" while House Modes run in Shadow. Long-press (right-click) opens the
+  Mode's color while armed, green ready. "shadow" while House Modes run in Shadow. Long-press (right-click) opens the
   panel display's details.
-- **House Mode buttons** — one per House Mode, with the icon and colour from the House Modes tab. When a change is
+- **House Mode buttons** — one per House Mode, with the icon and color from the House Modes tab. When a change is
   blocked, not ready or delayed, the card says why ("Away not set: open Front Door"). In Shadow the buttons set your
   own House Mode input_select, so your automations stay in charge.
 - **Alarm** — Alarmo's arm / disarm buttons, code entry, countdown and messages (from nielsfaber/alarmo-card).
@@ -34,19 +34,22 @@ panel keypad*). Only options you change are written to the YAML.
 |---|---|---|
 | `entity` | first linked alarm | Alarmo `alarm_control_panel` for the alarm section and the panel link |
 | `name` | | Title when House Modes are off |
-| `show_header`, `show_house_modes`, `show_alarm` | `true` | |
-| `show_panel_keypad` | `false` | |
-| `collapsible` / `start_collapsed` | `false` / `true` | Tap the header to open or close the card |
-| `show_chevron` | `false` | The open / close arrow (card and alarm bar) |
-| `show_mode_name`, `show_line1`, `show_line2` | `true` | The header's status lines |
-| `modes_align` | `grid` | `grid`: fixed columns, the last row wraps left; `center`: every row centred across the width |
+| **Sections** (*Sections* panel) | | |
+| `show_header`, `show_house_modes`, `show_alarm` / `show_panel_keypad` | `true` / `false` | Turn a section on or off |
+| `collapsible` / `start_collapsed` | `false` / `true` | Header: the whole card folds to the header (tap it) |
+| `modes_collapsible`, `alarm_collapsible`, `keypad_collapsible` | `false` | The section sits behind a bar that opens and closes it |
+| `modes_start_collapsed`, `alarm_start_collapsed`, `keypad_start_collapsed` | `true` | |
+| `show_chevron` | `false` | The open / close arrow on the header and the bars |
+| **Show / hide**, per set | `true` | |
+| header | | `show_header_icon`, `show_mode_name`, `show_line1`, `show_line2` |
+| House Mode buttons | | `show_mode_icons`, `show_mode_labels` |
+| alarm | | `show_alarm_icon`, `show_alarm_name`, `show_alarm_state`, `show_arm_icons`, `show_arm_labels`, `show_arm_options` (the chips) |
+| keypad | | `show_key_labels` (OFF, AWAY, …) |
+| **Layout** | | |
+| `modes_align` | `grid` | `grid`: fixed columns, the last row wraps left; `center`: every row centered across the width |
 | `columns` | `5` | House Mode buttons per row (2–9) |
-| `show_mode_labels` | `true` | Text under the House Mode buttons |
 | `hidden_modes` | | House Modes (id or name) without a button |
-| `alarm_collapsible` / `alarm_start_collapsed` | `false` / `true` | The alarm section as a bar with the state, tap to open |
-| `show_alarm_name`, `show_alarm_state` | `true` | The alarm section's status lines |
-| `show_arm_options` | `true` | Chips *Skip exit delay* and *Bypass open sensors* (when disarmed) |
-| `alarm_colors_from_modes` | `true` | Each arm button in the colour of the House Mode that sets that arm mode |
+| `alarm_colors_from_modes` | `true` | Each arm mode in the color of the House Mode that sets it |
 | `keypad_labels` | Vista | e.g. `{"6": "BYP"}` |
 | `alarm` | | alarmo-card options: `keep_keypad_visible`, `use_code_dialog`, `hide_keypad`, `show_messages`, `show_ready_indicator`, `show_bypassed_sensors`, `button_scale_actions`, `button_scale_keypad`, `states` |
 | `styles` | | Per element, see below |
@@ -56,16 +59,20 @@ panel keypad*). Only options you change are written to the YAML.
 ```yaml
 styles:
   mode_name: { size: 26, weight: 600, font: sans, italic: false, caps: true, color: var(--accent-color) }
-  mode_icon: { size: 40, color: var(--secondary-text-color), active_color: "#ffffff" }
+  mode_icon: { size: 40, color: mode, active_color: "#ffffff" }
+  mode_button: { background: transparent, border: mode, active_background: mode, text_follows_icon: true }
   card: { border_width: 2, radius: 12 }
 ```
 
 - **Text** (`size` px, `weight` 300–800, `font` `monospace` / `sans` / `serif`, `italic`, `caps`, `color`):
   `mode_name`, `line1`, `line2`, `mode_label`, `alarm_bar`, `alarm_name`, `alarm_state`, `alarm_button`, `chip`,
   `key_digit`, `key_label`.
-- **Icons** (`size`, `color`, `active_color` for the selected one): `header_icon`, `mode_icon`, `alarm_icon`.
+- **Icons** (`size`; `color` for `header_icon`; `color` and `active_color` for `mode_icon` and `alarm_icon`).
+- **Buttons** (`mode_button`, `arm_button`): `background`, `active_background`, `border`, `active_border`,
+  `text_follows_icon`; `arm_button.track` is the bar behind the arm buttons.
+- Color keywords: `mode` (each button's own House Mode / arm mode color), `transparent`, `none` (borders).
 - **Frame**: `card.border_width`, `card.radius`.
-- Colours: `#rrggbb`, a theme colour `var(--…)`, or any CSS colour. Unset keys keep the card's defaults.
+- Colors: `#rrggbb`, a theme color `var(--…)`, or any CSS color. Unset keys keep the card's defaults.
 
 ## Who may use the panel keypad
 
@@ -81,7 +88,7 @@ This limits the card and the `alarmo.panel_keypress` service, not Home Assistant
 ## Replacing a button-card / expander-card setup
 
 The card replaces an expander-card + button-card + layout-card + card_mod combination: the header is the title card,
-the House Mode buttons are the grid, the keypad is the key grid. House Mode icons and colours move to the House Modes
+the House Mode buttons are the grid, the keypad is the key grid. House Mode icons and colors move to the House Modes
 tab (open a mode with the pencil); a `sensor.*_border_color` template is no longer needed.
 
 Credits: the alarm section is forked from [alarmo-card](https://github.com/nielsfaber/alarmo-card) © Niels Faber,

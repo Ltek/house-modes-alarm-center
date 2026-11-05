@@ -1,6 +1,6 @@
 # House Modes & Alarm Center
 
-> **Current build: v2026.11.04.42** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
+> **Current build: v2026.11.05.43** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
 
 A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber: one place for
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via
@@ -122,7 +122,7 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 a **walk test**.
 
 **Dashboard card** — *House Modes & Alarm Center Card*, included ([CARD.md](CARD.md)): the House Mode with its icon and
-colour, the panel's display, House Mode buttons, Alarmo's arm / disarm and code entry, and the panel keypad (who may
+color, the panel's display, House Mode buttons, Alarmo's arm / disarm and code entry, and the panel keypad (who may
 use it is set in the integration). No separate download or resource.
 
 **Activity** — a recorder of sequences: House Mode helpers, Alarmo, the panel and its keypad text, locks, bypasses,

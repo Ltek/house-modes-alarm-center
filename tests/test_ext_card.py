@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Dashboard card support: card data for every user, the panel keypad service, colours, clock-time timers."""
+"""Dashboard card support: card data for every user, the panel keypad service, colors, clock-time timers."""
 
 import os
 import datetime as dt
@@ -18,8 +18,8 @@ from custom_components.alarmo.house_config import normalize, timer_due, mode_col
 pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
 
 
-def test_mode_colour_and_clock_timer() -> None:
-    """Colours default from the name; a timer at 01:00 fires at the next 01:00."""
+def test_mode_color_and_clock_timer() -> None:
+    """Colors default from the name; a timer at 01:00 fires at the next 01:00."""
     s = normalize({"modes": [
         {"id": "ln", "name": "Late Night", "timers": [{"at": "01:00", "then": "sleep"}]},
         {"id": "sleep", "name": "Sleep", "color": "midnightblue"},
@@ -36,7 +36,7 @@ def test_mode_colour_and_clock_timer() -> None:
 
 
 async def test_card_data_for_ordinary_users(hass: Any, hass_storage: Any, hass_ws_client: Any, hass_read_only_access_token: str, tmp_path: Any) -> None:
-    """A non-admin gets the modes, colours, link entities and whether the keypad is allowed (admins only by default)."""
+    """A non-admin gets the modes, colors, link entities and whether the keypad is allowed (admins only by default)."""
     await _setup(hass, hass_storage, tmp_path)
     await _save(hass, **_link("shadow"))
     house = hass.data["alarmo_ext"].house

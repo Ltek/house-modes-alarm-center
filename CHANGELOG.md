@@ -3,6 +3,20 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.43 — 2026-11-05
+
+Dashboard card:
+- **Sections panel**: one row per section with *Show*, *Collapse* and *Start closed*. Header = the whole card folds
+  to it; House Mode buttons, Alarm and the panel keypad each fold behind a bar. The collapse settings elsewhere are
+  gone.
+- **Button colors** for House Mode buttons and arm buttons: background and selected background (incl.
+  transparent), border and selected border (incl. none), icon color and selected icon color, *text color follows
+  the icon*; arm buttons also the bar behind them. Each can be the card default, the button's own House Mode / arm
+  mode color, a theme color, a custom color or a CSS value.
+- **Show / hide per set**: header icon, House Mode name, display lines; House Mode button icons and text; alarm state
+  icon, name, state, arm button icons and text, option chips; keypad functions.
+- US English throughout ("color", "center"), also on the House Modes tab and in the scene editor.
+
 ## v2026.11.04.42 — 2026-11-04
 
 Dashboard card:

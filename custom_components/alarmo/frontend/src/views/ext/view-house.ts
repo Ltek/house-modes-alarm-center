@@ -436,7 +436,7 @@ export class AlarmViewHouse extends LitElement {
           <label>Name <input type="text" .value=${m.name} @change=${(e: any) => upd(x => (x.name = e.target.value))} /></label>
           <alarmo-ext-icon-field .hass=${this.hass} .value=${m.icon} .placeholder=${'home'}
             @value-changed=${(e: CustomEvent) => upd(x => (x.icon = e.detail.value || 'mdi:home'))}></alarmo-ext-icon-field>
-          <label>Colour
+          <label>Color
             <input type="color" .value=${toHex(m.color || defaultModeColor(m.name))} @input=${(e: any) => upd(x => (x.color = e.target.value))} />
             ${m.color ? html`<button class="link" @click=${() => upd(x => (x.color = ''))}>automatic</button>` : html`<span class="secondary" style="display:inline">automatic</span>`}
           </label>

@@ -42,12 +42,51 @@ export type CardData = {
 export type TextStyle = {
   size?: number; // px
   weight?: number; // 300–800
-  color?: string; // #hex, var(--…) or any CSS colour
+  color?: string; // #hex, var(--…) or any CSS color
   font?: 'monospace' | 'sans' | 'serif';
   italic?: boolean;
   caps?: boolean; // UPPERCASE
 };
 export type IconStyle = { size?: number; color?: string; active_color?: string };
+/**
+ * A set of buttons (House Mode buttons, arm buttons). Colors may also be the keywords 'mode' (the button's own House
+ * Mode / arm mode color), 'transparent' and, for borders, 'none'.
+ */
+export type ButtonStyle = {
+  background?: string;
+  active_background?: string;
+  border?: string;
+  active_border?: string;
+  /** arm buttons: the bar behind them */
+  track?: string;
+  text_follows_icon?: boolean;
+};
+export const BUTTON_SETS = {
+  mode_button: { label: 'House Mode buttons' },
+  arm_button: { label: 'Arm buttons' },
+} as const;
+export type ButtonSet = keyof typeof BUTTON_SETS;
+
+/** A color option's keyword resolved for one button ('mode' = that button's own color). */
+export const resolveColor = (v: string | undefined, own: string): string | undefined => {
+  if (v === undefined || v === '') return undefined;
+  if (v === 'mode') return own;
+  if (v === 'none') return 'transparent';
+  return String(v).replace(/[;{}<>]/g, '');
+};
+
+/** Inline variables for one button: --b-bg, --b-abg, --b-bd, --b-abd (background / border), --b-ic, --b-aic (icon). */
+export const buttonVars = (b: ButtonStyle | undefined, icon: IconStyle | undefined, own: string): string => {
+  const pairs: [string, string | undefined][] = [
+    ['--b-bg', resolveColor(b?.background, own)],
+    ['--b-abg', resolveColor(b?.active_background, own)],
+    ['--b-bd', resolveColor(b?.border, own)],
+    ['--b-abd', resolveColor(b?.active_border, own)],
+    ['--b-ic', resolveColor(icon?.color, own)],
+    ['--b-aic', resolveColor(icon?.active_color, own)],
+  ];
+  return pairs.filter(([, v]) => v).map(([k, v]) => `${k}:${v}`).join(';');
+};
 
 /** Every styled element of the card, with its defaults (shown in the editor as "Card default (…)"). */
 export const TEXT_ELEMENTS = {
@@ -55,7 +94,7 @@ export const TEXT_ELEMENTS = {
   line1: { label: 'Panel display, line 1', size: 14, weight: 400, font: 'monospace', caps: false },
   line2: { label: 'Panel display, line 2', size: 14, weight: 400, font: 'monospace', caps: false },
   mode_label: { label: 'House Mode button text', size: 10, weight: 400, font: 'sans', caps: false },
-  alarm_bar: { label: 'Alarm bar (collapsed)', size: 14, weight: 500, font: 'sans', caps: false },
+  alarm_bar: { label: 'Section bars (collapsible sections)', size: 14, weight: 500, font: 'sans', caps: false },
   alarm_name: { label: 'Alarm name', size: 24, weight: 400, font: 'sans', caps: false },
   alarm_state: { label: 'Alarm state', size: 14, weight: 400, font: 'sans', caps: false },
   alarm_button: { label: 'Arm button text', size: 14, weight: 400, font: 'sans', caps: false },
@@ -73,7 +112,8 @@ export const ICON_ELEMENTS = {
 export type IconElement = keyof typeof ICON_ELEMENTS;
 
 export type CardStyles = Partial<Record<TextElement, TextStyle>> &
-  Partial<Record<IconElement, IconStyle>> & { card?: { border_width?: number; radius?: number } };
+  Partial<Record<IconElement, IconStyle>> &
+  Partial<Record<ButtonSet, ButtonStyle>> & { card?: { border_width?: number; radius?: number } };
 
 export type CardConfig = {
   type: string;
@@ -89,18 +129,28 @@ export type CardConfig = {
   show_chevron?: boolean;
   columns?: number;
   hidden_modes?: string[];
-  /** 'grid' = fixed columns, last row left-aligned (standard); 'center' = rows centred across the width */
+  /** 'grid' = fixed columns, last row left-aligned (standard); 'center' = rows centered across the width */
   modes_align?: 'grid' | 'center';
   show_mode_labels?: boolean;
   show_mode_name?: boolean;
   show_line1?: boolean;
   show_line2?: boolean;
+  modes_collapsible?: boolean;
+  modes_start_collapsed?: boolean;
   alarm_collapsible?: boolean;
   alarm_start_collapsed?: boolean;
+  keypad_collapsible?: boolean;
+  keypad_start_collapsed?: boolean;
+  show_header_icon?: boolean;
+  show_mode_icons?: boolean;
+  show_alarm_icon?: boolean;
+  show_arm_icons?: boolean;
+  show_arm_labels?: boolean;
+  show_key_labels?: boolean;
   show_alarm_name?: boolean;
   show_alarm_state?: boolean;
   show_arm_options?: boolean;
-  /** arm buttons take their colour from the House Mode that sets that arm mode */
+  /** arm buttons take their color from the House Mode that sets that arm mode */
   alarm_colors_from_modes?: boolean;
   styles?: CardStyles;
   keypad_labels?: Record<string, string>;
@@ -110,7 +160,9 @@ export type CardConfig = {
 export const DEFAULTS: Required<Pick<CardConfig,
   'show_header' | 'show_house_modes' | 'show_alarm' | 'show_panel_keypad' | 'collapsible' | 'start_collapsed' | 'show_chevron' | 'columns'
   | 'modes_align' | 'show_mode_labels' | 'show_mode_name' | 'show_line1' | 'show_line2' | 'alarm_collapsible' | 'alarm_start_collapsed'
-  | 'show_alarm_name' | 'show_alarm_state' | 'show_arm_options' | 'alarm_colors_from_modes'>> = {
+  | 'show_alarm_name' | 'show_alarm_state' | 'show_arm_options' | 'alarm_colors_from_modes' | 'modes_collapsible'
+  | 'modes_start_collapsed' | 'keypad_collapsible' | 'keypad_start_collapsed' | 'show_header_icon' | 'show_mode_icons'
+  | 'show_alarm_icon' | 'show_arm_icons' | 'show_arm_labels' | 'show_key_labels'>> = {
   show_header: true,
   show_house_modes: true,
   show_alarm: true,
@@ -130,6 +182,16 @@ export const DEFAULTS: Required<Pick<CardConfig,
   show_alarm_state: true,
   show_arm_options: true,
   alarm_colors_from_modes: true,
+  modes_collapsible: false,
+  modes_start_collapsed: true,
+  keypad_collapsible: false,
+  keypad_start_collapsed: true,
+  show_header_icon: true,
+  show_mode_icons: true,
+  show_alarm_icon: true,
+  show_arm_icons: true,
+  show_arm_labels: true,
+  show_key_labels: true,
 };
 
 const FONTS: Record<string, string> = {
@@ -170,8 +232,6 @@ export const styleVars = (styles: CardStyles | undefined): string => {
     if (!i) continue;
     const n = key.replace(/_/g, '-');
     if (i.size) set(`${n}-size`, `${Number(i.size)}px`);
-    set(`${n}-color`, i.color);
-    set(`${n}-active-color`, i.active_color);
   }
   const c = (styles || {}).card;
   if (c?.border_width !== undefined) set('border-width', `${Number(c.border_width)}px`);
@@ -204,7 +264,7 @@ const ARM_DEFAULT_COLORS: Record<string, string> = {
 };
 
 /**
- * Colour per arm mode from the House Modes: the mode that sets this partition (alarm key) to that arm mode, else any
+ * Color per arm mode from the House Modes: the mode that sets this partition (alarm key) to that arm mode, else any
  * mode that sets some partition to it, else a default.
  */
 export const armColors = (data: CardData, alarmEntity?: string): Record<string, string> => {
@@ -245,8 +305,8 @@ export const visibleModes = (data: CardData, hidden?: string[]): CardMode[] =>
 const ARMED = ['armed_away', 'armed_home', 'armed_night', 'armed_vacation', 'armed_custom_bypass'];
 
 /**
- * Card border colour: alarm → red; arming / entry delay → orange; armed → the House Mode's colour (red without one);
- * disarmed → green when the panel is ready, orange when not, the divider colour when unknown.
+ * Card border color: alarm → red; arming / entry delay → orange; armed → the House Mode's color (red without one);
+ * disarmed → green when the panel is ready, orange when not, the divider color when unknown.
  */
 export const borderColor = (alarm: string | undefined, panel: string | undefined, ready: string | undefined, modeColor?: string): string => {
   if (alarm === 'triggered' || panel === 'triggered') return '#f44336';

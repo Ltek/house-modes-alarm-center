@@ -31,7 +31,7 @@
   "title": "Alarm panel",
   "panels": {
     "general": {
-      "title": "General",
+      "title": "Quick Start",
       "cards": {
         "general": {
           "description": "This panel defines some global settings for the alarm.",
@@ -406,7 +406,7 @@
       }
     },
     "actions": {
-      "title": "Alarm Events",
+      "title": "Actions",
       "cards": {
         "notifications": {
           "title": "Notifications",
@@ -579,7 +579,7 @@
       "title": "Zone Assignments"
     },
     "backup": {
-      "title": "Backup"
+      "title": "Integrations & Backup"
     },
     "partitions": {
       "title": "Partitions & Arm Modes"

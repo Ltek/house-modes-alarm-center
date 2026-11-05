@@ -3,6 +3,25 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.57 — 2026-11-05
+
+Restart Home Assistant after the update.
+
+- **Quick Start** replaces the General tab: what is configured (House Modes, partitions, zones, users, panel link,
+  recording) and three guided setups, each a list of steps with their status and an *Apply* that makes a backup and
+  only adds what is missing:
+  - *House Modes only* — starter modes that arm nothing, or your own House Mode input_selects in Shadow;
+  - *Alarm without a physical panel* — Away / Home / Night, zones from your door, window and motion sensors (tick the
+    ones you want), a user code step;
+  - *House Modes and a physical panel* — the panel link in Shadow, the panel's zones, House Modes, the default-code
+    check, the Shadow → Live step.
+  Each shows the dashboard card YAML to copy.
+- General's settings moved: *Alarm behavior* (disarm after trigger, the "All partitions" alarm) to Partitions & Arm
+  Modes; **MQTT to the renamed Integrations & Backup tab**.
+- **One Actions tab**: House Mode Actions, Scenes — each scene shows the Alarm Events that run it, and *+ Alarm event*
+  makes a new one for it — and, collapsed, *Other Alarm Events* (scripts and legacy events, with Migrate). The House
+  Mode Actions tab is gone; old links open Actions.
+
 ## v2026.11.05.56 — 2026-11-05
 
 Restart Home Assistant after the update (new default House Mode colors).

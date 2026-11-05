@@ -48,6 +48,7 @@ from .ext_house_ws import HOUSE_COMMANDS, register_house_service
 from .ext_panel_ws import PANEL_COMMANDS
 from .ext_rules_ws import RULE_COMMANDS
 from .extras_store import MAX_RETENTION_DAYS, ExtrasStore
+from .ext_quickstart import QUICKSTART_COMMANDS
 from .ext_house_actions import HOUSE_ACTION_COMMANDS
 
 _LOGGER = logging.getLogger(__name__)
@@ -538,6 +539,7 @@ COMMANDS = (
     *ACTIVITY_COMMANDS,
     *HOUSE_ACTION_COMMANDS,
     *CARD_COMMANDS,
+    *QUICKSTART_COMMANDS,
 )
 
 

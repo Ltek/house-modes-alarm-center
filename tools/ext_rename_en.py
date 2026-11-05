@@ -93,8 +93,9 @@ EXACT = {
 
 # Keys added by the ext build (tabs); created if missing.
 EXT_KEYS = {
+    ("panels", "general", "title"): "Quick Start",
     ("panels", "sensor_table", "title"): "Zone Assignments",
-    ("panels", "backup", "title"): "Backup",
+    ("panels", "backup", "title"): "Integrations & Backup",
     # ext.4 tabs
     ("panels", "partitions", "title"): "Partitions & Arm Modes",
     ("panels", "modes", "title"): "Alarmo Arm Modes",
@@ -109,7 +110,7 @@ EXT_KEYS = {
     ("panels", "activity", "title"): "Activity",
     ("panels", "house_actions", "title"): "House Mode Actions",
     # 2026-10-29: the Actions tab runs actions on alarm events (armed, triggered, failed)
-    ("panels", "actions", "title"): "Alarm Events",
+    ("panels", "actions", "title"): "Actions",
     ("panels", "users_codes", "title"): "Users, Codes, Keypads",
     ("panels", "mirrors", "title"): "Zone Mirrors",
     ("panels", "ha_zones", "title"): "Zone Actions",

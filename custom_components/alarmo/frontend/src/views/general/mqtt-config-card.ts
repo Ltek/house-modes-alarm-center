@@ -209,7 +209,7 @@ export class MqttConfigCard extends SubscribeMixin(LitElement) {
   }
 
   private cancelClick() {
-    navigate(this, exportPath('general'), true);
+    navigate(this, exportPath('backup'), true); // ext: MQTT lives on Integrations & Backup
   }
 
   static styles = commonStyle;

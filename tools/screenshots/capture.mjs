@@ -32,10 +32,10 @@ if (!chromium) {
 // page path, file name, optional action before the shot
 const SHOTS = [
   ['/alarmo/house', '01-house-modes'],
-  ['/alarmo/house_actions', '02-house-mode-actions'],
-  ['/alarmo/house_actions', '03-scenes', async (p) => {
+  ['/alarmo/actions', '02-actions'],
+  ['/alarmo/actions', '03-scenes', async (p) => {
     await p.evaluate(() => {
-      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house-actions');
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab').shadowRoot.querySelector('alarm-view-house-actions');
       const ed = v.shadowRoot.querySelector('alarmo-ext-scene-editor');
       ed.startNew();
       ed.draft = { id: 'demo', name: 'Evening lights', icon: 'mdi:weather-sunset',
@@ -48,7 +48,7 @@ const SHOTS = [
     });
     await p.evaluate(() => window.scrollTo(0, 0));
     await p.evaluate(() => {
-      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house-actions');
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab').shadowRoot.querySelector('alarm-view-house-actions');
       v.shadowRoot.querySelector('ha-card').style.display = 'none';
     });
   }],
@@ -136,7 +136,9 @@ const SHOTS = [
   }],
   ['/alarmo/actions', '11-alarm-events-migrate', async (p) => {
     await p.evaluate(async () => {
-      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions');
+      const t = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab');
+      t.shadowRoot.querySelector('details.collapse').open = true;
+      const v = t.shadowRoot.querySelector('alarm-view-actions');
       const m = v.shadowRoot.querySelector('alarmo-ext-event-migrate');
       m.events = [...m.events, { automation_id: 'x', type: 'action', name: 'Siren and hall light on trigger',
         triggers: [{ event: 'triggered' }],
@@ -144,6 +146,16 @@ const SHOTS = [
                   { service: 'light.turn_on', entity_id: 'light.hall', data: { brightness: 255 } }] }];
       await m.updateComplete;
       m.shadowRoot.querySelector('ha-button').click();
+      await new Promise(r => setTimeout(r, 200));
+      t.shadowRoot.querySelector('ha-card').scrollIntoView();
+      t.shadowRoot.querySelector('alarm-view-house-actions').style.display = 'none';
+    });
+  }],
+  ['/alarmo/general', '00-quick-start', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-quick-start');
+      await new Promise(r => setTimeout(r, 300));
+      v.shadowRoot.querySelectorAll('details.collapse')[2].open = true;
     });
   }],
 ];

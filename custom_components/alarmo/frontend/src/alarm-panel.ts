@@ -28,6 +28,8 @@ import './views/ext/status-strip';
 import './views/ext/view-why';
 import './views/ext/view-activity';
 import './views/ext/view-house-actions';
+import './views/ext/view-quick-start';
+import './views/ext/view-actions-tab';
 
 // ext: where the Notifications / Actions editors return to (upstream editors go to /alarmo/actions)
 const ACTIONS_RETURN_KEY = 'alarmo-ext-actions-tab';
@@ -106,6 +108,9 @@ export class MyAlarmPanel extends LitElement {
     // ext: the URL page picks the tab; the tab picks the (upstream) view and section
     switch (tab?.view) {
       case 'general':
+        // ext: the General tab is Quick Start; upstream editors under /alarmo/general/... keep working
+        if (tab?.id === 'general' && !isEditorPath(path.subpage, path.params))
+          return html`<alarm-view-quick-start .hass=${this.hass} .narrow=${this.narrow} .path=${path}></alarm-view-quick-start>`;
         return html`
           <alarm-view-general
             .hass=${this.hass}
@@ -162,7 +167,11 @@ export class MyAlarmPanel extends LitElement {
           <alarm-view-panel .hass=${this.hass} .narrow=${this.narrow} .path=${path}></alarm-view-panel>
         `;
       case 'backup':
+        // ext: Integrations & Backup — MQTT, then the backups
+        if (path.subpage === 'mqtt_configuration')
+          return html`<alarm-view-general .hass=${this.hass} .narrow=${this.narrow} .path=${path}></alarm-view-general>`;
         return html`
+          <alarm-view-general .hass=${this.hass} .narrow=${this.narrow} .path=${{ ...path, subpage: undefined, params: {} }} .section=${'mqtt'}></alarm-view-general>
           <alarm-view-backup .hass=${this.hass} .narrow=${this.narrow} .path=${path}></alarm-view-backup>
         `;
       case 'actions': {
@@ -178,6 +187,9 @@ export class MyAlarmPanel extends LitElement {
           }
         } else if (editing && tab.id === 'actions') window.sessionStorage.removeItem(ACTIONS_RETURN_KEY);
         const p = path.page === 'notifications' ? { ...path, page: 'actions' } : path;
+        // ext: the Actions tab (scenes, House Mode Actions, other Alarm Events; their editors in place)
+        if (tab.id === 'actions')
+          return html`<alarm-view-actions-tab .hass=${this.hass} .narrow=${this.narrow} .path=${p}></alarm-view-actions-tab>`;
         const section = editing ? undefined : tab.section;
         return html`
           <alarm-view-actions

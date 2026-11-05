@@ -22,7 +22,8 @@ In your Home Assistant `/config` folder (Samba, SSH, or File editor):
 3. Restart Home Assistant.
 4. Open the Alarmo panel and hard-refresh the browser (Ctrl+Shift+R / Cmd+Shift+R).
    The header should show **v1.10.19+ext.4** and the tabs General, Partitions, Arm Modes,
-   Zones, Zones (legacy), Codes, Notifications, Actions and Backup.
+   Quick Start, House Modes, Actions, Partitions, Zones, Codes, Notifications, Physical Panel, Activity and
+   Integrations & Backup.
    Upgrading from ext.1: copy the files over the same way; nothing else is needed.
 
 ## 3. Check it in your setup
@@ -69,7 +70,7 @@ In your Home Assistant `/config` folder (Samba, SSH, or File editor):
 - [ ] Notifications → open one, change something, save → you are back on Notifications.
 - [ ] Actions → open one, save → you are back on Actions.
 - [ ] The links on a Partitions card ("N zones", "N actions") still open the filtered lists.
-- [ ] Old bookmarks: `/alarmo/sensors` opens Zones (legacy); `/alarmo/sensor_table` opens Zones.
+- [ ] Old bookmarks: `/alarmo/sensors` opens Zone Assignments; `/alarmo/sensor_table` opens Zones.
 
 ## 3d. Phase 4: linking your Vista (shadow mode first)
 

@@ -291,7 +291,7 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
         "alarmo/ext/panel/get", "alarmo/ext/panel/log", "alarmo/ext/house_actions/get", "alarmo/ext/rules/list", "alarmo/ext/rules/preview",
         "alarmo/ext/backup/list", "alarmo/ext/locks/get", "alarmo/ext/locks/legacy", "alarmo/ext/activity/get",
         "config/area_registry/list", "config/floor_registry/list", "config/label_registry/list",
-        "alarmo/ext/card/get",
+        "alarmo/ext/card/get", "alarmo/ext/quickstart/plan",
     ]:
         i += 1
         try:

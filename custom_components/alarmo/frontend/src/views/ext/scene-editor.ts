@@ -1,7 +1,7 @@
 // Scenes card (House Mode Actions tab): create and edit native Home Assistant scenes inside Alarmo, ported from the
 // Color Light & Scene Manager card. Scenes stay ordinary scene.* entities (HA's scene config API), and can be tied to
 // House Modes with the same "House Mode: <mode>" labels.
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
 import { navigate } from '../../helpers';
@@ -29,6 +29,11 @@ import { entityBadge, sectionHead } from './page-intro';
 import './multi-picker';
 import './slider-field';
 import './icon-field';
+import { fetchAutomations } from '../../data/websockets';
+import { eventTargets } from '../../data/alarm-events';
+import { computeEventDisplay } from '../../data/actions';
+import { exportPath } from '../../common/navigation';
+import { AlarmoAutomation, EAlarmEvent } from '../../types';
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 
@@ -49,6 +54,31 @@ export class SceneEditor extends LitElement {
   @state() private busy = false;
   @state() private error = '';
   @state() private search = '';
+  /** Alarm Events (native ones) by the scene they run */
+  @state() private events: AlarmoAutomation[] = [];
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.loadEvents();
+  }
+
+  private async loadEvents() {
+    try {
+      this.events = Object.values(await fetchAutomations(this.hass)).filter(e => e.type === 'action');
+    } catch (_e) {
+      this.events = [];
+    }
+  }
+
+  private eventsFor(entityId: string) {
+    return this.events.filter(e => eventTargets(e).includes(entityId));
+  }
+
+  private eventLabel(e: AlarmoAutomation) {
+    const t = e.triggers[0] || ({} as any);
+    const ev = t.event ? computeEventDisplay(t.event as EAlarmEvent, this.hass).name : '?';
+    return `${ev}${e.enabled === false ? ' (off)' : ''}`;
+  }
 
   private scenes() {
     const q = this.search.trim().toLowerCase();
@@ -155,12 +185,20 @@ export class SceneEditor extends LitElement {
         </div>
         ${this.open === 'new' ? this.renderEditor() : nothing}
         <div class="table-wrap"><table class="full">
-          <thead><tr><th class="icon"></th><th>Scene</th><th>House Modes</th><th></th></tr></thead>
+          <thead><tr><th class="icon"></th><th>Scene</th><th>House Modes</th><th>Alarm events</th><th></th></tr></thead>
           <tbody>${scenes.map(s => html`
             <tr>
               <td class="icon">${entityBadge(this.hass, s.entity_id)}</td>
               <td class="name">${s.name}<span class="secondary">${s.entity_id}${s.id ? '' : ' · YAML, not editable here'}</span></td>
               <td>${(this.labels[s.entity_id] || []).join(', ') || html`<span class="secondary" style="display:inline">—</span>`}</td>
+              <td class="events">
+                ${this.eventsFor(s.entity_id).map(e => html`<button class="ev-chip" title=${`Edit the Alarm Event "${e.name}"`}
+                    @click=${() => navigate(this, exportPath('actions', { params: { edit_action: e.automation_id! } }), true)}>
+                    <ha-icon icon="mdi:shield-alert-outline"></ha-icon>${this.eventLabel(e)}</button>`)}
+                <button class="ev-chip add" title="Run this scene on an alarm event (armed, disarmed, triggered, …)"
+                  @click=${() => navigate(this, exportPath('actions', 'new_action', { params: { scene: s.entity_id } }), true)}>
+                  <ha-icon icon="mdi:plus"></ha-icon>Alarm event</button>
+              </td>
               <td class="row-actions">
                 <ha-icon-button .label=${'Activate'} title="Activate" @click=${() => this.hass.callService('scene', 'turn_on', { entity_id: s.entity_id })}>
                   <ha-icon icon="mdi:play"></ha-icon></ha-icon-button>
@@ -172,7 +210,7 @@ export class SceneEditor extends LitElement {
                   : nothing}
               </td>
             </tr>
-            ${this.open === s.id ? html`<tr class="detail"><td colspan="4">${this.renderEditor()}</td></tr>` : nothing}`)}
+            ${this.open === s.id ? html`<tr class="detail"><td colspan="5">${this.renderEditor()}</td></tr>` : nothing}`)}
           </tbody>
         </table></div>
         ${!scenes.length ? html`<div class="empty">No scenes yet.</div>` : nothing}
@@ -278,5 +316,32 @@ export class SceneEditor extends LitElement {
     </tr>`;
   }
 
-  static styles = extStyles;
+  static styles = [
+    extStyles,
+    css`
+      td.events {
+        white-space: normal;
+      }
+      .ev-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        margin: 2px 4px 2px 0;
+        padding: 1px 8px 1px 4px;
+        border-radius: 12px;
+        border: 1px solid var(--divider-color);
+        background: none;
+        color: var(--primary-text-color);
+        font: inherit;
+        font-size: 0.85em;
+        cursor: pointer;
+        --mdc-icon-size: 14px;
+      }
+      .ev-chip.add {
+        border-style: dashed;
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+    `,
+  ];
 }

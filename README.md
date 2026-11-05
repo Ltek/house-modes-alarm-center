@@ -1,6 +1,6 @@
 # House Modes & Alarm Center
 
-> **Current build: v2026.11.05.56** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
+> **Current build: v2026.11.05.57** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
 
 A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber: one place for
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via
@@ -19,72 +19,84 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 <table>
   <tr>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/01-house-modes.png"><img src="screenshots/01-house-modes.png" width="100%" alt="House modes"></a><br><sub>House modes</sub>
+      <a href="screenshots/00-quick-start.png"><img src="screenshots/00-quick-start.png" width="100%" alt="Quick start"></a><br><sub>Quick start</sub>
     </td>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/02-house-mode-actions.png"><img src="screenshots/02-house-mode-actions.png" width="100%" alt="House mode actions"></a><br><sub>House mode actions</sub>
+      <a href="screenshots/01-house-modes.png"><img src="screenshots/01-house-modes.png" width="100%" alt="House modes"></a><br><sub>House modes</sub>
     </td>
   </tr>
   <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/02-actions.png"><img src="screenshots/02-actions.png" width="100%" alt="Actions"></a><br><sub>Actions</sub>
+    </td>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/03-scenes.png"><img src="screenshots/03-scenes.png" width="100%" alt="Scenes"></a><br><sub>Scenes</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/04-zone-assignments.png"><img src="screenshots/04-zone-assignments.png" width="100%" alt="Zone assignments"></a><br><sub>Zone assignments</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/05-zone-editor.png"><img src="screenshots/05-zone-editor.png" width="100%" alt="Zone editor"></a><br><sub>Zone editor</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/06-physical-panel.png"><img src="screenshots/06-physical-panel.png" width="100%" alt="Physical panel"></a><br><sub>Physical panel</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/07-users-codes-keypads.png"><img src="screenshots/07-users-codes-keypads.png" width="100%" alt="Users codes keypads"></a><br><sub>Users codes keypads</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/08-arm-check.png"><img src="screenshots/08-arm-check.png" width="100%" alt="Arm check"></a><br><sub>Arm check</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/09-activity.png"><img src="screenshots/09-activity.png" width="100%" alt="Activity"></a><br><sub>Activity</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/10-backup.png"><img src="screenshots/10-backup.png" width="100%" alt="Backup"></a><br><sub>Backup</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/11-alarm-events-migrate.png"><img src="screenshots/11-alarm-events-migrate.png" width="100%" alt="Alarm events migrate"></a><br><sub>Alarm events migrate</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/12-house-modes-shadow.png"><img src="screenshots/12-house-modes-shadow.png" width="100%" alt="House modes shadow"></a><br><sub>House modes shadow</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/13-house-modes-detect.png"><img src="screenshots/13-house-modes-detect.png" width="100%" alt="House modes detect"></a><br><sub>House modes detect</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/14-house-mode-editor.png"><img src="screenshots/14-house-mode-editor.png" width="100%" alt="House mode editor"></a><br><sub>House mode editor</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/15-dashboard-card.png"><img src="screenshots/15-dashboard-card.png" width="100%" alt="Dashboard card"></a><br><sub>Dashboard card</sub>
     </td>
   </tr>
   <tr>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/15-dashboard-card.png"><img src="screenshots/15-dashboard-card.png" width="100%" alt="Dashboard card"></a><br><sub>Dashboard card</sub>
-    </td>
-    <td align="center" valign="top" width="50%">
       <a href="screenshots/16-card-editor.png"><img src="screenshots/16-card-editor.png" width="100%" alt="Card editor"></a><br><sub>Card editor</sub>
     </td>
+    <td></td>
   </tr>
 </table>
 <!-- SCREENSHOTS:END -->
 
 ## What it adds to Alarmo
+
+**Quick Start** — the first tab: what is configured, and three guided setups (House Modes only; an alarm without a
+physical panel; House Modes and a physical panel). Each shows its steps and makes a backup before it changes anything.
+
+**Actions** — one tab for native scenes (with the Alarm Events that run each one), the House Mode Actions grid, and
+the remaining Alarm Events (scripts, and legacy ones to migrate).
 
 **House Modes** — Away, Stay, Sleep, Guest, Spa, … ([HOUSE-MODES.md](HOUSE-MODES.md))
 - Each mode sets partitions to an Arm Mode (or leaves them), decides **who may change it** (manual, automations,
@@ -118,7 +130,7 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
   code to its slots, show a slot's code for 30 s (admin only, never stored). Codes are stored only hashed.
 - **Keypad actions per user:** when the code unlocks (or keypad-locks) a lock → a House Mode and/or partition targets.
 
-**Arm Check** — *Why won't it arm?* (Alarmo's own check, live, per partition and Arm Mode, plus the panel's Ready) and
+**Arm Check** (a panel on the Activity tab) — *Why won't it arm?* (Alarmo's own check, live, per partition and Arm Mode, plus the panel's Ready) and
 a **walk test**.
 
 **Dashboard card** — *House Modes & Alarm Center Card*, included ([CARD.md](CARD.md)): the House Mode with its icon and

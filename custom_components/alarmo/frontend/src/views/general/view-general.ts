@@ -28,7 +28,7 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
   @property() path!: Path;
 
   /** ext: show one section only (undefined = upstream: all three) */
-  @property() section?: 'general' | 'partitions' | 'modes';
+  @property() section?: 'general' | 'partitions' | 'modes' | 'mqtt';
 
   @property() data?: Partial<AlarmoConfig>;
 
@@ -83,17 +83,31 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
       // ext: one section per tab
       if (this.section == 'modes')
         return html`<alarm-mode-card .hass=${this.hass} .narrow=${this.narrow}></alarm-mode-card>`;
-      if (this.section == 'partitions')
-        // ext.20: Partitions & Arm Modes on one tab
-        return html`<area-config-card .hass=${this.hass} .narrow=${this.narrow}></area-config-card>
-          <alarm-mode-card .hass=${this.hass} .narrow=${this.narrow}></alarm-mode-card>`;
+      // ext (v2026.11.05.57): General is now Quick Start; its settings live with what they belong to
       const showAll = this.section === undefined;
+      if (this.section == 'partitions')
+        return html`${this.renderAlarmSettings()}
+          <area-config-card .hass=${this.hass} .narrow=${this.narrow}></area-config-card>
+          <alarm-mode-card .hass=${this.hass} .narrow=${this.narrow}></alarm-mode-card>`;
+      if (this.section == 'mqtt') return this.renderMqtt();
       return html`
-        <ha-card>${sectionHead(localize('panels.general.title', this.hass.language), 'settings')}
-          <div class="card-content">
-            ${localize('panels.general.cards.general.description', this.hass.language)}
-          </div>
+        ${this.renderAlarmSettings()} ${this.renderMqtt()}
+        ${showAll
+          ? html`
+              <alarm-mode-card .hass=${this.hass} .narrow=${this.narrow}></alarm-mode-card>
+              <area-config-card .hass=${this.hass} .narrow=${this.narrow}></area-config-card>
+            `
+          : ''}
+      `;
+    }
+  }
 
+  /** After an alarm, and the "All partitions" panel (Partitions & Arm Modes tab). */
+  private renderAlarmSettings() {
+    if (!this.hass || !this.data) return html``;
+    return html`
+        <ha-card>${sectionHead('Alarm behavior', 'settings')}
+          <div class="card-content">What Alarmo does after an alarm, and whether it has an "All partitions" alarm.</div>
           <alarmo-settings-row .narrow=${this.narrow}>
             <span slot="heading">
               ${localize('panels.general.cards.general.fields.disarm_after_trigger.heading', this.hass.language)}
@@ -129,34 +143,6 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
 
 
 
-          <alarmo-settings-row .narrow=${this.narrow}>
-            <span slot="heading">
-              ${localize('panels.general.cards.general.fields.enable_mqtt.heading', this.hass.language)}
-            </span>
-            <span slot="description">
-              ${localize('panels.general.cards.general.fields.enable_mqtt.description', this.hass.language)}
-            </span>
-            <ha-switch
-              ?checked=${this.data?.mqtt?.enabled}
-              @change=${(ev: Event) => {
-          this.saveData({ mqtt: { ...this.data!.mqtt!, enabled: (ev.target as HTMLInputElement).checked } });
-        }}
-            ></ha-switch>
-          </alarmo-settings-row>
-
-          ${this.data?.mqtt?.enabled
-          ? html`
-                <div style="padding: 0px 0px 16px 16px; margin-top: -8px">
-                  <ha-button
-                    appearance="filled"
-                    @click=${() => navigate(this, exportPath('general', 'mqtt_configuration'), true)}
-                  >
-                    ${localize('panels.general.cards.general.actions.setup_mqtt', this.hass.language)}
-                    <ha-icon slot="end" icon="mdi:open-in-new"></ha-icon>
-                  </ha-button>
-                </div>
-              `
-          : ''}
           ${Object.keys(this.areas).length >= 2
           ? html`
                 <alarmo-settings-row .narrow=${this.narrow}>
@@ -187,17 +173,44 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
                 </div>
               `
           : ''}
-        </ha-card>
+        </ha-card>`;
+  }
 
-        ${showAll
+  /** MQTT (Integrations & Backup tab). */
+  private renderMqtt() {
+    if (!this.hass || !this.data) return html``;
+    return html`
+        <ha-card>${sectionHead('MQTT', 'settings')}
+          <div class="card-content">Publish Alarmo's state to MQTT and accept commands from it (e.g. for wall panels).</div>
+          <alarmo-settings-row .narrow=${this.narrow}>
+            <span slot="heading">
+              ${localize('panels.general.cards.general.fields.enable_mqtt.heading', this.hass.language)}
+            </span>
+            <span slot="description">
+              ${localize('panels.general.cards.general.fields.enable_mqtt.description', this.hass.language)}
+            </span>
+            <ha-switch
+              ?checked=${this.data?.mqtt?.enabled}
+              @change=${(ev: Event) => {
+          this.saveData({ mqtt: { ...this.data!.mqtt!, enabled: (ev.target as HTMLInputElement).checked } });
+        }}
+            ></ha-switch>
+          </alarmo-settings-row>
+
+          ${this.data?.mqtt?.enabled
           ? html`
-              <alarm-mode-card .hass=${this.hass} .narrow=${this.narrow}></alarm-mode-card>
-
-              <area-config-card .hass=${this.hass} .narrow=${this.narrow}></area-config-card>
-            `
+                <div style="padding: 0px 0px 16px 16px; margin-top: -8px">
+                  <ha-button
+                    appearance="filled"
+                    @click=${() => navigate(this, exportPath('general', 'mqtt_configuration'), true)}
+                  >
+                    ${localize('panels.general.cards.general.actions.setup_mqtt', this.hass.language)}
+                    <ha-icon slot="end" icon="mdi:open-in-new"></ha-icon>
+                  </ha-button>
+                </div>
+              `
           : ''}
-      `;
-    }
+        </ha-card>`;
   }
 
   setupMasterClick(ev: Event) {

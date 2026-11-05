@@ -27,12 +27,11 @@ export type TabDef = { id: TabId; view: TabView; section?: string; titleKey: str
 export const TABS: TabDef[] = [
   { id: 'general', view: 'general', section: 'general', titleKey: 'panels.general.title' },
   { id: 'house', view: 'house', titleKey: 'panels.house.title' },
-  { id: 'house_actions', view: 'house_actions', titleKey: 'panels.house_actions.title' },
+  { id: 'actions', view: 'actions', section: 'actions', titleKey: 'panels.actions.title' },
   { id: 'partitions', view: 'general', section: 'partitions', titleKey: 'panels.partitions.title' },
   { id: 'zones', view: 'sensor_table', titleKey: 'panels.zones.title' },
   { id: 'codes', view: 'codes', titleKey: 'panels.users_codes.title' },
   { id: 'notifications', view: 'actions', section: 'notifications', titleKey: 'panels.notifications.title' },
-  { id: 'actions', view: 'actions', section: 'actions', titleKey: 'panels.actions.title' },
   { id: 'panel', view: 'panel', titleKey: 'panels.panel.title' },
   { id: 'activity', view: 'activity', titleKey: 'panels.activity.title' },
   { id: 'backup', view: 'backup', titleKey: 'panels.backup.title' },
@@ -44,6 +43,8 @@ const ALIASES: Record<string, TabId> = {
   sensors: 'zones',
   zones_legacy: 'zones',
   why: 'activity',
+  // v2026.11.05.57: House Mode Actions and Alarm Events are one Actions tab
+  house_actions: 'actions',
   sensor_table: 'zones',
   // ext.14: Zone Mirrors merged into the Physical Panel page
   mirrors: 'panel',
@@ -67,6 +68,7 @@ export const tabForPath = (
   const p = page || 'general';
   if (p in ALIASES) return TABS.find(t => t.id === ALIASES[p]);
   if (p === 'general' && params.edit_area) return TABS.find(t => t.id === 'partitions');
+  if (p === 'general' && subpage === 'mqtt_configuration') return TABS.find(t => t.id === 'backup');
   if (p === 'actions') {
     if (subpage === 'new_notification' || params.edit_notification) return TABS.find(t => t.id === 'notifications');
     return TABS.find(t => t.id === 'actions');

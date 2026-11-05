@@ -64,6 +64,10 @@ export class AutomationEditorCard extends LitElement {
   @property()
   item?: AlarmoAutomation;
 
+  /** ext: a new event that runs this scene / script (Scenes panel → "+ Alarm event") */
+  @property()
+  preset?: string;
+
   @property()
   areas!: Dictionary<AlarmoArea>;
 
@@ -99,6 +103,8 @@ export class AutomationEditorCard extends LitElement {
       this.legacy = isLegacyEvent(this.item);
       if (this.legacy && this._hasCustomEntities()) this.viewMode = ViewMode.Yaml;
     }
+
+    if (!this.item && this.preset) this.config = { ...this.config, actions: nativeActions([this.preset]) };
 
     //automatically set area if there is only 1 option
     if (!isDefined(this.config.triggers[0].area)) {

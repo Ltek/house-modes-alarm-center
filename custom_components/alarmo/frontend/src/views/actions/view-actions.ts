@@ -21,6 +21,7 @@ import { getAreaOptions, computeAreaDisplay } from '../../data/actions';
 import { exportPath, Path } from '../../common/navigation';
 import { roleChip, sectionHead } from '../ext/page-intro';
 import '../ext/event-migrate';
+import { isLegacyEvent, eventTargets } from '../../data/alarm-events';
 
 const noArea = 'no_area';
 
@@ -49,6 +50,10 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
 
   @property()
   selectedArea?: string;
+
+  /** ext: in the Actions tab only the events that are not just "run a scene" (legacy ones, scripts) */
+  @property()
+  only?: 'other';
 
   /** ext: show one list only (undefined = upstream: both) */
   @property()
@@ -90,7 +95,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
         return html`<notification-editor-card .hass=${this.hass} .narrow=${this.narrow} .item=${config}></notification-editor-card>`;
       }
       if (this.path.subpage == 'new_action')
-        return html`<automation-editor-card .hass=${this.hass} .narrow=${this.narrow}></automation-editor-card>`;
+        return html`<automation-editor-card .hass=${this.hass} .narrow=${this.narrow} .preset=${this.path.params.scene}></automation-editor-card>`;
       if (this.path.params.edit_action) {
         const config = this.automations!.find(
           e => e.automation_id == this.path.params.edit_action && e.type == EAutomationTypes.Action
@@ -160,6 +165,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
 
       const automationData = this.automations
         .filter(e => e.type == EAutomationTypes.Action)
+        .filter(e => this.only !== 'other' || isLegacyEvent(e) || eventTargets(e).some(t => !t.startsWith('scene.')) || !eventTargets(e).length)
         .map(e =>
           Object({
             ...e,
@@ -201,8 +207,11 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
         ` : ''}
 
         ${showActions ? html`
-        <ha-card>${sectionHead(localize('panels.actions.title', this.hass.language), 'settings')}
-          <div class="card-content">${localize('panels.actions.cards.actions.description', this.hass.language)}</div>
+        <ha-card>${sectionHead(this.only === 'other' ? 'Other Alarm Events' : localize('panels.actions.title', this.hass.language), 'settings')}
+          <div class="card-content">${this.only === 'other'
+            ? html`Alarm Events that run a script, or still use Alarmo's own list of actions (legacy: migrate them to scenes and
+                scripts). Events that run a scene are shown on that scene above.`
+            : localize('panels.actions.cards.actions.description', this.hass.language)}</div>
           <div class="card-actions" style="border-top:none;border-bottom:1px solid var(--divider-color)">
             <ha-button appearance="plain" ?disabled=${!!editor} @click=${this.addActionClick}>
               ${localize('panels.actions.cards.actions.actions.new_action', this.hass.language)}

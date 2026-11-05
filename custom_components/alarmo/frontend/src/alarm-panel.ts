@@ -190,7 +190,9 @@ export class MyAlarmPanel extends LitElement {
         // ext: the Actions tab (scenes, House Mode Actions, other Alarm Events; their editors in place)
         if (tab.id === 'actions')
           return html`<alarm-view-actions-tab .hass=${this.hass} .narrow=${this.narrow} .path=${p}></alarm-view-actions-tab>`;
-        const section = editing ? undefined : tab.section;
+        // a notification editor shows only the Notifications card (not the Alarm Events list under it)
+        const notifEditor = path.subpage === 'new_notification' || !!path.params.edit_notification;
+        const section = editing ? (notifEditor ? 'notifications' : undefined) : tab.section;
         return html`
           <alarm-view-actions
             .hass=${this.hass}

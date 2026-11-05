@@ -148,6 +148,9 @@ SETTINGS_SCHEMA = vol.Schema(
         vol.Optional("notify_services", default=[]): [
             vol.Match(r"^notify\.[a-z0-9_]+$")
         ],
+        # a notification on every House Mode change (Live only), except changes from these sources
+        vol.Optional("notify_changes", default=False): bool,
+        vol.Optional("notify_skip_sources", default=[]): [vol.In((*SOURCES, "external"))],
     }
 )
 

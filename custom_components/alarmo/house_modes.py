@@ -48,6 +48,27 @@ EVENT_BLOCKED = "alarmo_house_mode_blocked"
 ARM_TIMEOUT = 180
 
 
+
+SOURCE_TEXT = {
+    "manual": "by hand",
+    "automation": "by an automation",
+    "schedule": "on schedule",
+    "presence_away": "everyone left",
+    "presence_home": "someone came home",
+    "lock": "lock code",
+    "panel_keypad": "panel keypad",
+    "timer": "timer",
+    "external": "the partitions were changed outside House Modes",
+}
+
+
+def change_message(prev: dict | None, mode: dict | None, source: str) -> tuple[str, str]:
+    """Title and message of the "every change" notification, e.g. ("House Mode: Stay", "from Disarmed · timer")."""
+    title = f"House Mode: {mode['name'] if mode else 'unknown'}"
+    parts = [f"from {prev['name']}"] if prev else []
+    parts.append(SOURCE_TEXT.get(source, source))
+    return title, " · ".join(parts)
+
 class HouseModeError(Exception):
     """Invalid request."""
 
@@ -411,6 +432,8 @@ class HouseModeManager:
                     f"{'at ' + p['at'] if p.get('at') else 'in ' + str(p['minutes']) + ' min'}",
                 )
         self._event(EVENT_CHANGED, mode, source, previous=prev, result=result)
+        if mode_id != prev and result in ("changed", "external"):
+            await self._notify_change(find_mode(data, prev), mode, source)
         self._mirror_to_select(mode)
         self._write_mode_entities(mode, find_mode(data, prev) if mode_id != prev else None)
         if mode_id != prev and result in ("changed", "external"):
@@ -466,6 +489,14 @@ class HouseModeManager:
                 **extra,
             },
         )
+
+    async def _notify_change(self, prev: dict | None, mode: dict | None, source: str) -> None:
+        """The "every change" notification, when it is on and the source is not skipped."""
+        s = self.settings
+        if not s.get("notify_changes") or source in (s.get("notify_skip_sources") or []):
+            return
+        title, message = change_message(prev, mode, source)
+        await self._notify(title, message)
 
     async def _notify(self, title: str, message: str) -> None:
         for svc in self.settings.get("notify_services") or []:

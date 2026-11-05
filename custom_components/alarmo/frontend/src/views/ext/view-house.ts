@@ -31,7 +31,7 @@ import {
   setHouseMode,
 } from '../../data/house';
 import { extStyles } from './ext-styles';
-import { HouseActionsInfo, editorPath, fetchHouseActions, itemsForMode } from '../../data/house-actions';
+import { HouseActionsInfo, editorPath, fetchHouseActions, reactingTo } from '../../data/house-actions';
 
 /** HA editor path for a scene/script entity (scenes need their config id). */
 const editorPathFor = (entityId: string, hass: HomeAssistant): string | null => {
@@ -575,25 +575,25 @@ export class AlarmViewHouse extends LitElement {
     `;
   }
 
-  /** Native automations / scripts / scenes labelled with this mode (and suggestions), linking to HA's editor. */
+  /** Home Assistant automations whose triggers react when this mode starts or ends, linking to HA's editor. */
   private renderRelated(m: HouseMode) {
-    const items = this.actions ? itemsForMode(this.actions.items, m.name, true) : [];
+    const r = this.actions ? reactingTo(this.actions.items, m.name) : { enter: [], leave: [] };
+    const rows = [...r.enter.map(i => [i, 'when it starts'] as const), ...r.leave.map(i => [i, 'when it ends'] as const)];
     return html`
-      <h4 class="subhead" style="margin:10px 0 4px">Automations, scripts and scenes</h4>
+      <h4 class="subhead" style="margin:10px 0 4px">Automations that react</h4>
       ${!this.actions
         ? html`<span class="secondary" style="display:block">Loading…</span>`
-        : items.length
-          ? html`<div class="related-list">${items.map(i => {
+        : rows.length
+          ? html`<div class="related-list">${rows.map(([i, when]) => {
               const p = editorPath(i);
-              const sug = !i.labels.includes(m.name);
               return html`<div class="field-row">
                 ${entityBadge(this.hass, i.entity_id)}
                 ${p ? html`<button class="link" title="Open in Home Assistant's editor" @click=${() => navigate(this, p)}>${i.name}</button>` : html`<span>${i.name}</span>`}
-                <span class="secondary" style="display:inline">${i.kind}${sug ? ' · suggested (no label yet)' : ''}${i.labels.length > 1 ? ` · also ${i.labels.filter(x => x !== m.name).join(', ')}` : ''}</span>
+                <span class="secondary" style="display:inline">${when}${i.state === 'off' ? ' · disabled' : ''}</span>
               </div>`;
             })}</div>`
-          : html`<span class="secondary" style="display:block">None yet.</span>`}
-      <span class="secondary" style="display:block">Relate them on the <a href="/alarmo/house_actions">House Mode Actions</a> tab (Home Assistant label <em>House Mode: ${m.name}</em>).</span>
+          : html`<span class="secondary" style="display:block">None: no automation has a trigger on this mode.</span>`}
+      <span class="secondary" style="display:block">Read from the automations' triggers. The Actions tab shows this for every mode.</span>
     `;
   }
 
@@ -635,13 +635,28 @@ export class AlarmViewHouse extends LitElement {
           pick(d.current_entity, compares, v => this.set(x => (x.current_entity = v)), 'Current House Mode'))}
         ${row('mdi:history', 'Previous House Mode', 'Optional. Live writes the mode it changed from here.',
           pick(d.previous_entity, compares, v => this.set(x => (x.previous_entity = v)), 'Previous House Mode'))}
-        ${row('mdi:bell-outline', 'Notifications', 'Where House Mode messages go: blocked, failed to arm, timers.',
+        ${row('mdi:bell-outline', 'Notifications', 'Where House Mode messages go: blocked, failed to arm, timers, and every change if you tick it.',
           html`<alarmo-ext-multi-picker
             .placeholder=${'Add a notify service…'}
             .options=${notifies}
             .value=${d.notify_services || []}
             @value-changed=${(e: CustomEvent) => this.set(x => (x.notify_services = e.detail.value))}
-          ></alarmo-ext-multi-picker>`)}
+          ></alarmo-ext-multi-picker>
+          <label class="hm-check"><input type="checkbox" .checked=${!!d.notify_changes}
+              @change=${(e: any) => this.set(x => (x.notify_changes = e.target.checked))} />
+            Notify on every change <span class="secondary" style="display:inline">e.g. "House Mode: Stay — from Disarmed · timer"</span></label>
+          ${d.notify_changes
+            ? html`<div class="hm-skip"><span class="secondary" style="display:inline">Not for changes by:</span>
+                ${[...SOURCES, 'external'].map(src => {
+                  const on = (d.notify_skip_sources || []).includes(src);
+                  return html`<button class="hm-chip ${on ? 'on' : ''}" aria-pressed=${on} title=${on ? 'Not notified' : 'Notified'}
+                    @click=${() => this.set(x => (x.notify_skip_sources = on ? (x.notify_skip_sources || []).filter(v => v !== src) : [...(x.notify_skip_sources || []), src]))}>
+                    ${src === 'external' ? 'Outside House Modes' : SOURCE_LABELS[src]}</button>`;
+                })}</div>`
+            : nothing}
+          ${(d.notify_changes || false) && !(d.notify_services || []).length
+            ? html`<div class="notice warn" style="margin:6px 0 0">Add a notify service, or nothing is sent.</div>`
+            : nothing}`)}
       </div>
       <div class="secondary" style="margin:0 16px 12px">Lock keypads and per-user keypad actions are on the
         <a href="/alarmo/codes">Users, Codes, Keypads</a> tab.</div>
@@ -711,6 +726,35 @@ export class AlarmViewHouse extends LitElement {
       .hm-ok ha-icon {
         --mdc-icon-size: 16px;
         color: var(--success-color, #4caf50);
+      }
+      .hm-check {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .hm-skip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        margin-top: 8px;
+      }
+      .hm-chip {
+        border: 1px solid var(--divider-color);
+        border-radius: 14px;
+        padding: 2px 10px;
+        background: none;
+        color: var(--primary-text-color);
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .hm-chip.on {
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+        text-decoration: line-through;
       }
       .hm-noswitch {
         visibility: hidden;

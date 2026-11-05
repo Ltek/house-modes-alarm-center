@@ -85,6 +85,14 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
     <td align="center" valign="top" width="50%">
       <a href="screenshots/16-card-editor.png"><img src="screenshots/16-card-editor.png" width="100%" alt="Card editor"></a><br><sub>Card editor</sub>
     </td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/17-notifications.png"><img src="screenshots/17-notifications.png" width="100%" alt="Notifications"></a><br><sub>Notifications</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/18-notification-editor.png"><img src="screenshots/18-notification-editor.png" width="100%" alt="Notification editor"></a><br><sub>Notification editor</sub>
+    </td>
     <td></td>
   </tr>
 </table>
@@ -109,12 +117,16 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 **Quick Start** — the first tab: what is configured, and three guided setups (House Modes only; an alarm without a
 physical panel; House Modes and a physical panel). Each shows its steps and makes a backup before it changes anything.
 
-**Actions** — one tab for native scenes (with the Alarm Events that run each one), the House Mode Actions grid, and
+**Actions** — one tab: *What runs on each mode* (per House Mode, its scripts and scenes, its timers, and the
+automations whose triggers react to it), native scenes (with the House Modes and Alarm Events that run each one), and
 the remaining Alarm Events (scripts, and legacy ones to migrate).
 
 **House Modes** — Away, Stay, Sleep, Guest, Spa, … ([HOUSE-MODES.md](HOUSE-MODES.md))
 - Each mode sets partitions to an Arm Mode (or leaves them), decides **who may change it** (manual, automations,
   schedule, presence, a lock code, the panel keypad), can check zones are closed and change itself back on a timer.
+- Each mode runs native scripts and scenes as **steps** (entering or leaving, before arming or after), and has
+  **timers** (after N minutes or at a clock time, to a mode or back to the previous one).
+- A notification on every change, if you want one, saying where it came from and why.
 - `select.alarmo_house_mode`, the `alarmo.set_house_mode` service, events, two blueprints, an optional `input_select`
   kept in step.
 

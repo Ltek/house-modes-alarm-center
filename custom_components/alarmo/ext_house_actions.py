@@ -88,6 +88,62 @@ def detect(config: dict | None, modes: list[str]) -> dict[str, Any] | None:
     return {"modes": named, "any": not named}
 
 
+def house_entities(hass: HomeAssistant, ext: ExtManager) -> set[str]:
+    """Entities whose state is the House Mode: the House Mode select and the user's helpers."""
+    s = ext.house.settings
+    ents = {"select.alarmo_house_mode", "input_select.house_mode", "input_select.house_mode_selector"}
+    ents |= {e for e in (s.get("input_select"), s.get("current_entity")) if e}
+    return ents
+
+
+def _as_list(v: Any) -> list:
+    if v is None:
+        return []
+    return list(v) if isinstance(v, list | tuple) else [v]
+
+
+def reactions(config: dict | None, entities: set[str], modes: list[str]) -> dict[str, Any] | None:
+    """Which House Mode changes trigger an automation, read from its triggers (not its text).
+
+    Returns None when no trigger is a House Mode change, else {"to": [...], "from": [...], "any": bool}: entering
+    the modes in "to", leaving the modes in "from", or any change ("any", e.g. a trigger with no to/from, the
+    alarmo_house_mode_changed event without a mode, or a template trigger).
+    """
+    if not config:
+        return None
+    by_lower = {m.lower(): m for m in modes}
+    to: set[str] = set()
+    frm: set[str] = set()
+    any_change = False
+    found = False
+    for t in _as_list(config.get("triggers", config.get("trigger"))):
+        if not isinstance(t, dict) or t.get("enabled") is False:
+            continue
+        kind = t.get("trigger", t.get("platform"))
+        if kind == "state" and entities & set(_as_list(t.get("entity_id"))) and not t.get("attribute"):
+            found = True
+            t_to = [by_lower[str(x).lower()] for x in _as_list(t.get("to")) if str(x).lower() in by_lower]
+            t_from = [by_lower[str(x).lower()] for x in _as_list(t.get("from")) if str(x).lower() in by_lower]
+            to.update(t_to)
+            frm.update(t_from)
+            if not t_to and not t_from:
+                any_change = True
+        elif kind == "event" and t.get("event_type") == HOUSE_EVENT:
+            found = True
+            data = t.get("event_data") or {}
+            named = [by_lower[str(x).lower()] for x in _as_list(data.get("name")) if str(x).lower() in by_lower]
+            if named:
+                to.update(named)
+            else:
+                any_change = True
+        elif kind == "template" and HOUSE_ENTITY_HINT.search(str(t.get("value_template", ""))):
+            found = True
+            any_change = True
+    if not found:
+        return None
+    return {"to": sorted(to, key=modes.index), "from": sorted(frm, key=modes.index), "any": any_change}
+
+
 def _raw_configs(hass: HomeAssistant) -> dict[str, dict]:
     """entity_id -> raw config of loaded automations and scripts."""
     out: dict[str, dict] = {}
@@ -111,6 +167,7 @@ def items_payload(hass: HomeAssistant) -> dict[str, Any]:
         if lab.name.startswith(LABEL_PREFIX):
             mode_by_label[lab.label_id] = lab.name[len(LABEL_PREFIX) :]
     raw = _raw_configs(hass)
+    ents = house_entities(hass, ext)
     items = []
     for st in hass.states.async_all(DOMAINS):
         eid = st.entity_id
@@ -135,6 +192,7 @@ def items_payload(hass: HomeAssistant) -> dict[str, Any]:
                 "editable": entry is not None,
                 "labels": labelled,
                 "detected": found,
+                "reacts": reactions(raw.get(eid), ents, modes) if domain == "automation" else None,
             }
         )
     return {

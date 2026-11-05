@@ -2,12 +2,12 @@ import { LitElement, html, nothing } from 'lit';
 import { property, customElement } from 'lit/decorators.js';
 import { loadHaForm } from '../../load-ha-elements';
 
-import { AlarmEntity, AlarmoAutomation, Dictionary, AlarmoArea, AlarmoConfig, HomeAssistant } from '../../types';
+import { EAlarmEvent, AlarmEntity, AlarmoAutomation, Dictionary, AlarmoArea, AlarmoConfig, HomeAssistant } from '../../types';
 import { SubscribeMixin } from '../../subscribe-mixin';
 import { UnsubscribeFunc } from 'home-assistant-js-websocket';
 
 import { commonStyle } from '../../styles';
-import { fetchAutomations, saveAutomation, fetchAreas, fetchConfig } from '../../data/websockets';
+import { fetchAutomations, saveAutomation, fetchAreas, fetchConfig, deleteAutomation } from '../../data/websockets';
 import { TableColumn, TableFilterConfig } from '../../components/alarmo-table';
 import { handleError, Unique, isDefined, flatten, sortAlphabetically, navigate } from '../../helpers';
 import { localize } from '../../../localize/localize';
@@ -17,7 +17,9 @@ import './automation-editor-card.ts';
 import '../../components/alarmo-settings-row';
 
 import { EAutomationTypes } from '../../const';
-import { getAreaOptions, computeAreaDisplay } from '../../data/actions';
+import { getAreaOptions, computeAreaDisplay, computeEventDisplay, computeArmModeDisplay } from '../../data/actions';
+import { css } from 'lit';
+import { extStyles } from '../ext/ext-styles';
 import { exportPath, Path } from '../../common/navigation';
 import { roleChip, sectionHead } from '../ext/page-intro';
 import '../ext/event-migrate';
@@ -178,33 +180,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
       const showNotifications = this.section !== 'actions';
       const showActions = this.section !== 'notifications';
       return html`
-        ${showNotifications ? html`
-        <ha-card>${sectionHead(localize('panels.actions.cards.notifications.title', this.hass.language), 'settings')}
-          <div class="card-content">
-            ${localize('panels.actions.cards.notifications.description', this.hass.language)}
-          </div>
-          <div class="card-actions" style="border-top:none;border-bottom:1px solid var(--divider-color)">
-            <ha-button appearance="plain" ?disabled=${!!editor} @click=${this.addNotificationClick}>
-              ${localize('panels.actions.cards.notifications.actions.new_notification', this.hass.language)}
-            </ha-button>
-          </div>
-          ${editor ? html`<div style="padding:0 8px 8px">${editor}</div>` : ''}
-
-          <alarmo-table
-            style=${editor ? 'display:none' : ''}
-            .hass=${this.hass}
-            ?selectable=${true}
-            .columns=${columns}
-            .data=${notificationData}
-            .filters=${this.getTableFilterOptions()}
-            @row-click=${(ev: CustomEvent) =>
-          navigate(this, exportPath('actions', { params: { edit_notification: ev.detail.id } }), true)}
-          >
-            ${localize('panels.actions.cards.notifications.table.no_items', this.hass.language)}
-          </alarmo-table>
-
-        </ha-card>
-        ` : ''}
+        ${showNotifications ? this.renderNotifications(editor, notificationData) : ''}
 
         ${showActions ? html`
         <ha-card>${this.only === 'other' ? nothing : sectionHead(localize('panels.actions.title', this.hass.language), 'settings')}
@@ -243,6 +219,79 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
         ` : ''}
       `;
     }
+  }
+
+  // ext: the Notifications tab as rows (CARD_DESIGN_SYSTEM): icon, name, what it does, on/off chip, edit and delete
+  private renderNotifications(editor: unknown, data: (AlarmoAutomation & { area: string | number; warning: boolean })[]) {
+    const hass = this.hass!;
+    const lang = hass.language;
+    const events = Object.values(EAlarmEvent) as string[];
+    const groups = events
+      .map(ev => ({ ev, items: data.filter(n => n.triggers[0].event === ev).sort((a, b) => (a.name || '').localeCompare(b.name || '')) }))
+      .filter(g => g.items.length);
+    const other = data.filter(n => !events.includes(n.triggers[0].event as string));
+    const areaName = (n: { area: string | number }) =>
+      n.area === noArea ? (this.config.master.enabled ? this.config.master.name : '—') : computeAreaDisplay(n.area, this.areas, this.config).name;
+    const target = (n: AlarmoAutomation) => {
+      const a = (n.actions[0] || {}) as any;
+      const eid = a.entity_id as string | undefined;
+      return eid ? hass.states[eid]?.attributes.friendly_name || eid : a.service || '—';
+    };
+    const edit = (n: AlarmoAutomation) => navigate(this, exportPath('actions', { params: { edit_notification: n.automation_id! } }), true);
+    const row = (n: AlarmoAutomation & { area: string | number; warning: boolean }) => {
+      const t = n.triggers[0];
+      const ev = computeEventDisplay(t.event as EAlarmEvent, hass);
+      const modes = (t.modes || []).map(m => computeArmModeDisplay(m, hass)?.name || m).join(', ');
+      return html`<div class="nt-row ${n.enabled ? '' : 'off'}">
+        <ha-icon class="nt-icon" icon=${n.warning ? 'mdi:alert' : ev?.icon || 'mdi:message-text-outline'}
+          style=${n.warning ? 'color:var(--error-color)' : ''}
+          title=${n.warning ? localize('panels.actions.cards.notifications.table.no_area_warning', lang) : ''}></ha-icon>
+        <div class="nt-name">
+          <button class="link" @click=${() => edit(n)}>${n.name}</button>
+          <span class="secondary">${areaName(n)}${modes ? ` · ${modes}` : ''} → ${target(n)}</span>
+        </div>
+        <button class="nt-chip ${n.enabled ? 'on' : ''}" title=${n.enabled ? 'Enabled: click to disable' : 'Disabled: click to enable'}
+          @click=${() => this.setEnabled(n.automation_id!, !n.enabled)}>${n.enabled ? 'Enabled' : 'Disabled'}</button>
+        <ha-icon-button .label=${'Edit'} title="Edit" @click=${() => edit(n)}><ha-icon icon="mdi:pencil"></ha-icon></ha-icon-button>
+        <ha-icon-button .label=${'Delete'} title="Delete" @click=${() => this.deleteNotification(n)}><ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>
+      </div>`;
+    };
+    return html`
+      <ha-card>${sectionHead(localize('panels.actions.cards.notifications.title', lang), 'settings')}
+        <div class="card-content desc">
+          <p>Messages sent on alarm events (armed, disarmed, triggered, failed to arm and more), per partition. Each one goes
+            to a notify service: a phone, a speaker. House Mode messages are set on the House Modes tab.</p>
+        </div>
+        <div class="toolbar">
+          <ha-button ?disabled=${!!editor} @click=${this.addNotificationClick}>
+            <ha-icon slot="start" icon="mdi:plus"></ha-icon>${localize('panels.actions.cards.notifications.actions.new_notification', lang)}</ha-button>
+          <span class="secondary" style="display:inline">${data.length} notification${data.length === 1 ? '' : 's'} ·
+            ${data.filter(n => n.enabled).length} enabled</span>
+        </div>
+        ${editor ? html`<div class="nt-editor">${editor}</div>` : nothing}
+        ${editor
+          ? nothing
+          : data.length
+            ? html`<div class="nt-list">
+                ${groups.map(g => html`<div class="nt-group">${computeEventDisplay(g.ev as EAlarmEvent, hass)?.name || g.ev}</div>${g.items.map(row)}`)}
+                ${other.length ? html`<div class="nt-group">Other</div>${other.map(row)}` : nothing}
+              </div>`
+            : html`<div class="empty">${localize('panels.actions.cards.notifications.table.no_items', lang)}</div>`}
+      </ha-card>
+    `;
+  }
+
+  private setEnabled(id: string, enabled: boolean) {
+    saveAutomation(this.hass!, { automation_id: id, enabled })
+      .then(() => this._fetchData())
+      .catch(e => handleError(e, this));
+  }
+
+  private deleteNotification(n: AlarmoAutomation) {
+    if (!window.confirm(`Delete the notification "${n.name}"?`)) return;
+    deleteAutomation(this.hass!, n.automation_id!)
+      .then(() => this._fetchData())
+      .catch(e => handleError(e, this));
   }
 
   private getAreaForAutomation = (automation: AlarmoAutomation) => {
@@ -305,5 +354,61 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
     navigate(this, exportPath('actions', 'new_action'), true);
   }
 
-  static styles = commonStyle;
+  static styles = [
+    commonStyle,
+    extStyles,
+    css`
+      :host {
+        padding: 0;
+      }
+      .nt-list {
+        padding: 0 16px 12px;
+      }
+      .nt-group {
+        color: var(--accent-color);
+        font-weight: 500;
+        font-size: 13px;
+        margin: 12px 0 2px;
+      }
+      .nt-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 0;
+        border-bottom: 1px solid var(--divider-color);
+      }
+      .nt-row.off .nt-name button,
+      .nt-row.off .nt-icon {
+        opacity: 0.55;
+      }
+      .nt-icon {
+        color: var(--primary-color);
+        margin: 0 4px;
+      }
+      .nt-name {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-width: 0;
+        align-items: flex-start;
+      }
+      .nt-chip {
+        border: 1px solid var(--divider-color);
+        border-radius: 14px;
+        padding: 1px 10px;
+        background: none;
+        color: var(--secondary-text-color);
+        font: inherit;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .nt-chip.on {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+      .nt-editor {
+        padding: 0 16px 12px;
+      }
+    `,
+  ];
 }

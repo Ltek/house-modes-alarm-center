@@ -63,6 +63,20 @@ export class AlarmoSettingsRow extends LitElement {
       :host([nested]:not([narrow])) {
         padding: 16px 16px 0px 32px;
       }
+      /* ext: compact row (Notifications editor): label and control side by side, one line per field */
+      :host([compact]) {
+        display: grid;
+        grid-template-columns: minmax(180px, 260px) minmax(0, 640px);
+        gap: 4px 16px;
+        align-items: center;
+        min-height: 0;
+        padding: 8px 0;
+        border: none;
+        border-top: 1px solid var(--divider-color);
+      }
+      :host([compact][narrow]) {
+        grid-template-columns: minmax(0, 1fr);
+      }
       :host([first]) {
         border-top: none;
       }

@@ -3,6 +3,27 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.62 — 2026-11-05
+
+Restart Home Assistant after the update.
+
+- House Modes can send a notification on **every change**: House Modes tab → *Helpers and notifications* → tick
+  *Notify on every change*. The message says the mode, where it came from and why ("House Mode: Stay — from Sleep ·
+  timer"). Sources can be left out (e.g. no message for schedule changes). Live only, like the other House Mode
+  messages.
+- `select.alarmo_house_mode` has two new attributes: `previous_since` and `previous_duration` (seconds), so a
+  "last duration" automation is no longer needed.
+- Actions tab: the *House Mode Actions* grid (Home Assistant labels and suggestions) is replaced by **What runs on
+  each mode**: per House Mode, the scripts and scenes it runs (its steps), its timers, and the automations whose
+  triggers react when the mode starts or ends. Automations that only use the House Mode as a condition are not
+  listed. The mode editor's list of related automations reads the triggers in the same way.
+- Scenes: *Runs when these House Modes start* makes the scene an entering step of those modes (it was a label).
+  Existing labels stay in Home Assistant but are no longer used.
+- Notifications tab, per the design guide: one row per notification (event icon, name, partition, arm modes and
+  where it goes, an Enabled chip, edit, delete), grouped by event, with *New notification* at the top. The editor is
+  one compact panel: label and field side by side, *To YAML* in its header, Save / Cancel / delete at the bottom.
+  Editing a notification no longer shows the Alarm Events list under it.
+
 ## v2026.11.05.61 — 2026-11-05
 
 Restart Home Assistant after the update.

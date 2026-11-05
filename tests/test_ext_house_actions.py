@@ -61,3 +61,20 @@ async def test_items_and_labels(hass: Any, hass_storage: Any, hass_ws_client: An
     res = (await client.receive_json())["result"]
     assert next(i for i in res["items"] if i["entity_id"] == "automation.sleep_lights")["labels"] == []
     assert reg.async_get("automation.sleep_lights").labels == {other.label_id}
+
+
+def test_reactions_from_triggers() -> None:
+    """Entering / leaving modes from state triggers on the House Mode entities; any change; not from conditions."""
+    from custom_components.alarmo.ext_house_actions import reactions  # noqa: PLC0415
+
+    ents = {"input_select.house_mode", "select.alarmo_house_mode"}
+    cfg = {"triggers": [{"trigger": "state", "entity_id": ["input_select.house_mode"], "to": ["sleep", "Away"]},
+                        {"platform": "state", "entity_id": "input_select.house_mode", "from": "Late Night", "to": None}]}
+    assert reactions(cfg, ents, MODES) == {"to": ["Sleep", "Away"], "from": ["Late Night"], "any": False}
+    assert reactions({"trigger": {"platform": "state", "entity_id": "select.alarmo_house_mode"}}, ents, MODES)["any"]
+    assert reactions({"triggers": [{"trigger": "event", "event_type": "alarmo_house_mode_changed", "event_data": {"name": "Stay"}}]},
+                     ents, MODES) == {"to": ["Stay"], "from": [], "any": False}
+    # a condition on the House Mode is not a reaction; disabled triggers and attribute triggers neither
+    assert reactions({"triggers": [{"trigger": "time", "at": "06:00"}],
+                      "conditions": [{"condition": "state", "entity_id": "input_select.house_mode", "state": "Sleep"}]}, ents, MODES) is None
+    assert reactions({"triggers": [{"trigger": "state", "entity_id": "input_select.house_mode", "to": "Sleep", "enabled": False}]}, ents, MODES) is None

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -23,6 +24,18 @@ async def async_setup_entry(
     if ext is not None:
         async_add_entities([HouseModeSelect(ext)])
 
+
+
+def previous_span(settings: dict) -> tuple[str | None, int | None]:
+    """When the previous mode started and how long it lasted (seconds), from the House Mode history."""
+    hist = [h for h in settings.get("history") or [] if h.get("from") != h.get("to")]
+    if len(hist) < 2 or not settings.get("changed_at"):
+        return None, None
+    start = dt_util.parse_datetime(hist[-2]["at"])
+    end = dt_util.parse_datetime(settings["changed_at"])
+    if start is None or end is None:
+        return None, None
+    return hist[-2]["at"], max(0, round((end - start).total_seconds()))
 
 class HouseModeSelect(SelectEntity):
     """select.alarmo_house_mode — shows and sets the House Mode."""
@@ -75,8 +88,11 @@ class HouseModeSelect(SelectEntity):
         """Previous mode, last source, when, pending timers."""
         s = self.ext.house.settings
         prev = next((m for m in s["modes"] if m["id"] == s["previous"]), None)
+        prev_since, prev_duration = previous_span(s)
         return {
             "previous": prev["name"] if prev else None,
+            "previous_since": prev_since,
+            "previous_duration": prev_duration,
             "source": s["source"],
             "changed_at": s["changed_at"],
             "last_result": self.ext.house.last_result,

@@ -56,6 +56,8 @@ export type HouseSettings = {
   input_select?: string | null;
   lock_keypads: LockKeypad[];
   notify_services: string[];
+  notify_changes?: boolean;
+  notify_skip_sources?: string[];
   current: string | null;
   previous: string | null;
   source: string | null;
@@ -285,3 +287,33 @@ export const describeStep = (st: HouseStep, modeName: (id: string) => string): s
   ]
     .filter(Boolean)
     .join(' · ');
+
+/** Short description of a timer, e.g. "after 10 min → Stay · only from Away, Stay · 20:30–05:00". */
+export const describeTimer = (t: HouseTimer, modeName: (id: string) => string): string =>
+  [
+    `${t.at ? `at ${t.at}` : `after ${t.after_minutes} min`} → ${t.then === 'previous' ? 'the previous mode' : modeName(t.then)}`,
+    t.from_modes.length ? `only from ${t.from_modes.map(modeName).join(', ')}` : '',
+    t.window_start || t.window_end ? `${t.window_start || '00:00'}–${t.window_end || '24:00'}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+/** Names of the modes that run ``entityId`` (a scene or script) as an "entering" step. */
+export const enterStepModes = (s: HouseSettings, entityId: string): string[] =>
+  s.modes.filter(m => (m.steps || []).some(st => st.entity_id === entityId && st.when === 'enter')).map(m => m.name);
+
+/**
+ * Make ``entityId`` an "entering, after the change" step of exactly the modes in ``names``. Other steps are kept; a
+ * mode that already runs it on entering keeps that step as it is. Returns the new settings.
+ */
+export const setEnterSteps = (s: HouseSettings, entityId: string, names: string[]): HouseSettings => ({
+  ...s,
+  modes: s.modes.map(m => {
+    const steps = m.steps || [];
+    const has = steps.some(st => st.entity_id === entityId && st.when === 'enter');
+    const want = names.includes(m.name);
+    if (want && !has) return { ...m, steps: [...steps, { entity_id: entityId, when: 'enter', phase: 'after', modes: [], wait: false }] };
+    if (!want && has) return { ...m, steps: steps.filter(st => !(st.entity_id === entityId && st.when === 'enter')) };
+    return m;
+  }),
+});

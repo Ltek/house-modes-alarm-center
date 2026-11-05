@@ -1,12 +1,12 @@
 // Scenes card (House Mode Actions tab): create and edit native Home Assistant scenes inside Alarmo, ported from the
 // Color Light & Scene Manager card. Scenes stay ordinary scene.* entities (HA's scene config API), and can be tied to
-// House Modes with the same "House Mode: <mode>" labels.
+// House Modes: ticking a mode makes the scene one of that mode's "entering" steps (it runs when the mode starts).
 import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
 import { navigate } from '../../helpers';
 import { toast, wsErrorMessage } from '../../data/ext-websockets';
-import { setHouseActionModes } from '../../data/house-actions';
+import { HouseSettings, enterStepModes, fetchHouse, saveHouse, setEnterSteps } from '../../data/house';
 import {
   SceneConfig,
   SceneMember,
@@ -40,10 +40,8 @@ const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 @customElement('alarmo-ext-scene-editor')
 export class SceneEditor extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
-  /** House Mode names (columns of the House Mode Actions grid) */
-  @property({ attribute: false }) modes: string[] = [];
-  /** scene entity_id -> House Modes it is labelled with */
-  @property({ attribute: false }) labels: Record<string, string[]> = {};
+  /** the House Mode settings: which modes run each scene as an "entering" step */
+  @property({ attribute: false }) house?: HouseSettings;
 
   @state() private open: string | null = null; // scene config id being edited ('new' = new scene)
   @state() private draft?: SceneConfig;
@@ -95,12 +93,20 @@ export class SceneEditor extends LitElement {
       const cfg = await loadScene(this.hass, id);
       this.saved = cfg;
       this.draft = clone(cfg);
-      this.draftModes = [...(this.labels[entityId] || [])];
+      this.draftModes = this.modesFor(entityId);
       this.open = id;
       this.pick = [];
     } catch (err) {
       this.error = `Could not load the scene: ${wsErrorMessage(err)}`;
     }
+  }
+
+  private modesFor(entityId: string): string[] {
+    return this.house ? enterStepModes(this.house, entityId) : [];
+  }
+
+  private get modes(): string[] {
+    return this.house ? this.house.modes.map(m => m.name) : [];
   }
 
   private startNew() {
@@ -134,13 +140,15 @@ export class SceneEditor extends LitElement {
     this.error = '';
     try {
       await saveScene(this.hass, { ...d, name: d.name.trim() });
-      const before = this.open === 'new' ? [] : this.labels[sceneEntityFor(this.hass, d.id) || ''] || [];
+      const before = this.open === 'new' ? [] : this.modesFor(sceneEntityFor(this.hass, d.id) || '');
       if (JSON.stringify([...before].sort()) !== JSON.stringify([...this.draftModes].sort())) {
-        // the scene entity appears after the reload: wait for it, then set its House Mode labels
+        // the scene entity appears after the reload: wait for it, then make it a step of the ticked modes
         let eid: string | null = null;
         for (let i = 0; i < 20 && !(eid = sceneEntityFor(this.hass, d.id)); i++) await new Promise(r => setTimeout(r, 300));
-        if (eid) await setHouseActionModes(this.hass, [{ entity_id: eid, modes: this.draftModes }]);
-        else this.error = 'Scene saved, but its House Mode labels could not be set yet: reload the page and tick them in the grid.';
+        if (eid) {
+          const fresh = await fetchHouse(this.hass);
+          await saveHouse(this.hass, setEnterSteps(fresh.settings, eid, this.draftModes));
+        } else this.error = 'Scene saved, but it could not be added to the House Modes yet: reload the page and tick them again.';
       }
       toast(this, `Scene "${d.name}" saved.`);
       this.open = null;
@@ -173,7 +181,8 @@ export class SceneEditor extends LitElement {
             House Modes (House Modes tab → a mode → <em>Scenes and scripts</em>), automations, dashboards or voice.</p>
           <ul>
             <li><strong>New scene</strong>: choose entities, capture how they are now, then fine-tune each one.</li>
-            <li>Tick House Modes to label the scene <em>House Mode: &lt;mode&gt;</em>, so it shows in the grid above.</li>
+            <li><em>Runs when these House Modes start</em>: the scene becomes an entering step of those modes (in Live). For
+              other timing (before arming, on leaving, only from some modes) edit the step in the mode.</li>
             <li>Scenes written in YAML (no id) can be activated but not edited here.</li>
           </ul>
         </div>
@@ -185,12 +194,12 @@ export class SceneEditor extends LitElement {
         </div>
         ${this.open === 'new' ? this.renderEditor() : nothing}
         <div class="table-wrap"><table class="full">
-          <thead><tr><th class="icon"></th><th>Scene</th><th>House Modes</th><th>Alarm events</th><th></th></tr></thead>
+          <thead><tr><th class="icon"></th><th>Scene</th><th>Runs when starting</th><th>Alarm events</th><th></th></tr></thead>
           <tbody>${scenes.map(s => html`
             <tr>
               <td class="icon">${entityBadge(this.hass, s.entity_id)}</td>
               <td class="name">${s.name}<span class="secondary">${s.entity_id}${s.id ? '' : ' · YAML, not editable here'}</span></td>
-              <td>${(this.labels[s.entity_id] || []).join(', ') || html`<span class="secondary" style="display:inline">—</span>`}</td>
+              <td>${this.modesFor(s.entity_id).join(', ') || html`<span class="secondary" style="display:inline">—</span>`}</td>
               <td class="events">
                 ${this.eventsFor(s.entity_id).map(e => html`<button class="ev-chip" title=${`Edit the Alarm Event "${e.name}"`}
                     @click=${() => navigate(this, exportPath('actions', { params: { edit_action: e.automation_id! } }), true)}>
@@ -222,7 +231,7 @@ export class SceneEditor extends LitElement {
     const d = this.draft!;
     const members = Object.keys(d.entities).sort();
     const dirty = !this.saved || JSON.stringify(this.saved) !== JSON.stringify(d) ||
-      JSON.stringify([...(this.labels[sceneEntityFor(this.hass, d.id) || ''] || [])].sort()) !== JSON.stringify([...this.draftModes].sort());
+      JSON.stringify([...this.modesFor(sceneEntityFor(this.hass, d.id) || '')].sort()) !== JSON.stringify([...this.draftModes].sort());
     const candidates = Object.keys(this.hass.states)
       .filter(e => sceneSupported(e) && !(e in d.entities))
       .sort()
@@ -235,7 +244,7 @@ export class SceneEditor extends LitElement {
           @value-changed=${(e: CustomEvent) => this.set(x => (x.icon = e.detail.value))}></alarmo-ext-icon-field>
       </div>
       ${this.modes.length
-        ? html`<alarmo-ext-multi-picker .label=${'House Modes'} .placeholder=${'Add a House Mode…'} .options=${this.modes.map(m => ({ value: m, label: m }))}
+        ? html`<alarmo-ext-multi-picker .label=${'Runs when these House Modes start'} .placeholder=${'Add a House Mode…'} .options=${this.modes.map(m => ({ value: m, label: m }))}
             .value=${this.draftModes} @value-changed=${(e: CustomEvent) => (this.draftModes = e.detail.value)}></alarmo-ext-multi-picker>`
         : nothing}
       <h4 class="subhead" style="margin-top:10px">Entities</h4>

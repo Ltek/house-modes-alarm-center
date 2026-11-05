@@ -37,6 +37,9 @@ const SHOTS = [
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab').shadowRoot.querySelector('alarm-view-house-actions');
       v.shadowRoot.querySelector('details.collapse').open = true;
       await new Promise(r => setTimeout(r, 100));
+      const subs = v.shadowRoot.querySelectorAll('details.collapse.sub');
+      if (subs[2]) subs[2].open = true;
+      await new Promise(r => setTimeout(r, 100));
     });
   }],
   ['/alarmo/actions', '03-scenes', async (p) => {
@@ -60,6 +63,13 @@ const SHOTS = [
     });
   }],
   ['/alarmo/zones', '04-zone-assignments'],
+  ['/alarmo/notifications', '17-notifications'],
+  ['/alarmo/notifications', '18-notification-editor', async (p) => {
+    await p.evaluate(() => {
+      const t = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions');
+      t.shadowRoot.querySelector('ha-button').click();
+    });
+  }],
   ['/alarmo/zones', '05-zone-editor', async (p) => {
     await p.evaluate(() => {
       const t = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-sensor-table');
@@ -273,7 +283,12 @@ const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: p
 const page = await browser.newPage({ viewport: { width: 1360, height: 900 }, deviceScaleFactor: 1 });
 page.on('console', (m) => m.type() === 'error' && console.log('page:', m.text()));
 page.on('pageerror', (e) => console.log('page error:', e.message));
+// ONLY=01-house-modes,02-actions captures just those (and skips the card pages)
+const ONLY = process.env.ONLY ? process.env.ONLY.split(',') : null;
 for (const [url, name, action] of SHOTS) {
+  if (ONLY && !ONLY.includes(name)) continue;
+  // the panel remembers "came from Notifications" in sessionStorage and would redirect /alarmo/actions there
+  await page.evaluate(() => { try { sessionStorage.clear(); } catch (_e) { /* about:blank */ } });
   await page.goto(base + url);
   await page.waitForFunction(() => {
     const p = document.querySelector('alarm-panel');
@@ -290,6 +305,7 @@ for (const [url, name, action] of SHOTS) {
   await page.screenshot({ path: file, fullPage: true, clip: { x: 0, y: 0, width: 1360, height: Math.min(height, MAX_HEIGHT) } });
   console.log('saved', path.relative(ROOT, file));
 }
+if (ONLY) { await browser.close(); server.close(); process.exit(0); }
 // dashboard card
 await page.setViewportSize({ width: 1360, height: 760 });
 await page.goto(base + '/card');

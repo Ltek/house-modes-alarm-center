@@ -107,16 +107,19 @@ export class NotificationEditorCard extends LitElement {
     if (!this.hass || !this.areas || !this.alarmoConfig) return html``;
     return html`
       <div class="heading">
-        <ha-icon-button .path=${mdiClose} @click=${this._cancelClick} class="icon"></ha-icon-button>
-        <div class="header">${localize('panels.actions.cards.new_notification.title', this.hass.language)}</div>
-        <div class="description">
-          ${localize('panels.actions.cards.new_notification.description', this.hass.language)}
-        </div>
+        <div class="header">${this.item?.automation_id ? this.item.name || localize('panels.actions.cards.new_notification.title', this.hass.language) : localize('panels.actions.cards.new_notification.title', this.hass.language)}</div>
+        <ha-button appearance="plain" @click=${this._toggleYamlMode}>
+          <ha-icon slot="start" icon="mdi:code-braces"></ha-icon>
+          ${this.viewMode == ViewMode.Yaml
+            ? localize('components.editor.ui_mode', this.hass.language)
+            : localize('components.editor.yaml_mode', this.hass.language)}
+        </ha-button>
+        <ha-icon-button .path=${mdiClose} @click=${this._cancelClick} class="icon" .label=${'Close'}></ha-icon-button>
       </div>
       <div class="section-header">${localize('panels.actions.cards.new_notification.trigger', this.hass.language)}</div>
-      <ha-card>
+      <div class="box">
         <div class="card-content">
-          <alarmo-settings-row .narrow=${this.narrow} .large=${true} first>
+          <alarmo-settings-row .narrow=${this.narrow} compact first>
             <span slot="heading">
               ${localize('panels.actions.cards.new_notification.fields.event.heading', this.hass.language)}
             </span>
@@ -138,7 +141,7 @@ export class NotificationEditorCard extends LitElement {
 
           ${Object.keys(this.areas).length > 1
         ? html`
-                <alarmo-settings-row .narrow=${this.narrow} .large=${true}>
+                <alarmo-settings-row .narrow=${this.narrow} compact>
                   <span slot="heading">
                     ${localize('panels.actions.cards.new_action.fields.area.heading', this.hass.language)}
                   </span>
@@ -160,7 +163,7 @@ export class NotificationEditorCard extends LitElement {
               `
         : ''}
 
-          <alarmo-settings-row .narrow=${this.narrow} .large=${true} last>
+          <alarmo-settings-row .narrow=${this.narrow} compact last>
             <span slot="heading">
               ${localize('panels.actions.cards.new_notification.fields.mode.heading', this.hass.language)}
             </span>
@@ -180,14 +183,14 @@ export class NotificationEditorCard extends LitElement {
             ></alarmo-selector>
           </alarmo-settings-row>
         </div>
-      </ha-card>
+      </div>
 
       <div class="section-header">${localize('panels.actions.cards.new_notification.action', this.hass.language)}</div>
-      <ha-card>
+      <div class="box">
         <div class="card-content">
           ${this.viewMode == ViewMode.UI
         ? html`
-                <alarmo-settings-row .narrow=${this.narrow} .large=${true} first>
+                <alarmo-settings-row .narrow=${this.narrow} compact first>
                   <span slot="heading">
                     ${localize('panels.actions.cards.new_notification.fields.target.heading', this.hass.language)}
                   </span>
@@ -209,7 +212,7 @@ export class NotificationEditorCard extends LitElement {
 
                 ${!this.config.actions[0].service || computeDomain(this.config.actions[0].service) == 'notify'
             ? html`
-                      <alarmo-settings-row .narrow=${this.narrow}>
+                      <alarmo-settings-row .narrow=${this.narrow} compact>
                         <span slot="heading">
                           ${localize('panels.actions.cards.new_notification.fields.title.heading', this.hass.language)}
                         </span>
@@ -234,7 +237,7 @@ export class NotificationEditorCard extends LitElement {
             : ''}
                 ${this.config.actions[0].service && computeDomain(this.config.actions[0].service) == 'tts'
             ? html`
-                      <alarmo-settings-row .narrow=${this.narrow} .large=${true} first>
+                      <alarmo-settings-row .narrow=${this.narrow} compact first>
                         <span slot="heading">
                           ${localize('panels.actions.cards.new_action.fields.entity.heading', this.hass.language)}
                         </span>
@@ -258,7 +261,7 @@ export class NotificationEditorCard extends LitElement {
                   
                 ${this.config.actions[0].service && this.config.actions[0].service == 'tts.speak'
             ? html`
-                      <alarmo-settings-row .narrow=${this.narrow} .large=${true}>
+                      <alarmo-settings-row .narrow=${this.narrow} compact>
                         <span slot="heading">
                           ${localize('panels.actions.cards.new_notification.fields.media_player_entity.heading', this.hass.language)}
                         </span>
@@ -279,7 +282,7 @@ export class NotificationEditorCard extends LitElement {
                     `
             : ''}
 
-                <alarmo-settings-row .narrow=${this.narrow} .large=${true} last>
+                <alarmo-settings-row .narrow=${this.narrow} compact last>
                   <span slot="heading">
                     ${localize('panels.actions.cards.new_notification.fields.message.heading', this.hass.language)}
                   </span>
@@ -326,7 +329,7 @@ export class NotificationEditorCard extends LitElement {
 
                 ${this._getOpenSensorsFormat() !== null
             ? html`
-                      <alarmo-settings-row .narrow=${this.narrow} .large=${true}>
+                      <alarmo-settings-row .narrow=${this.narrow} compact>
                         <span slot="heading">
                           ${localize(
               'panels.actions.cards.new_notification.fields.open_sensors_format.heading',
@@ -355,7 +358,7 @@ export class NotificationEditorCard extends LitElement {
               (getArmModeWildCardOptions(this.hass).length == 1 &&
                 getArmModeWildCardOptions(this.hass)[0].value != this._getArmModeFormat()))
             ? html`
-                      <alarmo-settings-row .narrow=${this.narrow} .large=${true}>
+                      <alarmo-settings-row .narrow=${this.narrow} compact>
                         <span slot="heading">
                           ${localize(
               'panels.actions.cards.new_notification.fields.arm_mode_format.heading',
@@ -404,14 +407,6 @@ export class NotificationEditorCard extends LitElement {
               `}
         </div>
 
-        <div class="toggle-button">
-          <ha-button appearance="filled" @click=${this._toggleYamlMode}>
-            <ha-icon slot="start" icon="hass:shuffle-variant"></ha-icon>
-            ${this.viewMode == ViewMode.Yaml
-        ? localize('components.editor.ui_mode', this.hass.language)
-        : localize('components.editor.yaml_mode', this.hass.language)}
-          </ha-button>
-        </div>
 
         <div class="card-actions">
           <ha-button appearance="plain" ?disabled=${!this._validAction()} @click=${this._testClick}>
@@ -419,12 +414,12 @@ export class NotificationEditorCard extends LitElement {
             <ha-icon slot="end" icon="hass:arrow-right"></ha-icon>
           </ha-button>
         </div>
-      </ha-card>
+      </div>
 
       <div class="section-header">${localize('panels.actions.cards.new_notification.options', this.hass.language)}</div>
-      <ha-card>
+      <div class="box">
         <div class="card-content">
-          <alarmo-settings-row .narrow=${this.narrow} .large=${true} first>
+          <alarmo-settings-row .narrow=${this.narrow} compact first>
             <span slot="heading">
               ${localize('panels.actions.cards.new_notification.fields.name.heading', this.hass.language)}
             </span>
@@ -441,32 +436,20 @@ export class NotificationEditorCard extends LitElement {
             ></ha-input>
           </alarmo-settings-row>
 
-          ${this.item?.automation_id
-        ? html`
-                <alarmo-settings-row .narrow=${this.narrow}>
-                  <span slot="heading">
-                    ${localize('panels.actions.cards.new_notification.fields.delete.heading', this.hass.language)}
-                  </span>
-                  <span slot="description">
-                    ${localize('panels.actions.cards.new_notification.fields.delete.description', this.hass.language)}
-                  </span>
-                  <div>
-                    <ha-button appearance="filled" variant="danger" @click=${this._deleteClick}>
-                      <ha-icon slot="start" icon="hass:trash-can-outline"></ha-icon>
-                      ${this.hass.localize('ui.common.delete')}
-                    </ha-button>
-                  </div>
-                </alarmo-settings-row>
-              `
-        : ''}
         </div>
-      </ha-card>
+      </div>
 
       <div class="actions">
-        <ha-button appearance="filled" @click=${this._saveClick} style="width: 100%">
+        <ha-button appearance="filled" @click=${this._saveClick}>
           <ha-icon slot="start" icon="hass:content-save-outline"></ha-icon>
           ${this.hass.localize('ui.common.save')}
         </ha-button>
+        <ha-button appearance="plain" @click=${this._cancelClick}>${this.hass.localize('ui.common.cancel')}</ha-button>
+        <span style="flex:1"></span>
+        ${this.item?.automation_id
+          ? html`<ha-icon-button .label=${this.hass.localize('ui.common.delete')} title=${this.hass.localize('ui.common.delete')}
+              @click=${this._deleteClick}><ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>`
+          : nothing}
       </div>
     `;
   }
@@ -838,6 +821,7 @@ export class NotificationEditorCard extends LitElement {
 
   private _deleteClick(ev: Event) {
     if (!this.item?.automation_id) return;
+    if (!window.confirm(`Delete the notification "${this.item.name}"?`)) return;
     deleteAutomation(this.hass, this.item.automation_id)
       .catch(e => handleError(e, ev))
       .then(() => this._cancelClick());
@@ -875,62 +859,56 @@ export class NotificationEditorCard extends LitElement {
 
   static get styles(): CSSResultGroup {
     return css`
-      div.content {
-        padding: 28px 20px 0;
-        max-width: 1040px;
-        margin: 0 auto;
+      /* ext: one compact panel (CARD_DESIGN_SYSTEM): accent group subtitles, label and control on one line */
+      :host {
+        display: block;
+        border: 1px solid var(--accent-color);
+        border-radius: 10px;
+        padding: 4px 12px 8px;
+      }
+      div.heading {
         display: flex;
-        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin: 4px 0 0;
       }
       div.header {
-        font-size: 24px;
-        font-weight: 400;
-        letter-spacing: -0.012em;
-        line-height: 32px;
-        opacity: var(--dark-primary-opacity);
+        flex: 1 1 auto;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 600;
+        font-size: 13px;
       }
       div.section-header {
-        font-size: 18px;
-        font-weight: 400;
-        letter-spacing: -0.012em;
-        line-height: 32px;
-        opacity: var(--dark-primary-opacity);
-        margin: 20px 0px 5px 10px;
+        color: var(--accent-color);
+        font-weight: 500;
+        font-size: 14px;
+        margin: 12px 0 0;
+      }
+      div.box {
+        border-bottom: 1px solid var(--divider-color);
+      }
+      div.box .card-content {
+        padding: 0;
+      }
+      div.box .card-actions {
+        border: none;
+        padding: 4px 0 8px;
       }
       div.actions {
-        padding: 20px 0px 30px 0px;
-      }
-      .toggle-button {
-        position: absolute;
-        right: 20px;
-        top: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 0 4px;
       }
       h2 {
         margin-top: 10px;
-        font-size: 24px;
+        font-size: 18px;
         font-weight: 400;
-        letter-spacing: -0.012em;
       }
       span.error-message {
         color: var(--error-color);
-      }
-      div.heading {
-        display: grid;
-        grid-template-areas:
-          'header icon'
-          'description icon';
-        grid-template-rows: 1fr 1fr;
-        grid-template-columns: 1fr 48px;
-        margin: 20px 0px 10px 10px;
-      }
-      div.heading .icon {
-        grid-area: icon;
-      }
-      div.heading .header {
-        grid-area: header;
-      }
-      div.heading .description {
-        grid-area: description;
       }
       ha-textarea[invalid] {
         --mdc-text-field-idle-line-color: var(--mdc-theme-error);

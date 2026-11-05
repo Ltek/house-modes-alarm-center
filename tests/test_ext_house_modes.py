@@ -421,3 +421,34 @@ async def test_house_mode_steps(hass: Any, hass_storage: Any, tmp_path: Any) -> 
     await mgr.async_set_mode("disarmed", "manual")
     await _settle(hass)
     assert calls == [("scene", "turn_on", {"entity_id": "scene.stay_ends"})]
+
+
+async def test_notify_every_change_and_previous_duration(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """notify_changes: one message per change with where it came from and why; skipped sources are quiet.
+
+    The select entity says when the previous mode started and how long it lasted.
+    """
+    calls = async_mock_service(hass, "notify", "phone_a")
+    mgr = await _setup(hass, hass_storage, tmp_path, notify_services=["notify.phone_a"], notify_changes=True,
+                       notify_skip_sources=["schedule"])
+    await mgr.async_set_mode("Stay", "manual")
+    await _settle(hass)
+    assert [(c.data["title"], c.data["message"]) for c in calls] == [("House Mode: Stay", "by hand")]
+    await mgr.async_set_mode("Guest", "schedule")
+    await _settle(hass)
+    assert len(calls) == 1  # schedule is skipped
+    await mgr.async_set_mode("Disarmed", "automation")
+    await _settle(hass)
+    assert (calls[-1].data["title"], calls[-1].data["message"]) == ("House Mode: Disarmed", "from Guest · by an automation")
+    attrs = hass.states.get(SELECT).attributes
+    assert attrs["previous"] == "Guest" and attrs["previous_since"] and attrs["previous_duration"] >= 0
+    # off by default
+    assert normalize({})["notify_changes"] is False
+
+
+def test_change_message() -> None:
+    """Title and message of the every-change notification."""
+    from custom_components.alarmo.house_modes import change_message  # noqa: PLC0415
+
+    assert change_message({"name": "Sleep"}, {"name": "Stay"}, "timer") == ("House Mode: Stay", "from Sleep · timer")
+    assert change_message(None, {"name": "Away"}, "presence_away") == ("House Mode: Away", "everyone left")

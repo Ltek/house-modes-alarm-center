@@ -3,6 +3,13 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.54 — 2026-11-05
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **Panel keypad key style**: *Filled* (as before), *Transparent with a border* or *Transparent, no border*, or your
+  own key background and border colors. The key flash still shows on transparent keys.
+
 ## v2026.11.05.53 — 2026-11-05
 
 Restart Home Assistant after the update.

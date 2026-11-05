@@ -509,8 +509,13 @@ export class HouseModesAlarmCenterCard extends LitElement {
   private renderKeypad(link: NonNullable<ReturnType<typeof linkFor>>) {
     const kp = this.dv.keypad;
     const flash = this.config!.key_flash || {};
-    const fl = [flash.border ? `--kf-bd:${resolveColor(flash.border, '')}` : '', flash.background ? `--kf-bg:${resolveColor(flash.background, '')}` : '']
-      .filter(Boolean).join(';');
+    const kb = this.config!.styles?.key_button || {};
+    const fl = [
+      flash.border ? `--kf-bd:${resolveColor(flash.border, '')}` : '',
+      flash.background ? `--kf-bg:${resolveColor(flash.background, '')}` : '',
+      kb.background ? `--k-bg:${resolveColor(kb.background, '')}` : '',
+      kb.border ? `--k-bd:${resolveColor(kb.border, '')}` : '',
+    ].filter(Boolean).join(';');
     const blocked = kp.blocked_keys || '';
     return html`
       <div class="keypad-wrap">
@@ -914,8 +919,8 @@ export class HouseModesAlarmCenterCard extends LitElement {
     .key {
       height: 46px;
       border-radius: 10px;
-      border: 1px solid var(--divider-color);
-      background: var(--secondary-background-color, rgba(127, 127, 127, 0.08));
+      border: 1px solid var(--k-bd, var(--divider-color));
+      background: var(--k-bg, var(--secondary-background-color, rgba(127, 127, 127, 0.08)));
       color: var(--primary-text-color);
       cursor: pointer;
       display: flex;

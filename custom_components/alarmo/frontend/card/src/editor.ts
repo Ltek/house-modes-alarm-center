@@ -410,6 +410,23 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     this.emit({ ...(this.config as CardConfig), styles });
   }
 
+  private keyPreset(): string {
+    const k = this.styleOf('key_button');
+    if (!k.background && !k.border) return 'filled';
+    if (k.background === 'transparent' && !k.border) return 'outline';
+    if (k.background === 'transparent' && k.border === 'none') return 'plain';
+    return '';
+  }
+
+  private setKeyPreset(v: string) {
+    const styles: any = clone((this.config || ({} as any)).styles || {});
+    if (v === 'filled') delete styles.key_button;
+    else if (v === 'outline') styles.key_button = { background: 'transparent' };
+    else if (v === 'plain') styles.key_button = { background: 'transparent', border: 'none' };
+    else return;
+    this.emit({ ...(this.config as CardConfig), styles });
+  }
+
   /** Colors of a set of buttons (§3 control everywhere; 'mode' = each button's own House Mode / arm mode color). */
   private buttonColors(set: 'mode_button' | 'arm_button', icon: 'mode_icon' | 'alarm_icon', own: string, defaults: {
     bg: string; abg: string; ic: string; aic: string; }): TemplateResult {
@@ -708,6 +725,16 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           ${this.toggle('Key functions (OFF, AWAY, STAY, …)', c.show_key_labels, v => this.set('show_key_labels', v))}
           ${this.group('Keys')}
           ${this.select('Shape', c.keypad_shape, [['rounded', 'Rounded rectangles'], ['round', 'Round']], v => this.set('keypad_shape', v))}
+          ${this.select('Style', this.keyPreset(), [
+            ['filled', 'Filled (gray keys with a border)'],
+            ['outline', 'Transparent with a border'],
+            ['plain', 'Transparent, no border'],
+            ...(this.keyPreset() ? [] : [['', 'Custom (the colors below)'] as [string, string]]),
+          ], v => this.setKeyPreset(v))}
+          ${this.color('Key background', this.styleOf('key_button').background, 'Card default (gray)', '#2a2a2a',
+            v => this.setStyle('key_button', 'background', v), [['transparent', 'Transparent']])}
+          ${this.color('Key border', this.styleOf('key_button').border, 'Card default (divider)', '#444444',
+            v => this.setStyle('key_button', 'border', v), [['none', 'None']])}
           ${this.group('When a key is pressed')}
           ${this.color('Border glows', (c.key_flash || {}).border, 'Off', '#03a9f4', v => this.setMap('key_flash', 'border', v))}
           ${this.color('Background flashes', (c.key_flash || {}).background, 'Off', '#03a9f4', v => this.setMap('key_flash', 'background', v))}

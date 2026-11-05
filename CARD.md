@@ -100,6 +100,8 @@ styles:
   `mode_name`, `line1`, `line2`, `mode_label`, `alarm_bar`, `alarm_name`, `alarm_state`, `alarm_button`, `chip`,
   `key_digit`, `key_label`.
 - **Icons** (`size`; `color` for `header_icon`; `color` and `active_color` for `mode_icon` and `alarm_icon`).
+- **Keypad keys** (`key_button`): `background` (e.g. `transparent`), `border` (e.g. `none`); the editor's *Style*:
+  filled, transparent with a border, transparent with no border.
 - **Buttons** (`mode_button`, `arm_button`): `background`, `active_background`, `border`, `active_border`,
   `text_follows_icon`; `arm_button.track` is the bar behind the arm buttons.
 - Color keywords: `mode` (each button's own House Mode / arm mode color), `transparent`, `none` (borders).

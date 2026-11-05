@@ -68,6 +68,7 @@ export type ButtonStyle = {
 export const BUTTON_SETS = {
   mode_button: { label: 'House Mode buttons' },
   arm_button: { label: 'Arm buttons' },
+  key_button: { label: 'Panel keypad keys' },
 } as const;
 export type ButtonSet = keyof typeof BUTTON_SETS;
 

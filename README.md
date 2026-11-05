@@ -124,8 +124,10 @@ the remaining Alarm Events (scripts, and legacy ones to migrate).
 **House Modes** — Away, Stay, Sleep, Guest, Spa, … ([HOUSE-MODES.md](HOUSE-MODES.md))
 - Each mode sets partitions to an Arm Mode (or leaves them), decides **who may change it** (manual, automations,
   schedule, presence, a lock code, the panel keypad), can check zones are closed and change itself back on a timer.
-- Each mode runs native scripts and scenes as **steps** (entering or leaving, before arming or after), and has
-  **timers** (after N minutes or at a clock time, to a mode or back to the previous one).
+- Each mode runs native scripts and scenes as **actions** (entering or leaving, before arming or after), and has
+  **timers** (after N minutes or at a clock time, to a mode or back to the previous one). Each script and scene it runs
+  gets a "House Mode: <mode>" label, and each script a "House Mode action: …" line in its description, so you can find
+  them in Home Assistant. Name them `hm_…` to have them listed first.
 - A notification on every change, if you want one, saying where it came from and why.
 - `select.alarmo_house_mode`, the `alarmo.set_house_mode` service, events, two blueprints, an optional `input_select`
   kept in step.

@@ -80,3 +80,12 @@ test('setEnterSteps adds and removes a scene as an entering step, keeping other 
   assert.deepEqual(b.modes[1].steps, []);
   assert.deepEqual(enterStepModes(a, 'script.lock_up'), ['Stay']);
 });
+
+import { actionChoices, isHmEntity } from '../src/data/house.ts';
+
+test('action choices: scenes and scripts, hm_ ones first', () => {
+  const states = { 'script.zzz': {}, 'scene.hm_spa': {}, 'light.x': {}, 'script.hm_lock_up': {}, 'scene.movie': {} };
+  assert.deepEqual(actionChoices({ states }), ['scene.hm_spa', 'script.hm_lock_up', 'scene.movie', 'script.zzz']);
+  assert.equal(isHmEntity('script.hm_x'), true);
+  assert.equal(isHmEntity('script.xhm_'), false);
+});

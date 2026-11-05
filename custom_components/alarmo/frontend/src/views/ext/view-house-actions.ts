@@ -1,7 +1,7 @@
-// "What runs on each mode" (Actions tab): per House Mode, the scripts and scenes it runs (its steps), its timers,
+// "What runs on each mode" (Actions tab): per House Mode, the scripts and scenes it runs (its actions), its timers,
 // and the Home Assistant automations that react when the mode starts or ends (read from their triggers).
-// Read-only: steps and timers are edited in the mode (House Modes tab), automations in Home Assistant's editor.
-// The Scenes card below it creates native scenes and can make a scene an "entering" step of modes.
+// Read-only: actions and timers are edited in the mode (House Modes tab), automations in Home Assistant's editor.
+// The Scenes card below it creates native scenes and can make a scene an "entering" action of modes.
 import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
@@ -100,7 +100,7 @@ export class AlarmViewHouseActions extends LitElement {
     const steps = m.steps || [];
     const r = reactingTo(items, m.name);
     const counts = [
-      `${steps.length} step${steps.length === 1 ? '' : 's'}`,
+      `${steps.length} action${steps.length === 1 ? '' : 's'}`,
       `${m.timers.length} timer${m.timers.length === 1 ? '' : 's'}`,
       `${r.enter.length + r.leave.length} automation${r.enter.length + r.leave.length === 1 ? '' : 's'}`,
     ].join(' · ');
@@ -112,7 +112,7 @@ export class AlarmViewHouseActions extends LitElement {
         <span class="secondary" style="display:inline">${counts}</span>
       </summary>
       <div class="collapse-body">
-        ${this.group('Steps (run by the mode)', steps.map(st => this.line(st.entity_id, describeStep(st, this.nameOf))),
+        ${this.group('Actions (run by the mode)', steps.map(st => this.line(st.entity_id, describeStep(st, this.nameOf))),
           'None. Add scripts or scenes in the mode on the House Modes tab.')}
         ${this.group('Timers', m.timers.map(t => html`<div class="wr-line"><ha-icon class="wr-ticon" icon="mdi:timer-outline"></ha-icon>
             <div class="wr-name"><span>${describeTimer(t, this.nameOf)}</span></div></div>`), 'None.')}
@@ -136,13 +136,13 @@ export class AlarmViewHouseActions extends LitElement {
     return html`
       ${this.error ? html`<div class="notice error" style="white-space:pre-line;margin:0 0 12px">${this.error}</div>` : nothing}
       ${collapsibleCard('house-actions', 'mdi:home-lightning-bolt-outline', 'What runs on each mode',
-        `${nSteps} step${nSteps === 1 ? '' : 's'} · ${nTimers} timer${nTimers === 1 ? '' : 's'} · ${nAuto} automation${nAuto === 1 ? '' : 's'} react${nAuto === 1 ? 's' : ''}`, 'readonly', html`
+        `${nSteps} action${nSteps === 1 ? '' : 's'} · ${nTimers} timer${nTimers === 1 ? '' : 's'} · ${nAuto} automation${nAuto === 1 ? '' : 's'} react${nAuto === 1 ? 's' : ''}`, 'readonly', html`
         <div class="card-content desc">
-          <p>For each House Mode: the scripts and scenes it runs (its <em>steps</em>), its timers, and the Home Assistant
-            automations whose triggers react when the mode starts or ends. This is an overview: change steps and timers in
+          <p>For each House Mode: the scripts and scenes it runs (its <em>actions</em>), its timers, and the Home Assistant
+            automations whose triggers react when the mode starts or ends. This is an overview: change actions and timers in
             the mode on the <a href="/alarmo/house">House Modes</a> tab, and automations in Home Assistant's editor (click a name).</p>
           <p class="secondary" style="display:block">Automations that only use the House Mode as a condition are not listed.
-            Steps run only in Live.</p>
+            Actions run only in Live.</p>
         </div>
         ${!house.modes.length
           ? html`<div class="notice warn" style="margin:0 16px 12px">No House Modes yet: add them on the House Modes tab.</div>`

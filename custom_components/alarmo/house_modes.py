@@ -122,7 +122,18 @@ class HouseModeManager:
             clean["current"] = None
         await self._store(clean)
         self.async_restart()
+        self.hass.async_create_task(self._sync_actions(clean), "alarmo_house_action_sync")
         return clean
+
+    async def _sync_actions(self, settings: dict) -> None:
+        """Mirror the House Mode actions onto their scripts and scenes (labels, script descriptions)."""
+        from .house_action_sync import async_sync_actions  # noqa: PLC0415
+
+        res = await async_sync_actions(self.hass, settings)
+        rec = getattr(self.ext, "recorder", None)
+        if rec is not None:
+            for err in res["errors"]:
+                rec.add("house", f"House Mode action labels/descriptions not updated: {err}", level="error")
 
     def current(self) -> dict | None:
         """The active House Mode."""
@@ -442,7 +453,7 @@ class HouseModeManager:
             )
 
     async def _run_steps(self, leaving: dict | None, entering: dict | None, phase: str, source: str) -> None:
-        """Run the House Mode steps (native scenes / scripts) for this change and phase. Never raises."""
+        """Run the House Mode actions (native scenes / scripts) for this change and phase. Never raises."""
         steps = steps_for(leaving, entering, phase)
         if not steps:
             return
@@ -470,12 +481,12 @@ class HouseModeManager:
                         "script", "turn_on", {"entity_id": eid, "variables": variables}, blocking=False
                     )
                 if rec is not None:
-                    rec.add("house", f"House Mode step ran: {what}")
-            except Exception as err:  # a failing step must not stop the change or the other steps
-                _LOGGER.warning("House Mode step %s failed: %s", what, err)
+                    rec.add("house", f"House Mode action ran: {what}")
+            except Exception as err:  # a failing action must not stop the change or the other actions
+                _LOGGER.warning("House Mode action %s failed: %s", what, err)
                 if rec is not None:
-                    rec.add("house", f"House Mode step failed: {what}: {err}", level="error")
-                await self._notify("House Mode step failed", f"{what}: {err}")
+                    rec.add("house", f"House Mode action failed: {what}: {err}", level="error")
+                await self._notify("House Mode action failed", f"{what}: {err}")
 
     def _event(
         self, event_type: str, mode: dict | None, source: str, **extra: Any

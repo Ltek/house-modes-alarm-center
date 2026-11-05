@@ -3,6 +3,22 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.63 — 2026-11-05
+
+Restart Home Assistant after the update.
+
+- House Mode **steps are now called actions**, everywhere in the panel, the Activity log and the notifications
+  ("House Mode action failed"). Nothing to change: the stored settings are the same.
+- When you save the House Modes, each script and scene a mode runs gets a **"House Mode: <mode>" label** (one per
+  mode; removed when no mode runs it, other labels are kept), so you can filter Home Assistant's Scripts and Scenes
+  lists by House Mode.
+- Each such script in `scripts.yaml` also gets a first **description line**, e.g. "House Mode action: Sleep, Away ·
+  entering, before arming". Your own description text is kept below it. The file is only written when a line
+  changes, the same way Home Assistant's script editor saves it (so, as with that editor, comments in
+  `scripts.yaml` are not kept). Scripts loaded from other files are left alone.
+- Both are written from the mode's action list and never read back: the House Modes tab stays the one place to edit.
+- The action picker lists `hm_…` scripts and scenes first.
+
 ## v2026.11.05.62 — 2026-11-05
 
 Restart Home Assistant after the update.

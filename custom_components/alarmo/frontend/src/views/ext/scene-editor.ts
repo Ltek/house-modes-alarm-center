@@ -1,6 +1,6 @@
 // Scenes card (House Mode Actions tab): create and edit native Home Assistant scenes inside Alarmo, ported from the
 // Color Light & Scene Manager card. Scenes stay ordinary scene.* entities (HA's scene config API), and can be tied to
-// House Modes: ticking a mode makes the scene one of that mode's "entering" steps (it runs when the mode starts).
+// House Modes: ticking a mode makes the scene one of that mode's "entering" actions (it runs when the mode starts).
 import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
@@ -40,7 +40,7 @@ const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 @customElement('alarmo-ext-scene-editor')
 export class SceneEditor extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
-  /** the House Mode settings: which modes run each scene as an "entering" step */
+  /** the House Mode settings: which modes run each scene as an "entering" action */
   @property({ attribute: false }) house?: HouseSettings;
 
   @state() private open: string | null = null; // scene config id being edited ('new' = new scene)
@@ -142,7 +142,7 @@ export class SceneEditor extends LitElement {
       await saveScene(this.hass, { ...d, name: d.name.trim() });
       const before = this.open === 'new' ? [] : this.modesFor(sceneEntityFor(this.hass, d.id) || '');
       if (JSON.stringify([...before].sort()) !== JSON.stringify([...this.draftModes].sort())) {
-        // the scene entity appears after the reload: wait for it, then make it a step of the ticked modes
+        // the scene entity appears after the reload: wait for it, then make it an action of the ticked modes
         let eid: string | null = null;
         for (let i = 0; i < 20 && !(eid = sceneEntityFor(this.hass, d.id)); i++) await new Promise(r => setTimeout(r, 300));
         if (eid) {
@@ -181,8 +181,8 @@ export class SceneEditor extends LitElement {
             House Modes (House Modes tab → a mode → <em>Scenes and scripts</em>), automations, dashboards or voice.</p>
           <ul>
             <li><strong>New scene</strong>: choose entities, capture how they are now, then fine-tune each one.</li>
-            <li><em>Runs when these House Modes start</em>: the scene becomes an entering step of those modes (in Live). For
-              other timing (before arming, on leaving, only from some modes) edit the step in the mode.</li>
+            <li><em>Runs when these House Modes start</em>: the scene becomes an entering action of those modes (in Live) and gets their "House Mode" labels. For
+              other timing (before arming, on leaving, only from some modes) edit the action in the mode.</li>
             <li>Scenes written in YAML (no id) can be activated but not edited here.</li>
           </ul>
         </div>

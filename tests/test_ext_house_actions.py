@@ -7,9 +7,16 @@ import pytest
 from homeassistant.setup import async_setup_component
 from homeassistant.helpers import label_registry as lr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util.yaml import dump, load_yaml
 
 from tests.ext_helpers import setup_real_alarmo
 from custom_components.alarmo.ext_house_actions import detect
+from custom_components.alarmo.house_action_sync import (
+    action_line,
+    actions_by_entity,
+    merge_description,
+    async_sync_actions,
+)
 
 pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
 MODES = ["Disarmed", "Stay", "Sleep", "Away", "Late Night"]
@@ -78,3 +85,58 @@ def test_reactions_from_triggers() -> None:
     assert reactions({"triggers": [{"trigger": "time", "at": "06:00"}],
                       "conditions": [{"condition": "state", "entity_id": "input_select.house_mode", "state": "Sleep"}]}, ents, MODES) is None
     assert reactions({"triggers": [{"trigger": "state", "entity_id": "input_select.house_mode", "to": "Sleep", "enabled": False}]}, ents, MODES) is None
+
+
+def test_action_line_and_description() -> None:
+    """One line per script, grouped by timing; the user's own description is kept below it."""
+    s = {"modes": [
+        {"id": "stay", "name": "Stay", "steps": []},
+        {"id": "sleep", "name": "Sleep", "steps": [{"entity_id": "script.hm_lock_up", "when": "enter", "phase": "before", "modes": []}]},
+        {"id": "away", "name": "Away", "steps": [{"entity_id": "script.hm_lock_up", "when": "enter", "phase": "before", "modes": []},
+                                                 {"entity_id": "scene.spa", "when": "leave", "phase": "after", "modes": ["stay"]}]},
+    ]}
+    acts = actions_by_entity(s)
+    assert action_line(acts["script.hm_lock_up"], s) == "House Mode action: Sleep, Away · entering, before arming"
+    assert action_line(acts["scene.spa"], s) == "House Mode action: Away · leaving to Stay, after the change"
+    assert action_line([], s) is None
+    line = "House Mode action: Sleep · entering, after the change"
+    assert merge_description(None, line) == line
+    assert merge_description("Locks the doors.", line) == line + "\n\nLocks the doors."
+    assert merge_description("House Mode action: old\n\nLocks the doors.", line) == line + "\n\nLocks the doors."
+    assert merge_description("House Mode action: old\n\nLocks the doors.", None) == "Locks the doors."
+    assert merge_description("House Mode action: old", None) is None
+
+
+async def test_sync_labels_and_descriptions(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """Labels follow the actions (other labels kept); descriptions written to scripts.yaml only when they change."""
+    await setup_real_alarmo(hass, hass_storage, tmp_path)
+    scripts = {"hm_lock_up": {"alias": "Lock up", "description": "Locks the doors.", "sequence": []},
+               "old_one": {"alias": "Old", "description": "House Mode action: Away · entering, after the change", "sequence": []},
+               "plain": {"alias": "Plain", "sequence": []}}
+    assert await async_setup_component(hass, "script", {"script": scripts})
+    await hass.async_block_till_done()
+    cfg_dir = tmp_path / "cfg"
+    cfg_dir.mkdir()
+    hass.config.config_dir = str(cfg_dir)
+    (cfg_dir / "scripts.yaml").write_text(dump(scripts))
+    (cfg_dir / "configuration.yaml").write_text("script: !include scripts.yaml\n")
+    reg = er.async_get(hass)
+    other = lr.async_get(hass).async_create("Kitchen")
+    reg.async_update_entity("script.hm_lock_up", labels={other.label_id})
+    reg.async_update_entity("script.old_one", labels={lr.async_get(hass).async_create("House Mode: Away").label_id})
+
+    s = {"modes": [{"id": "sleep", "name": "Sleep", "steps": [{"entity_id": "script.hm_lock_up", "when": "enter", "phase": "before", "modes": []}]}]}
+    res = await async_sync_actions(hass, s)
+    assert res["errors"] == []
+    assert sorted(res["labels"]) == ["script.hm_lock_up", "script.old_one"]
+    names = {x.label_id: x.name for x in lr.async_get(hass).async_list_labels()}
+    assert {names[x] for x in reg.async_get("script.hm_lock_up").labels} == {"Kitchen", "House Mode: Sleep"}
+    assert reg.async_get("script.old_one").labels == set()
+    data = load_yaml(str(cfg_dir / "scripts.yaml"))
+    assert data["hm_lock_up"]["description"] == "House Mode action: Sleep · entering, before arming\n\nLocks the doors."
+    assert "description" not in data["old_one"]
+    assert "description" not in data["plain"]
+    assert sorted(res["descriptions"]) == ["script.hm_lock_up", "script.old_one"]
+    # a second run changes nothing
+    res = await async_sync_actions(hass, s)
+    assert res == {"labels": [], "descriptions": [], "errors": []}

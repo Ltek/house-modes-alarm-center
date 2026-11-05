@@ -29,6 +29,7 @@ import {
   toHex,
   saveHouse,
   setHouseMode,
+  actionChoices,
 } from '../../data/house';
 import { extStyles } from './ext-styles';
 import { HouseActionsInfo, editorPath, fetchHouseActions, reactingTo } from '../../data/house-actions';
@@ -153,8 +154,8 @@ export class AlarmViewHouse extends LitElement {
             <li>decides <strong>who may change it</strong>: you, schedules, presence, a lock code, the keypad;</li>
             <li>can check that zones are closed, and can change itself back after a while.</li>
           </ul>
-          <p>Lights, locks and other actions stay in your automations: trigger them on
-            <code>select.alarmo_house_mode</code> or the <code>alarmo_house_mode_changed</code> event. Automations change
+          <p>Each mode can run your scripts and scenes as its <em>actions</em> (lock up, lights, …). Automations can also
+            react to <code>select.alarmo_house_mode</code> or the <code>alarmo_house_mode_changed</code> event, and change
             the mode with <code>alarmo.set_house_mode</code> (mode + source).</p>
         </div>
         <div class="toolbar">
@@ -527,13 +528,13 @@ export class AlarmViewHouse extends LitElement {
   private renderSteps(m: HouseMode, other: HouseMode[]) {
     const upd = (fn: (x: HouseMode) => void) => this.setMode(m.id, fn);
     const steps = m.steps || [];
-    const choices = Object.keys(this.hass.states).filter(e => e.startsWith('scene.') || e.startsWith('script.')).sort();
+    const choices = actionChoices(this.hass);
     const name = (e: string) => (this.hass.states[e]?.attributes.friendly_name as string) || e;
     return html`
-      <h4 class="subhead" style="margin:10px 0 4px">Scenes and scripts</h4>
+      <h4 class="subhead" style="margin:10px 0 4px">Actions (scenes and scripts)</h4>
       <button class="link" ?disabled=${!choices.length}
         @click=${() => upd(x => (x.steps = [...(x.steps || []), { entity_id: choices[0], when: 'enter', phase: 'after', modes: [], wait: false }]))}>
-        + Add scene or script</button>
+        + Add action</button>
       ${steps.map((st, i) => html`<div class="detail-grid step-row">
         <label>Run
           <select @change=${(e: any) => upd(x => (x.steps![i].entity_id = e.target.value))}>
@@ -558,7 +559,7 @@ export class AlarmViewHouse extends LitElement {
           @value-changed=${(e: CustomEvent) => upd(x => (x.steps![i].modes = e.detail.value))}
         ></alarmo-ext-multi-picker>
         ${st.entity_id.startsWith('script.')
-          ? html`<label title="Wait until the script has finished before the next step (at most 5 minutes)"><input type="checkbox" .checked=${st.wait}
+          ? html`<label title="Wait until the script has finished before the next action (at most 5 minutes)"><input type="checkbox" .checked=${st.wait}
               @change=${(e: any) => upd(x => (x.steps![i].wait = e.target.checked))} /> wait for it</label>`
           : nothing}
         ${editorPathFor(st.entity_id, this.hass)
@@ -568,10 +569,12 @@ export class AlarmViewHouse extends LitElement {
       </div>`)}
       ${!steps.length ? html`<span class="secondary" style="display:block">None. Scenes and scripts stay native Home Assistant scenes and
         scripts; build them in Home Assistant (or on the Scenes card below the modes).</span>` : nothing}
-      <span class="secondary" style="display:block">Order: the old mode's "leaving" steps, then the new mode's "entering" steps.
+      <span class="secondary" style="display:block">Order: the old mode's "leaving" actions, then the new mode's "entering" actions.
         <em>Before arming</em> runs before the partitions change (e.g. lock up); <em>after the change</em> once it succeeded.
-        Scripts get <code>from_mode</code>, <code>to_mode</code> and <code>source</code>. A failing step is logged on the Activity
-        tab and does not stop the change.</span>
+        Scripts get <code>from_mode</code>, <code>to_mode</code> and <code>source</code>. A failing action is logged on the Activity
+        tab and does not stop the change. Scripts named <code>hm_…</code> are listed first. When you save, each script and
+        scene gets a "House Mode: &lt;mode&gt;" label, and each script in <code>scripts.yaml</code> gets a first description
+        line such as "House Mode action: Sleep · entering, before arming"; both are written from this list, never read back.</span>
     `;
   }
 

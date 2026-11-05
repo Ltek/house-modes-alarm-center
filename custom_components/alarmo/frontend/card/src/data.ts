@@ -150,7 +150,12 @@ export type CardConfig = {
   show_alarm_name?: boolean;
   show_alarm_state?: boolean;
   show_arm_options?: boolean;
-  /** arm buttons take their color from the House Mode that sets that arm mode */
+  /**
+   * Arm mode colors (arm buttons, the alarm bar, the 'mode' color keyword): 'modes' = the House Mode that sets each
+   * arm mode; 'standard' = green disarmed, red away, orange home, …; 'theme' = Home Assistant's alarm state colors.
+   */
+  alarm_colors?: 'modes' | 'standard' | 'theme';
+  /** @deprecated v2026.11.04.42–.44; false → alarm_colors: standard */
   alarm_colors_from_modes?: boolean;
   styles?: CardStyles;
   keypad_labels?: Record<string, string>;
@@ -160,7 +165,7 @@ export type CardConfig = {
 export const DEFAULTS: Required<Pick<CardConfig,
   'show_header' | 'show_house_modes' | 'show_alarm' | 'show_panel_keypad' | 'collapsible' | 'start_collapsed' | 'show_chevron' | 'columns'
   | 'modes_align' | 'show_mode_labels' | 'show_mode_name' | 'show_line1' | 'show_line2' | 'alarm_collapsible' | 'alarm_start_collapsed'
-  | 'show_alarm_name' | 'show_alarm_state' | 'show_arm_options' | 'alarm_colors_from_modes' | 'modes_collapsible'
+  | 'show_alarm_name' | 'show_alarm_state' | 'show_arm_options' | 'alarm_colors' | 'modes_collapsible'
   | 'modes_start_collapsed' | 'keypad_collapsible' | 'keypad_start_collapsed' | 'show_header_icon' | 'show_mode_icons'
   | 'show_alarm_icon' | 'show_arm_icons' | 'show_arm_labels' | 'show_key_labels'>> = {
   show_header: true,
@@ -181,7 +186,7 @@ export const DEFAULTS: Required<Pick<CardConfig,
   show_alarm_name: true,
   show_alarm_state: true,
   show_arm_options: true,
-  alarm_colors_from_modes: true,
+  alarm_colors: 'modes',
   modes_collapsible: false,
   modes_start_collapsed: true,
   keypad_collapsible: false,
@@ -254,7 +259,7 @@ export const pruneStyles = (styles: CardStyles | undefined): CardStyles | undefi
   return Object.keys(out).length ? (out as CardStyles) : undefined;
 };
 
-const ARM_DEFAULT_COLORS: Record<string, string> = {
+export const ARM_DEFAULT_COLORS: Record<string, string> = {
   disarmed: '#4caf50',
   armed_away: '#f44336',
   armed_home: '#ff9800',
@@ -267,7 +272,9 @@ const ARM_DEFAULT_COLORS: Record<string, string> = {
  * Color per arm mode from the House Modes: the mode that sets this partition (alarm key) to that arm mode, else any
  * mode that sets some partition to it, else a default.
  */
-export const armColors = (data: CardData, alarmEntity?: string): Record<string, string> => {
+export const armColors = (data: CardData, alarmEntity?: string, source: 'modes' | 'standard' | 'theme' = 'modes'): Record<string, string> => {
+  if (source === 'standard') return { ...ARM_DEFAULT_COLORS };
+  if (source === 'theme') return {};
   const key = data.alarms.find(a => a.entity_id === alarmEntity)?.key;
   const out: Record<string, string> = {};
   for (const st of Object.keys(ARM_DEFAULT_COLORS)) {
@@ -298,6 +305,39 @@ export const lcdLines = (alpha: string | null | undefined): [string, string] => 
 /** The link that belongs to the card's Alarmo entity (or the first one). */
 export const linkFor = (data: CardData, entity?: string): CardLink | undefined =>
   data.links.find(l => l.alarm_entity === entity) || data.links[0];
+
+/** Old configs: alarm_colors_from_modes false → standard colors (that is what people expected it to mean). */
+export const migrateConfig = (config: CardConfig): CardConfig => {
+  if (config.alarm_colors_from_modes === undefined) return config;
+  const { alarm_colors_from_modes, ...rest } = config;
+  return { ...rest, ...(config.alarm_colors ? {} : alarm_colors_from_modes === false ? { alarm_colors: 'standard' } : {}) } as CardConfig;
+};
+
+/** One-click looks for a set of buttons (the editor's "Style" choice). */
+export const BUTTON_PRESETS: Record<string, { label: string; button: ButtonStyle; icon: IconStyle }> = {
+  filled: { label: 'Filled (selected button in its color)', button: {}, icon: {} },
+  outline_selected: {
+    label: 'Outline when selected',
+    button: { background: 'transparent', active_background: 'transparent', border: 'none', active_border: 'mode', text_follows_icon: true },
+    icon: { color: 'var(--secondary-text-color)', active_color: 'mode' },
+  },
+  outline: {
+    label: 'Outline, all in color',
+    button: { background: 'transparent', active_background: 'transparent', border: 'mode', active_border: 'mode', text_follows_icon: true },
+    icon: { color: 'mode', active_color: 'mode' },
+  },
+  icon_only: {
+    label: 'Colored icon when selected',
+    button: { background: 'transparent', active_background: 'transparent', border: 'none', active_border: 'none', text_follows_icon: true },
+    icon: { color: 'var(--secondary-text-color)', active_color: 'mode' },
+  },
+};
+
+/** Which preset the current styles match ('' = custom). */
+export const presetOf = (b: ButtonStyle | undefined, i: IconStyle | undefined): string => {
+  const colors = (x: Record<string, any> | undefined) => JSON.stringify(Object.keys(x || {}).filter(k => k !== 'size').sort().map(k => [k, (x as any)[k]]));
+  return Object.keys(BUTTON_PRESETS).find(k => colors(BUTTON_PRESETS[k].button) === colors(b) && colors(BUTTON_PRESETS[k].icon) === colors(i)) || '';
+};
 
 export const visibleModes = (data: CardData, hidden?: string[]): CardMode[] =>
   data.house.modes.filter(m => !(hidden || []).includes(m.id) && !(hidden || []).includes(m.name));

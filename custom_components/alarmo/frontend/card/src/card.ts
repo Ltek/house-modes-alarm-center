@@ -12,6 +12,7 @@ import {
   styleVars,
   fromPairs,
   buttonVars,
+  migrateConfig,
   resolveColor,
   keypadKeys,
   lcdLines,
@@ -68,7 +69,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
     if (config.entity && !config.entity.startsWith('alarm_control_panel.'))
       throw new Error('entity must be an Alarmo alarm_control_panel');
     const first = !this.config;
-    this.config = { ...DEFAULTS, ...config };
+    this.config = { ...DEFAULTS, ...migrateConfig(config) };
     if (first) {
       if (DATA_CACHE && !this.data) this.data = DATA_CACHE;
       const kept = VIEW_STATE.get(this.viewKey);
@@ -232,9 +233,9 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const c = this.config!;
     const user = c.alarm || {};
     let states = user.states || {};
-    if (c.alarm_colors_from_modes) {
-      // House Mode colors first, the user's own per-state settings win
-      const cols = armColors(this.data!, alarmEnt);
+    if (c.alarm_colors !== 'theme') {
+      // House Mode (or standard) colors first, the user's own per-state settings win
+      const cols = armColors(this.data!, alarmEnt, c.alarm_colors);
       states = fromPairs(
         [...new Set([...Object.keys(cols), ...Object.keys(states)])].map(k => [k, { color: cols[k], ...(states[k] || {}) }] as [string, any])
       );
@@ -278,7 +279,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const st = this.hass!.states[alarmEnt];
     const name = c.name || (st?.attributes as any)?.friendly_name || alarmEnt;
     const stateText = alarmState ? this.hass!.localize(`component.alarm_control_panel.entity_component._.state.${alarmState}`) || alarmState.replace(/_/g, ' ') : '';
-    const color = armColors(this.data!, alarmEnt)[(alarmState === 'arming' || alarmState === 'pending' ? (st?.attributes as any)?.arm_mode : alarmState) || ''];
+    const color = armColors(this.data!, alarmEnt, c.alarm_colors)[(alarmState === 'arming' || alarmState === 'pending' ? (st?.attributes as any)?.arm_mode : alarmState) || ''];
     const icon = alarmState === 'disarmed' ? 'mdi:lock-open-variant' : alarmState === 'triggered' ? 'mdi:bell-ring' : 'mdi:lock';
     return this.section('alarm', !!c.alarm_collapsible, icon, color, `${name} · ${stateText}`,
       () => html`<hmac-alarm embedded .hass=${this.hass} .cardConfig=${this.alarmConfig(alarmEnt)}></hmac-alarm>`);
@@ -568,24 +569,35 @@ export class HouseModesAlarmCenterCard extends LitElement {
       text-transform: var(--hmac-key-label-transform, none);
       color: var(--hmac-key-label-color, var(--secondary-text-color));
     }
+    /* a collapsible section's divider (as on the other Ltek cards): line · icon · title · arrow · line */
     .bar {
       display: flex;
       align-items: center;
       gap: 8px;
-      width: calc(100% - 16px);
-      margin: 4px 8px;
-      padding: 8px 12px;
-      border: 1px solid var(--divider-color);
-      border-radius: 10px;
+      width: 100%;
+      margin: 0;
+      padding: 6px 14px;
+      border: none;
       background: none;
       cursor: pointer;
       color: var(--primary-text-color);
       font: inherit;
-      --mdc-icon-size: 22px;
+      --mdc-icon-size: 20px;
+    }
+    .bar::before,
+    .bar::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--hmac-divider-color, var(--divider-color));
+    }
+    .bar:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: -2px;
     }
     .bar-text {
-      flex: 1;
-      text-align: left;
+      flex: none;
+      text-align: center;
       font-family: var(--hmac-alarm-bar-font, inherit);
       font-size: var(--hmac-alarm-bar-size, 14px);
       font-weight: var(--hmac-alarm-bar-weight, 500);

@@ -78,3 +78,21 @@ test('button colors: keywords resolve per button', () => {
     '--b-bg:transparent;--b-bd:transparent;--b-abd:#123456;--b-ic:var(--primary-color);--b-aic:#123456');
   assert.equal(buttonVars(undefined, undefined, '#000'), '');
 });
+
+import { migrateConfig, presetOf, BUTTON_PRESETS, ARM_DEFAULT_COLORS } from '../card/src/data.ts';
+
+test('arm mode colors: standard and theme, old setting migrated', () => {
+  assert.deepEqual(armColors(data, 'x', 'standard'), ARM_DEFAULT_COLORS);
+  assert.equal(armColors(data, 'x', 'standard').disarmed, '#4caf50');
+  assert.deepEqual(armColors(data, 'x', 'theme'), {});
+  assert.deepEqual(migrateConfig({ type: 'x', alarm_colors_from_modes: false }), { type: 'x', alarm_colors: 'standard' });
+  assert.deepEqual(migrateConfig({ type: 'x', alarm_colors_from_modes: true }), { type: 'x' });
+  assert.deepEqual(migrateConfig({ type: 'x', alarm_colors_from_modes: false, alarm_colors: 'theme' }), { type: 'x', alarm_colors: 'theme' });
+});
+
+test('button style presets are recognised, the icon size does not matter', () => {
+  const p = BUTTON_PRESETS.outline_selected;
+  assert.equal(presetOf(p.button, { ...p.icon, size: 26 }), 'outline_selected');
+  assert.equal(presetOf(undefined, undefined), 'filled');
+  assert.equal(presetOf({ background: 'red' }, undefined), '');
+});

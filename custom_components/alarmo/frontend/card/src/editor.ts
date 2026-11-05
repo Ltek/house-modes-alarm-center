@@ -15,6 +15,9 @@ import {
   TextElement,
   TextStyle,
   pruneStyles,
+  migrateConfig,
+  BUTTON_PRESETS,
+  presetOf,
 } from './data';
 
 const THEME_COLORS: [string, string][] = [
@@ -72,7 +75,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
   @state() private data?: CardData;
 
   setConfig(config: CardConfig) {
-    this.config = config;
+    this.config = migrateConfig(config);
   }
 
   protected firstUpdated() {
@@ -101,6 +104,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
       if (!Object.keys(v.alarm).length) delete v.alarm;
     }
     if (!v.name) delete v.name;
+    delete v.alarm_colors_from_modes;
     if (!v.entity) delete v.entity;
     this.config = v;
     this.dispatchEvent(new CustomEvent('config-changed', { detail: { config: v }, bubbles: true, composed: true }));
@@ -259,6 +263,16 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     `);
   }
 
+  private applyPreset(set: 'mode_button' | 'arm_button', icon: 'mode_icon' | 'alarm_icon', key: string) {
+    const p = BUTTON_PRESETS[key];
+    if (!p) return;
+    const styles: any = clone((this.config || ({} as any)).styles || {});
+    styles[set] = { ...p.button };
+    const size = (styles[icon] || {}).size;
+    styles[icon] = { ...p.icon, ...(size ? { size } : {}) };
+    this.emit({ ...(this.config as CardConfig), styles });
+  }
+
   /** Colors of a set of buttons (§3 control everywhere; 'mode' = each button's own House Mode / arm mode color). */
   private buttonColors(set: 'mode_button' | 'arm_button', icon: 'mode_icon' | 'alarm_icon', own: string, defaults: {
     bg: string; abg: string; ic: string; aic: string; }): TemplateResult {
@@ -267,7 +281,13 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     const fill: [string, string][] = [['transparent', 'Transparent'], ['mode', own]];
     const line: [string, string][] = [['none', 'None'], ['mode', own]];
     const ink: [string, string][] = [['mode', own]];
+    const preset = presetOf(b, i);
     return this.sub('Button colors', html`
+      ${this.group('Style')}
+      ${this.select('Style', preset, [...Object.entries(BUTTON_PRESETS).map(([k, p]) => [k, p.label] as [string, string]),
+        ...(preset ? [] : [['', 'Custom (the settings below)'] as [string, string]])], v => this.applyPreset(set, icon, v))}
+      <p class="hint">${own} = each button's own color${set === 'arm_button' ? ' (see Arm mode colors above)' : ''}. Pick a style, then
+        fine-tune it below.</p>
       ${this.group('Background')}
       ${this.color('Background', b.background, defaults.bg, '#2a2a2a', v => this.setStyle(set, 'background', v), fill)}
       ${this.color('Background (selected)', b.active_background, defaults.abg, '#3a3a3a', v => this.setStyle(set, 'active_background', v), fill)}
@@ -382,8 +402,11 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           ${this.toggle('Arm button text', c.show_arm_labels, v => this.set('show_arm_labels', v))}
           ${this.toggle('Option chips: Skip exit delay, Bypass open sensors', c.show_arm_options, v => this.set('show_arm_options', v))}
           ${this.group('Arm buttons')}
-          ${this.toggle('Arm mode colors from the House Modes', c.alarm_colors_from_modes, v => this.set('alarm_colors_from_modes', v),
-            'each arm mode in the color of the House Mode that sets it')}
+          ${this.select('Arm mode colors', c.alarm_colors, [
+            ['modes', 'From the House Modes (the mode that sets each arm mode)'],
+            ['standard', 'Standard (green disarmed, red away, orange home, …)'],
+            ['theme', 'Home Assistant theme (alarm state colors)'],
+          ], v => this.set('alarm_colors', v))}
           ${this.slider('Arm button scale', Math.round(alarm.button_scale_actions * 10) / 10, 1, 2.5, 0.1, '×', 1, v => this.setAlarm('button_scale_actions', v), false)}
           ${this.group('Code entry and messages')}
           ${ALARM_KEYS.map(k => this.toggle(ALARM_LABELS[k], !!alarm[k], v => this.setAlarm(k, v)))}

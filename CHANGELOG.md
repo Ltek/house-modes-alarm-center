@@ -3,6 +3,18 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.45 — 2026-11-05
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **Collapsible sections are dividers**, as on the other Ltek cards: a thin line with the icon, title and arrow in
+  the middle, instead of a boxed bar.
+- **Arm mode colors are one clear choice** (`alarm_colors`): *From the House Modes*, *Standard* (green disarmed, red
+  away, orange home, …) or *Home Assistant theme*. The old `alarm_colors_from_modes: false` meant the theme colors,
+  where Disarmed is gray, so a `mode` icon or border did not turn green; it now means *Standard*.
+- **Button styles in one click**: *Filled*, *Outline when selected*, *Outline, all in color*, *Colored icon when
+  selected*, for House Mode buttons and arm buttons; then fine-tune.
+
 ## v2026.11.05.44 — 2026-11-05
 
 Card only; no Home Assistant restart needed (reload the browser).

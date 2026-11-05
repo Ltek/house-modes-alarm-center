@@ -49,7 +49,7 @@ panel keypad*). Only options you change are written to the YAML.
 | `modes_align` | `grid` | `grid`: fixed columns, the last row wraps left; `center`: every row centered across the width |
 | `columns` | `5` | House Mode buttons per row (2–9) |
 | `hidden_modes` | | House Modes (id or name) without a button |
-| `alarm_colors_from_modes` | `true` | Each arm mode in the color of the House Mode that sets it |
+| `alarm_colors` | `modes` | Arm mode colors (arm buttons, alarm bar, the `mode` keyword): `modes` = the House Mode that sets each arm mode, `standard` = green disarmed / red away / orange home / …, `theme` = Home Assistant's alarm state colors |
 | `keypad_labels` | Vista | e.g. `{"6": "BYP"}` |
 | `alarm` | | alarmo-card options: `keep_keypad_visible`, `use_code_dialog`, `hide_keypad`, `show_messages`, `show_ready_indicator`, `show_bypassed_sensors`, `button_scale_actions`, `button_scale_keypad`, `states` |
 | `styles` | | Per element, see below |
@@ -71,6 +71,8 @@ styles:
 - **Buttons** (`mode_button`, `arm_button`): `background`, `active_background`, `border`, `active_border`,
   `text_follows_icon`; `arm_button.track` is the bar behind the arm buttons.
 - Color keywords: `mode` (each button's own House Mode / arm mode color), `transparent`, `none` (borders).
+- The editor's **Style** choice sets a whole look at once: *Filled*, *Outline when selected*, *Outline, all in color*,
+  *Colored icon when selected*; then fine-tune.
 - **Frame**: `card.border_width`, `card.radius`.
 - Colors: `#rrggbb`, a theme color `var(--…)`, or any CSS color. Unset keys keep the card's defaults.
 

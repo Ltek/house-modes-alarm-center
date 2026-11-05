@@ -3,6 +3,23 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.48 — 2026-11-05
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **Effects per part**: the card (background, border), the status icon, the House Mode buttons (background, border,
+  icon) and, new, the arm buttons (background, border, icon) each glow, pulse or both. Older effect settings are
+  read as before.
+- **Color mapping on the card**: a card-only color per House Mode, and a color per arm mode, which can be a House
+  Mode's color ("Disarmed = House Mode: Guest").
+- **Countdown in the header**: optionally the countdown circle replaces the House Mode icon during an exit or entry
+  delay.
+- **Spacing that works both ways**: *Button width* fill or fit, for House Mode and arm buttons; with *fit* the space
+  setting is the real distance between buttons. *Button padding* for both. (The arm buttons always stretched, so
+  their space setting could only add.)
+- **Panel keypad**: round keys, and a pressed key's border and / or background can glow for 500 ms in colors you
+  choose.
+
 ## v2026.11.05.47 — 2026-11-05
 
 Card only; no Home Assistant restart needed (reload the browser). (v2026.11.05.46 does need one.)

@@ -111,9 +111,9 @@ test('panel display: strip, then replace', () => {
 test('effects: only while a chosen trigger is true', () => {
   assert.deepEqual(fxTriggers('arming', 'disarmed', null), ['arming']);
   assert.deepEqual(fxTriggers('disarmed', 'pending', 'Away'), ['entry', 'changing']);
-  assert.deepEqual(fxClasses({ border: 'both', status_icon: 'pulse' }, ['arming']),
-    ['fx-on', 'fx-border-glow', 'fx-border-pulse', 'fx-status_icon-pulse']);
-  assert.deepEqual(fxClasses({ border: 'glow', when: ['triggered'] }, ['arming']), []);
+  assert.deepEqual(fxClasses({ card: { border: 'both', background: 'glow' }, status_icon: { icon: 'pulse' } }, ['arming']),
+    ['fx-on', 'fx-card-background-glow', 'fx-card-border-glow', 'fx-card-border-pulse', 'fx-status-icon-pulse']);
+  assert.deepEqual(fxClasses({ card: { border: 'glow' }, when: ['triggered'] }, ['arming']), []);
   assert.deepEqual(fxClasses({ when: ['arming'] }, ['arming']), []); // no parts chosen
   assert.deepEqual(fxClasses(undefined, ['arming']), []);
   assert.equal(fxVars({ size: 20, speed: 1.2, color: 'var(--warning-color)' }), '--fx-size:20px;--fx-speed:1.2s;--fx-color:var(--warning-color)');
@@ -129,4 +129,25 @@ import { resultMessage as rm2, ALARM_STATE_ICONS } from '../card/src/data.ts';
 test('Shadow without an own helper says nothing changed; alarm icons when House Modes are off', () => {
   assert.equal(rm2({ result: 'shadow', would: 'changed', requested: 'Stay' }, e => e), 'Shadow: House Modes would set Stay; nothing was changed');
   assert.equal(ALARM_STATE_ICONS.disarmed, 'mdi:lock-open-variant');
+});
+
+import { migrateEffects, fxPartClasses, withModeColors, armColorsFor } from '../card/src/data.ts';
+
+test('effects: parts per target, old settings migrated', () => {
+  assert.deepEqual(migrateEffects({ border: 'both', status_icon: 'glow', mode_button: 'both', size: 20 }),
+    { card: { border: 'both' }, status_icon: { icon: 'glow' }, mode_button: { border: 'glow', icon: 'pulse' }, size: 20 });
+  assert.deepEqual(migrateEffects({ card: { border: 'glow' } }), { card: { border: 'glow' } });
+  assert.deepEqual(fxPartClasses({ background: 'pulse', icon: 'both' }, true), ['fx-background-pulse', 'fx-icon-glow', 'fx-icon-pulse']);
+  assert.deepEqual(fxPartClasses({ background: 'pulse' }, false), []);
+});
+
+test('color mapping: card-only House Mode colors, arm modes matched to a House Mode', () => {
+  const d = { ...data, alarms: [{ key: 'gf', entity_id: 'alarm_control_panel.gf', name: 'GF' }] };
+  const v = withModeColors(d, { stay: '#111111' });
+  assert.equal(v.house.modes[0].color, '#111111');
+  assert.equal(d.house.modes[0].color, '#ff9800'); // the original is untouched
+  const c = armColorsFor(v, 'alarm_control_panel.gf', 'standard', { disarmed: 'house:spa', armed_away: '#222222', armed_home: 'house:none' });
+  assert.equal(c.disarmed, '#00bcd4');
+  assert.equal(c.armed_away, '#222222');
+  assert.equal(c.armed_home, '#ff9800'); // unknown House Mode: the standard color stays
 });

@@ -170,6 +170,21 @@ export type CardConfig = {
   /** @deprecated v2026.11.04.42–.44; false → alarm_colors: standard */
   alarm_colors_from_modes?: boolean;
   styles?: CardStyles;
+  /** card-only House Mode colors (id → color), over the House Modes tab's */
+  mode_colors?: Record<string, string>;
+  /** arm mode colors (state → color); 'house:<mode id>' = that House Mode's color */
+  arm_colors?: Record<string, string>;
+  keypad_shape?: 'rounded' | 'round';
+  /** 'fill' = the buttons share the width (standard); 'fit' = as wide as their content, centered */
+  modes_width?: 'fill' | 'fit';
+  arm_width?: 'fill' | 'fit';
+  /** during an exit or entry delay the header shows the countdown circle instead of the House Mode icon */
+  header_countdown?: boolean;
+  /** a key's border / background flashes in these colors for 500 ms when pressed */
+  key_flash?: { border?: string; background?: string };
+  /** inner padding of the buttons, px */
+  modes_padding?: number;
+  arm_padding?: number;
   /** 'rounded' = rounded rectangles (standard); 'round' = a circle around each icon, the text below */
   modes_shape?: 'rounded' | 'round';
   arm_shape?: 'rounded' | 'round';
@@ -190,7 +205,8 @@ export const DEFAULTS: Required<Pick<CardConfig,
   | 'modes_align' | 'show_mode_labels' | 'show_mode_name' | 'show_line1' | 'show_line2' | 'alarm_collapsible' | 'alarm_start_collapsed'
   | 'show_alarm_name' | 'show_alarm_state' | 'show_arm_options' | 'alarm_colors' | 'modes_collapsible'
   | 'modes_start_collapsed' | 'keypad_collapsible' | 'keypad_start_collapsed' | 'show_header_icon' | 'show_mode_icons'
-  | 'show_alarm_icon' | 'show_arm_icons' | 'show_arm_labels' | 'show_key_labels' | 'modes_shape' | 'arm_shape'>> = {
+  | 'show_alarm_icon' | 'show_arm_icons' | 'show_arm_labels' | 'show_key_labels' | 'modes_shape' | 'arm_shape' | 'keypad_shape'
+  | 'modes_width' | 'arm_width' | 'header_countdown'>> = {
   show_header: true,
   show_house_modes: true,
   show_alarm: true,
@@ -222,6 +238,42 @@ export const DEFAULTS: Required<Pick<CardConfig,
   show_key_labels: true,
   modes_shape: 'rounded',
   arm_shape: 'rounded',
+  keypad_shape: 'rounded',
+  modes_width: 'fill',
+  arm_width: 'fill',
+  header_countdown: false,
+};
+
+/** The card's view of the House Modes: the card-only color overrides applied. */
+export const withModeColors = (data: CardData, overrides?: Record<string, string>): CardData => {
+  if (!overrides || !Object.keys(overrides).length) return data;
+  return {
+    ...data,
+    house: { ...data.house, modes: data.house.modes.map(m => (overrides[m.id] ? { ...m, color: overrides[m.id] } : m)) },
+  };
+};
+
+/** Arm mode colors: the chosen source, then per-arm-mode overrides ('house:<id>' = that House Mode's color). */
+export const armColorsFor = (data: CardData, alarmEntity: string | undefined, source: 'modes' | 'standard' | 'theme' | undefined,
+  overrides?: Record<string, string>): Record<string, string> => {
+  const out = { ...armColors(data, alarmEntity, source) };
+  for (const [st, v] of Object.entries(overrides || {})) {
+    if (!v) continue;
+    if (v.startsWith('house:')) {
+      const m = data.house.modes.find(x => x.id === v.slice(6));
+      if (m) out[st] = m.color;
+    } else out[st] = String(v).replace(/[;{}<>]/g, '');
+  }
+  return out;
+};
+
+export const ARM_STATE_LABELS: Record<string, string> = {
+  disarmed: 'Disarmed',
+  armed_away: 'Armed away',
+  armed_home: 'Armed home',
+  armed_night: 'Armed night',
+  armed_vacation: 'Armed vacation',
+  armed_custom_bypass: 'Armed custom bypass',
 };
 
 /** Header icon for an alarm state, used when House Modes are off. */
@@ -360,13 +412,18 @@ export const lcdLines = (alpha: string | null | undefined, strip?: string, repla
 // ------------------------------------------------------------ effects (glow / pulse while something is under way)
 
 export type FxValue = 'none' | 'glow' | 'pulse' | 'both';
-export const FX_TARGETS = ['border', 'status_icon', 'mode_button'] as const;
-export type FxTarget = (typeof FX_TARGETS)[number];
-export const FX_LABELS: Record<FxTarget, string> = {
-  border: 'Card border',
-  status_icon: 'Status icon (House Mode icon in the header)',
-  mode_button: 'House Mode button (the mode being changed to)',
-};
+/** Parts of something that can glow / pulse. */
+export const FX_PARTS = ['background', 'border', 'icon'] as const;
+export type FxPart = (typeof FX_PARTS)[number];
+export type FxParts = Partial<Record<FxPart, FxValue>>;
+/** What can have effects, and which parts each has. */
+export const FX_TARGETS = {
+  card: { label: 'Card', parts: ['background', 'border'] as FxPart[] },
+  status_icon: { label: 'Status icon (header)', parts: ['icon'] as FxPart[] },
+  mode_button: { label: 'House Mode buttons (the mode being changed to)', parts: ['background', 'border', 'icon'] as FxPart[] },
+  arm_button: { label: 'Arm buttons (the arm mode being set)', parts: ['background', 'border', 'icon'] as FxPart[] },
+} as const;
+export type FxTarget = keyof typeof FX_TARGETS;
 export const FX_TRIGGERS = ['arming', 'entry', 'changing', 'triggered'] as const;
 export type FxTrigger = (typeof FX_TRIGGERS)[number];
 export const FX_TRIGGER_LABELS: Record<FxTrigger, string> = {
@@ -375,7 +432,7 @@ export const FX_TRIGGER_LABELS: Record<FxTrigger, string> = {
   changing: 'House Mode changing (being applied, delayed or, in Shadow, watched)',
   triggered: 'Alarm triggered',
 };
-export type EffectsConfig = Partial<Record<FxTarget, FxValue>> & {
+export type EffectsConfig = Partial<Record<FxTarget, FxParts>> & {
   when?: FxTrigger[];
   size?: number; // glow size px
   speed?: number; // pulse period s
@@ -393,18 +450,49 @@ export const fxTriggers = (alarm: string | undefined, panel: string | undefined,
   return out;
 };
 
-/** Classes for <ha-card>: fx-on and fx-<target>-glow / -pulse while one of the chosen triggers is true. */
-export const fxClasses = (fx: EffectsConfig | undefined, active: FxTrigger[]): string[] => {
-  if (!fx) return [];
-  const when = fx.when || FX_DEFAULTS.when;
-  if (!active.some(t => when.includes(t))) return [];
-  const out = ['fx-on'];
-  for (const t of FX_TARGETS) {
-    const m = fx[t];
-    if (m === 'glow' || m === 'both') out.push(`fx-${t}-glow`);
-    if (m === 'pulse' || m === 'both') out.push(`fx-${t}-pulse`);
+/** v2026.11.05.46–.47 stored one value per target: border / status_icon / mode_button. */
+export const migrateEffects = (fx: any): EffectsConfig | undefined => {
+  if (!fx || typeof fx !== 'object') return fx;
+  const out: any = { ...fx };
+  if (typeof fx.border === 'string') {
+    out.card = { ...(fx.card || {}), border: fx.border };
+    delete out.border;
   }
-  return out.length > 1 ? out : [];
+  if (typeof fx.status_icon === 'string') out.status_icon = { icon: fx.status_icon };
+  if (typeof fx.mode_button === 'string') {
+    const v = fx.mode_button;
+    out.mode_button = {
+      ...(v === 'glow' || v === 'both' ? { border: 'glow' } : {}),
+      ...(v === 'pulse' || v === 'both' ? { icon: 'pulse' } : {}),
+    };
+  }
+  return out;
+};
+
+/** Is any effect configured at all, and is one of the chosen triggers true now? */
+export const fxRunning = (fx: EffectsConfig | undefined, active: FxTrigger[]): boolean => {
+  if (!fx) return false;
+  const when = fx.when || FX_DEFAULTS.when;
+  return active.some(t => when.includes(t));
+};
+
+/** Classes for one target: fx-<part>-glow / fx-<part>-pulse ('' when it is not running). */
+export const fxPartClasses = (parts: FxParts | undefined, running: boolean, prefix = 'fx'): string[] => {
+  if (!running || !parts) return [];
+  const out: string[] = [];
+  for (const p of FX_PARTS) {
+    const m = parts[p];
+    if (m === 'glow' || m === 'both') out.push(`${prefix}-${p}-glow`);
+    if (m === 'pulse' || m === 'both') out.push(`${prefix}-${p}-pulse`);
+  }
+  return out;
+};
+
+/** Classes for <ha-card>: the card's own parts (fx-card-…) and the status icon (fx-status-…). */
+export const fxClasses = (fx: EffectsConfig | undefined, active: FxTrigger[]): string[] => {
+  const run = fxRunning(fx, active);
+  const out = [...fxPartClasses(fx?.card, run, 'fx-card'), ...fxPartClasses(fx?.status_icon, run, 'fx-status')];
+  return out.length ? ['fx-on', ...out] : [];
 };
 
 export const fxVars = (fx: EffectsConfig | undefined): string => {
@@ -433,6 +521,7 @@ export const linkFor = (data: CardData, entity?: string): CardLink | undefined =
 
 /** Old configs: alarm_colors_from_modes false → standard colors (that is what people expected it to mean). */
 export const migrateConfig = (config: CardConfig): CardConfig => {
+  if (config.effects) config = { ...config, effects: migrateEffects(config.effects) };
   if (config.alarm_colors_from_modes === undefined) return config;
   const { alarm_colors_from_modes, ...rest } = config;
   return { ...rest, ...(config.alarm_colors ? {} : alarm_colors_from_modes === false ? { alarm_colors: 'standard' } : {}) } as CardConfig;

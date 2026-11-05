@@ -152,9 +152,11 @@ class AlarmoStateBadge extends LitElement {
   static get styles() {
     return css`
       :host {
-        width: 60px;
-        height: 60px;
+        width: var(--hmac-badge-size, 60px);
+        height: var(--hmac-badge-size, 60px);
         cursor: pointer;
+        display: block;
+        position: relative;
       }
       svg {
         width: 100%;
@@ -178,11 +180,12 @@ class AlarmoStateBadge extends LitElement {
       }
       .overlay {
         position: absolute;
-        margin-top: -60px;
-        margin-left: 0;
-        width: 60px;
-        height: 60px;
-        font-size: 1.5em;
+        top: 0;
+        left: 0;
+        margin: 0;
+        width: var(--hmac-badge-size, 60px);
+        height: var(--hmac-badge-size, 60px);
+        font-size: calc(var(--hmac-badge-size, 60px) * 0.36);
         white-space: nowrap;
       }
       .value {

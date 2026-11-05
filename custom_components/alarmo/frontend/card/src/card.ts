@@ -14,6 +14,10 @@ import {
   buttonVars,
   migrateConfig,
   fxClasses,
+  fxPartClasses,
+  fxRunning,
+  withModeColors,
+  armColorsFor,
   fxTriggers,
   fxVars,
   FX_PREVIEW,
@@ -116,6 +120,8 @@ export class HouseModesAlarmCenterCard extends LitElement {
   }
 
   private onFxPreview = () => this.requestUpdate();
+  /** effects are running in this render (a chosen trigger is true) */
+  private fxRun = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -180,6 +186,22 @@ export class HouseModesAlarmCenterCard extends LitElement {
     this.messageTimer = window.setTimeout(() => (this.message = ''), 8000);
   }
 
+  /** The data as the card shows it: card-only House Mode colors applied. */
+  private get dv(): CardData {
+    const d = this.data!;
+    const o = this.config?.mode_colors;
+    if (this._dvFor?.d === d && this._dvFor.o === o) return this._dvFor.v;
+    const v = withModeColors(d, o);
+    this._dvFor = { d, o, v };
+    return v;
+  }
+
+  private _dvFor?: { d: CardData; o?: Record<string, string>; v: CardData };
+
+  private arm(alarmEnt: string | undefined) {
+    return armColorsFor(this.dv, alarmEnt, this.config!.alarm_colors, this.config!.arm_colors);
+  }
+
   private get alarmEntity(): string | undefined {
     return this.config?.entity || linkFor(this.data!, undefined)?.alarm_entity || this.data?.alarms[0]?.entity_id;
   }
@@ -198,7 +220,17 @@ export class HouseModesAlarmCenterCard extends LitElement {
     }
   }
 
+  @state() private flashKey = '';
+  private flashTimer = 0;
+
   private async press(key: string) {
+    // the pressed key flashes for 500 ms (border / background, if set)
+    this.flashKey = '';
+    window.clearTimeout(this.flashTimer);
+    requestAnimationFrame(() => {
+      this.flashKey = key;
+      this.flashTimer = window.setTimeout(() => (this.flashKey = ''), 500);
+    });
     const link = linkFor(this.data!, this.alarmEntity);
     if (!link) return;
     this.busyKey = key;
@@ -230,16 +262,17 @@ export class HouseModesAlarmCenterCard extends LitElement {
     if (this.error) return html`<ha-card><div class="warn">${this.error}</div></ha-card>`;
     if (!this.data) return html`<ha-card><div class="loading">…</div></ha-card>`;
     const c = this.config;
-    const h = this.data.house;
+    const h = this.dv.house;
     const mode = h.modes.find(m => m.id === h.current);
     const alarmEnt = this.alarmEntity;
-    const link = linkFor(this.data, alarmEnt);
+    const link = linkFor(this.dv, alarmEnt);
     const alarmState = alarmEnt ? this.hass.states[alarmEnt]?.state : undefined;
     const panelState = link ? this.hass.states[link.panel_entity]?.state : undefined;
     const ready = link?.ready_entity ? this.hass.states[link.ready_entity]?.state : undefined;
     const border = borderColor(alarmState, panelState, ready, mode?.color);
     const active = FX_PREVIEW.on ? [...FX_TRIGGERS] : fxTriggers(alarmState, panelState, h.changing_to);
     const fx = fxClasses(c.effects, active);
+    this.fxRun = fxRunning(c.effects, active);
     return html`
       <ha-card class=${fx.join(' ')} style=${`--hmac-border:${border};${styleVars(c.styles)};${fxVars(c.effects)}`}>
         ${c.show_header || this.collapsed ? this.renderHeader(mode, alarmState, link) : nothing}
@@ -265,7 +298,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
     let states = user.states || {};
     if (c.alarm_colors !== 'theme') {
       // House Mode (or standard) colors first, the user's own per-state settings win
-      const cols = armColors(this.data!, alarmEnt, c.alarm_colors);
+      const cols = this.arm(alarmEnt);
       states = fromPairs(
         [...new Set([...Object.keys(cols), ...Object.keys(states)])].map(k => [k, { color: cols[k], ...(states[k] || {}) }] as [string, any])
       );
@@ -283,8 +316,11 @@ export class HouseModesAlarmCenterCard extends LitElement {
       show_icons: c.show_arm_icons,
       show_labels: c.show_arm_labels,
       shape: c.arm_shape,
+      fit: c.arm_width === 'fit',
       gap: c.arm_gap,
+      padding: c.arm_padding,
       button_style: c.styles?.arm_button,
+      fx_classes: fxPartClasses(c.effects?.arm_button, this.fxRun),
       icon_style: c.styles?.alarm_icon,
     };
   }
@@ -315,14 +351,14 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const st = this.hass!.states[alarmEnt];
     const name = c.name || (st?.attributes as any)?.friendly_name || alarmEnt;
     const stateText = alarmState ? this.hass!.localize(`component.alarm_control_panel.entity_component._.state.${alarmState}`) || alarmState.replace(/_/g, ' ') : '';
-    const color = armColors(this.data!, alarmEnt, c.alarm_colors)[(alarmState === 'arming' || alarmState === 'pending' ? (st?.attributes as any)?.arm_mode : alarmState) || ''];
+    const color = this.arm(alarmEnt)[(alarmState === 'arming' || alarmState === 'pending' ? (st?.attributes as any)?.arm_mode : alarmState) || ''];
     const icon = alarmState === 'disarmed' ? 'mdi:lock-open-variant' : alarmState === 'triggered' ? 'mdi:bell-ring' : 'mdi:lock';
     return this.section('alarm', !!c.alarm_collapsible, icon, color, `${name} · ${stateText}`,
       () => html`<hmac-alarm embedded .hass=${this.hass} .cardConfig=${this.alarmConfig(alarmEnt)}></hmac-alarm>`);
   }
 
   private renderHeader(mode: CardData['house']['modes'][0] | undefined, alarmState: string | undefined, link: ReturnType<typeof linkFor>) {
-    const h = this.data!.house;
+    const h = this.dv.house;
     const kp = link?.keypad_entity ? this.hass!.states[link.keypad_entity] : undefined;
     const [l1, l2] = lcdLines((kp?.attributes as any)?.alpha ?? kp?.state, this.config!.display_strip, this.config!.display_replace);
     const title = h.enabled ? (mode ? mode.name : 'unknown') : this.config!.name || (alarmState ? alarmState.replace(/_/g, ' ') : '');
@@ -331,14 +367,17 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const icon = h.enabled ? mode?.icon || 'mdi:shield-home' : ALARM_STATE_ICONS[alarmSt || ''] || 'mdi:shield-home';
     const own = h.enabled
       ? mode?.color || 'var(--secondary-text-color)'
-      : armColors(this.data!, this.alarmEntity, this.config!.alarm_colors)[alarmSt || ''] || 'var(--secondary-text-color)';
+      : this.arm(this.alarmEntity)[alarmSt || ''] || 'var(--secondary-text-color)';
     return html`
       <div class="head ${this.config!.collapsible ? 'clickable' : ''} ${this.config!.collapsible && this.config!.show_chevron ? 'chevron' : ''}" @click=${this.toggle}
         @contextmenu=${(e: Event) => { e.preventDefault(); this.moreInfo(link?.keypad_entity || this.alarmEntity); }}
         role=${this.config!.collapsible ? 'button' : nothing} aria-expanded=${this.config!.collapsible ? String(!this.collapsed) : nothing}>
         ${this.config!.show_header_icon
-          ? html`<ha-icon class="mode-icon" icon=${icon}
-              style=${`color:${resolveColor(this.config!.styles?.header_icon?.color, own) || own}`}></ha-icon>`
+          ? this.config!.header_countdown && this.alarmEntity && (alarmState === 'arming' || alarmState === 'pending')
+            ? html`<hmac-state-badge class="mode-icon countdown" .hass=${this.hass} .entity=${this.alarmEntity}
+                style=${`--alarm-state-color:${this.arm(this.alarmEntity)[(this.hass!.states[this.alarmEntity]?.attributes as any)?.arm_mode || ''] || 'var(--warning-color)'}`}></hmac-state-badge>`
+            : html`<ha-icon class="mode-icon" icon=${icon}
+                style=${`color:${resolveColor(this.config!.styles?.header_icon?.color, own) || own}`}></ha-icon>`
           : nothing}
         <div class="head-text">
           ${this.config!.show_mode_name ? html`<div class="mode-name">${title}</div>` : nothing}
@@ -356,16 +395,19 @@ export class HouseModesAlarmCenterCard extends LitElement {
   }
 
   private renderModes() {
-    const h = this.data!.house;
-    const modes = visibleModes(this.data!, this.config!.hidden_modes);
+    const h = this.dv.house;
+    const modes = visibleModes(this.dv, this.config!.hidden_modes);
+    // effects go to the mode being changed to, else (arming, entry delay, alarm) the current one
+    const fxMode = h.changing_to ? h.modes.find(m => m.name === h.changing_to)?.id : h.current;
+    const fxBtn = fxPartClasses(this.config!.effects?.mode_button, this.fxRun || FX_PREVIEW.on).join(' ');
     return html`
-      <div class="modes ${this.config!.modes_align === 'center' ? 'center' : ''} ${this.config!.styles?.mode_button?.text_follows_icon ? 'follow' : ''} ${this.config!.modes_shape === 'round' ? 'round' : ''}"
-        style=${`--cols:${Math.max(1, Math.min(9, this.config!.columns || 5))}${this.config!.modes_gap !== undefined ? `;--hmac-modes-gap:${Number(this.config!.modes_gap)}px` : ''}`}>
+      <div class="modes ${this.config!.modes_width === 'fit' ? 'fit' : ''} ${this.config!.modes_align === 'center' ? 'center' : ''} ${this.config!.styles?.mode_button?.text_follows_icon ? 'follow' : ''} ${this.config!.modes_shape === 'round' ? 'round' : ''}"
+        style=${`--cols:${Math.max(1, Math.min(9, this.config!.columns || 5))}${this.config!.modes_gap !== undefined ? `;--hmac-modes-gap:${Number(this.config!.modes_gap)}px` : ''}${this.config!.modes_padding !== undefined ? `;--hmac-modes-pad:${Number(this.config!.modes_padding)}px` : ''}`}>
         ${modes.map(m => {
           const on = m.id === h.current;
           const st = this.config!.styles || {};
-          const target = !!h.changing_to && h.changing_to === m.name || (FX_PREVIEW.on && on);
-          return html`<button class="mode ${on ? 'on' : ''} ${target ? 'fx-target' : ''}" aria-pressed=${on ? 'true' : 'false'} title=${m.name}
+          const target = m.id === fxMode;
+          return html`<button class="mode fxe ${on ? 'on' : ''} ${target ? fxBtn : ''}" aria-pressed=${on ? 'true' : 'false'} title=${m.name}
               style=${`--mode-color:${m.color};${buttonVars(st.mode_button, st.mode_icon, m.color)}`}
               @click=${() => this.chooseMode(m.name)}>
               ${this.config!.show_mode_icons ? html`<span class="disc"><ha-icon icon=${m.icon}></ha-icon></span>` : nothing}
@@ -377,7 +419,10 @@ export class HouseModesAlarmCenterCard extends LitElement {
   }
 
   private renderKeypad(link: NonNullable<ReturnType<typeof linkFor>>) {
-    const kp = this.data!.keypad;
+    const kp = this.dv.keypad;
+    const flash = this.config!.key_flash || {};
+    const fl = [flash.border ? `--kf-bd:${resolveColor(flash.border, '')}` : '', flash.background ? `--kf-bg:${resolveColor(flash.background, '')}` : '']
+      .filter(Boolean).join(';');
     const blocked = kp.blocked_keys || '';
     return html`
       <div class="keypad-wrap">
@@ -389,9 +434,9 @@ export class HouseModesAlarmCenterCard extends LitElement {
             })()
           : nothing}
         ${!kp.allowed ? html`<div class="note">Panel keypad: ${kp.reason}</div>` : nothing}
-        <div class="keys">
+        <div class="keys ${this.config!.keypad_shape === 'round' ? 'round' : ''} ${flash.border ? 'fl-bd' : ''} ${flash.background ? 'fl-bg' : ''}" style=${fl}>
           ${keypadKeys(this.config!.keypad_labels).map(([k, label]) => html`
-            <button class="key" ?disabled=${!kp.allowed || blocked.includes(k) || this.busyKey === k}
+            <button class="key ${this.flashKey === k ? 'flash' : ''}" ?disabled=${!kp.allowed || blocked.includes(k) || this.busyKey === k}
               aria-label=${label ? `${k} ${label}` : k} @click=${() => this.press(k)}>
               <span class="k">${k}</span>${label && this.config!.show_key_labels ? html`<span class="l">${label}</span>` : nothing}
             </button>`)}
@@ -408,32 +453,117 @@ export class HouseModesAlarmCenterCard extends LitElement {
       --fx-speed: 1.6s;
       --fx-c: var(--fx-color, var(--hmac-border, var(--primary-color)));
     }
-    ha-card.fx-border-glow {
+    /* the card: border glow / pulse (box-shadow), background glow / pulse (a tint overlay) */
+    ha-card.fx-card-border-glow {
       box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 6) color-mix(in srgb, var(--fx-c) 55%, transparent);
     }
-    ha-card.fx-border-pulse {
+    ha-card.fx-card-border-pulse {
       animation: hmac-fx-border var(--fx-speed) ease-in-out infinite;
     }
-    ha-card.fx-border-glow.fx-border-pulse {
+    ha-card.fx-card-border-glow.fx-card-border-pulse {
       animation-name: hmac-fx-border-strong;
     }
-    ha-card.fx-status_icon-glow .mode-icon {
+    ha-card {
+      position: relative;
+    }
+    ha-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: var(--fx-c);
+      opacity: 0;
+      pointer-events: none;
+    }
+    ha-card.fx-card-background-glow::after {
+      opacity: 0.12;
+    }
+    ha-card.fx-card-background-pulse::after {
+      animation: hmac-fx-tint var(--fx-speed) ease-in-out infinite;
+    }
+    ha-card.fx-card-background-glow.fx-card-background-pulse::after {
+      animation-name: hmac-fx-tint-strong;
+    }
+    /* the status icon */
+    ha-card.fx-status-icon-glow .mode-icon {
       filter: drop-shadow(0 0 calc(var(--fx-size) / 3) var(--fx-c)) drop-shadow(0 0 calc(var(--fx-size) / 6) var(--fx-c));
     }
-    ha-card.fx-status_icon-pulse .mode-icon {
+    ha-card.fx-status-icon-pulse .mode-icon {
       animation: hmac-fx-icon var(--fx-speed) ease-in-out infinite;
     }
-    ha-card.fx-mode_button-glow .modes.round .mode.fx-target {
+    /* a House Mode button (.fxe) in its own color: background, border, icon */
+    .mode.fxe {
+      position: relative;
+      --fx-own: var(--mode-color, var(--fx-c));
+    }
+    .mode.fxe::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: var(--fx-own);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .modes.round .mode.fxe::after {
+      display: none;
+    }
+    .mode.fx-background-glow::after,
+    .modes.round .mode.fx-background-glow .disc {
+      opacity: 0.22;
+    }
+    .modes.round .mode.fx-background-glow .disc {
+      opacity: 1;
+      background-color: color-mix(in srgb, var(--fx-own) 30%, transparent);
+    }
+    .mode.fx-background-pulse::after {
+      animation: hmac-fx-tint var(--fx-speed) ease-in-out infinite;
+    }
+    .mode.fx-background-glow.fx-background-pulse::after {
+      animation-name: hmac-fx-tint-strong;
+    }
+    .mode.fx-border-glow,
+    .modes.round .mode.fx-border-glow .disc {
+      box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 8) color-mix(in srgb, var(--fx-own) 55%, transparent);
+    }
+    .modes.round .mode.fx-border-glow {
       box-shadow: none;
     }
-    ha-card.fx-mode_button-glow .modes.round .mode.fx-target .disc {
-      box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 8) color-mix(in srgb, var(--mode-color, var(--fx-c)) 55%, transparent);
+    .mode.fx-border-pulse,
+    .modes.round .mode.fx-border-pulse .disc {
+      animation: hmac-fx-ring var(--fx-speed) ease-out infinite;
     }
-    ha-card.fx-mode_button-glow .mode.fx-target {
-      box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 8) color-mix(in srgb, var(--mode-color, var(--fx-c)) 55%, transparent);
+    .modes.round .mode.fx-border-pulse {
+      animation: none;
     }
-    ha-card.fx-mode_button-pulse .mode.fx-target ha-icon {
+    .mode.fx-border-glow.fx-border-pulse,
+    .modes.round .mode.fx-border-glow.fx-border-pulse .disc {
+      animation-name: hmac-fx-ring-glow;
+    }
+    .modes.round .mode.fx-border-glow.fx-border-pulse {
+      animation: none;
+    }
+    .mode.fx-icon-glow ha-icon {
+      filter: drop-shadow(0 0 calc(var(--fx-size) / 3) var(--fx-own)) drop-shadow(0 0 calc(var(--fx-size) / 6) var(--fx-own));
+    }
+    .mode.fx-icon-pulse ha-icon {
       animation: hmac-fx-icon var(--fx-speed) ease-in-out infinite;
+    }
+    @keyframes hmac-fx-tint {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 0.3; }
+    }
+    @keyframes hmac-fx-tint-strong {
+      0%, 100% { opacity: 0.12; }
+      50% { opacity: 0.4; }
+    }
+    @keyframes hmac-fx-ring {
+      0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fx-own, var(--fx-c)) 60%, transparent); }
+      70%, 100% { box-shadow: 0 0 0 calc(var(--fx-size) / 2) color-mix(in srgb, var(--fx-own, var(--fx-c)) 0%, transparent); }
+    }
+    @keyframes hmac-fx-ring-glow {
+      0% { box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 8) color-mix(in srgb, var(--fx-own, var(--fx-c)) 55%, transparent), 0 0 0 0 color-mix(in srgb, var(--fx-own, var(--fx-c)) 60%, transparent); }
+      70%, 100% { box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 8) color-mix(in srgb, var(--fx-own, var(--fx-c)) 55%, transparent), 0 0 0 calc(var(--fx-size) / 2) color-mix(in srgb, var(--fx-own, var(--fx-c)) 0%, transparent); }
     }
     @keyframes hmac-fx-border {
       0%, 100% { box-shadow: 0 0 0 0 transparent; }
@@ -592,7 +722,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
       flex-direction: column;
       align-items: center;
       gap: 2px;
-      padding: 6px 2px;
+      padding: var(--hmac-modes-pad, 6px) 2px;
       background: var(--b-bg, none);
       border: 1px solid var(--b-bd, transparent);
       border-radius: 10px;
@@ -612,6 +742,24 @@ export class HouseModesAlarmCenterCard extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    /* fit: buttons as wide as their content, centered, the space between them is the gap */
+    .modes.fit {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .modes.fit .mode,
+    .modes.fit.center .mode {
+      flex: 0 0 auto;
+      padding-left: calc(var(--hmac-modes-pad, 6px) + 4px);
+      padding-right: calc(var(--hmac-modes-pad, 6px) + 4px);
+    }
+    /* the countdown circle in place of the header icon */
+    hmac-state-badge.countdown {
+      --hmac-badge-size: var(--hmac-header-icon-size, 48px);
+      display: block;
+      position: relative;
     }
     /* round: a circle around the icon carries the background and border, the text sits below */
     .modes.round .mode,
@@ -742,6 +890,26 @@ export class HouseModesAlarmCenterCard extends LitElement {
     }
     .bar-chev {
       color: var(--secondary-text-color);
+    }
+    /* round keys: circles, the text inside */
+    .keys.round {
+      justify-items: center;
+    }
+    .keys.round .key {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+    }
+    /* a pressed key flashes for 500 ms */
+    .key {
+      transition: box-shadow 0.15s, background-color 0.15s, border-color 0.15s;
+    }
+    .keys.fl-bd .key.flash {
+      border-color: var(--kf-bd);
+      box-shadow: 0 0 10px 1px var(--kf-bd);
+    }
+    .keys.fl-bg .key.flash {
+      background: var(--kf-bg);
     }
     .key:disabled {
       opacity: 0.45;

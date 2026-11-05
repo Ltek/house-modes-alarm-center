@@ -49,7 +49,14 @@ panel keypad*). Only options you change are written to the YAML.
 | `modes_align` | `grid` | `grid`: fixed columns, the last row wraps left; `center`: every row centered across the width |
 | `columns` | `5` | House Mode buttons per row (2–9) |
 | `modes_shape`, `arm_shape` | `rounded` | `rounded` rectangles, or `round`: a circle around each icon with the text below |
+| `modes_width`, `arm_width` | `fill` | `fill`: the buttons share the width; `fit`: as wide as their content, centered (the space setting is then the distance between them) |
 | `modes_gap`, `arm_gap` | `4` / `0` | Space between the House Mode buttons / the arm buttons, px |
+| `modes_padding`, `arm_padding` | `6` / `8` | Inner padding of the buttons, px |
+| `keypad_shape` | `rounded` | `round` keys |
+| `key_flash` | | `{border: <color>, background: <color>}`: a pressed key glows / flashes for 500 ms |
+| `header_countdown` | `false` | The countdown circle in place of the header icon during an exit or entry delay |
+| `mode_colors` | | Card-only House Mode colors: `{stay: "#ff9800"}` |
+| `arm_colors` | | Per arm mode: `{disarmed: "house:guest", armed_away: "#f44336"}` (`house:<id>` = that House Mode's color) |
 | `hidden_modes` | | House Modes (id or name) without a button |
 | `alarm_colors` | `modes` | Arm mode colors (arm buttons, alarm bar, the `mode` keyword): `modes` = the House Mode that sets each arm mode, `standard` = green disarmed / red away / orange home / …, `theme` = Home Assistant's alarm state colors |
 | `keypad_labels` | Vista | e.g. `{"6": "BYP"}` |
@@ -86,19 +93,21 @@ styles:
 
 ```yaml
 effects:
-  border: both          # none / glow / pulse / both
-  status_icon: glow     # the House Mode icon in the header
-  mode_button: pulse    # the House Mode button being changed to
-  when: [arming, entry, changing, triggered]   # default: all four
+  card: { border: both, background: glow }        # none / glow / pulse / both, per part
+  status_icon: { icon: glow }
+  mode_button: { background: pulse, border: glow, icon: pulse }   # the House Mode being changed to
+  arm_button: { border: both, icon: glow }        # the arm mode being set
+  when: [arming, entry, changing, triggered]     # default: all four
   size: 16              # glow size, px
   speed: 1.6            # pulse period, s
-  color: var(--warning-color)   # default: the border's state color
+  color: var(--warning-color)   # card and status icon; default: the border's state color
 ```
 
 - *arming*: Alarmo or the physical panel counts down the exit delay; *entry*: the entry delay; *changing*: a House
   Mode change is being applied, waits (delayed request) or, in Shadow, is being watched; *triggered*: an alarm.
+- Buttons glow and pulse in their own House Mode / arm mode color.
 - The editor's *Preview the effects now* shows them without waiting for the real thing (not saved).
-- Respects the system's reduced-motion setting.
+- Respects the system's reduced-motion setting. Settings saved by v2026.11.05.46–.47 (`border: glow` …) still work.
 
 ## Without House Modes, without a panel, in Shadow
 

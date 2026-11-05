@@ -19,7 +19,9 @@ import {
   BUTTON_PRESETS,
   presetOf,
   FX_DEFAULTS,
-  FX_LABELS,
+  FX_PARTS,
+  ARM_STATE_LABELS,
+  ARM_DEFAULT_COLORS,
   FX_PREVIEW,
   FX_TARGETS,
   FX_TRIGGERS,
@@ -74,6 +76,8 @@ const FONTS: [string, string][] = [
 const FONT_NAME: Record<string, string> = { monospace: 'monospace', sans: 'sans-serif', serif: 'serif' };
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
+/** A swatch seed: #rrggbb only (a theme color or name falls back to gray). */
+const toHex6 = (c: string) => (/^#[0-9a-fA-F]{6}$/.test(c || '') ? c : '#9e9e9e');
 
 @customElement('house-modes-alarm-center-card-editor')
 export class HouseModesAlarmCenterCardEditor extends LitElement {
@@ -90,11 +94,28 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     if (FX_PREVIEW.on) FX_PREVIEW.set(false); // the preview never outlives the editor
   }
 
+  private setFxPart(target: string, part: string, value: string) {
+    const fx: any = { ...((this.config || ({} as any)).effects || {}) };
+    const t = { ...(fx[target] || {}) };
+    if (!value || value === 'none') delete t[part];
+    else t[part] = value;
+    if (Object.keys(t).length) fx[target] = t;
+    else delete fx[target];
+    this.emit({ ...(this.config as CardConfig), effects: fx });
+  }
+
   private setFx(key: string, value: unknown) {
     const fx: any = { ...((this.config || ({} as any)).effects || {}) };
     if (value === undefined || value === '' || value === 'none') delete fx[key];
     else fx[key] = value;
     this.emit({ ...(this.config as CardConfig), effects: fx });
+  }
+
+  private setMap(key: 'mode_colors' | 'arm_colors' | 'key_flash', id: string, value: string | undefined) {
+    const map: any = { ...((this.config as any)?.[key] || {}) };
+    if (value === undefined || value === '') delete map[id];
+    else map[id] = value;
+    this.set(key, Object.keys(map).length ? map : undefined);
   }
 
   /** §5 two levels: the card background, and the same property per section ("Card background" = inherit). */
@@ -108,9 +129,13 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     const fx: EffectsConfig = this.config?.effects || {};
     const when = fx.when || FX_DEFAULTS.when;
     const opts: [string, string][] = [['none', 'Off'], ['glow', 'Glow'], ['pulse', 'Pulse'], ['both', 'Glow + pulse']];
+    const partLabel: Record<string, string> = { background: 'Background', border: 'Border', icon: 'Icon' };
     return html`
-      ${this.group('Parts')}
-      ${FX_TARGETS.map(t => this.select(FX_LABELS[t], fx[t] || 'none', opts, v => this.setFx(t, v)))}
+      ${(Object.keys(FX_TARGETS) as (keyof typeof FX_TARGETS)[]).map(t => html`
+        ${this.group(FX_TARGETS[t].label)}
+        ${FX_PARTS.filter(p => (FX_TARGETS[t].parts as string[]).includes(p)).map(p =>
+          this.select(partLabel[p], (fx[t] as any)?.[p] || 'none', opts, v => this.setFxPart(t, p, v)))}`)}
+      ${fx.mode_button || fx.arm_button ? html`<p class="hint">Buttons glow and pulse in their own House Mode / arm mode color.</p>` : nothing}
       ${this.group('When')}
       ${FX_TRIGGERS.map(t => this.toggle(FX_TRIGGER_LABELS[t], when.includes(t), v => {
         const next = v ? [...new Set([...when, t])] : when.filter(x => x !== t);
@@ -180,6 +205,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     }
     if (!v.name) delete v.name;
     delete v.alarm_colors_from_modes;
+    for (const k of ['effects', 'mode_colors', 'arm_colors', 'key_flash']) if (v[k] && !Object.keys(v[k]).length) delete v[k];
     if (!v.entity) delete v.entity;
     this.config = v;
     this.dispatchEvent(new CustomEvent('config-changed', { detail: { config: v }, bubbles: true, composed: true }));
@@ -436,6 +462,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
         ? html`
           ${this.group('Show')}
           ${this.toggle('House Mode icon', c.show_header_icon, v => this.set('show_header_icon', v))}
+          ${c.show_header_icon ? this.toggle('Countdown circle in its place during an exit or entry delay', c.header_countdown, v => this.set('header_countdown', v)) : nothing}
           ${this.toggle('House Mode name', c.show_mode_name, v => this.set('show_mode_name', v))}
           ${this.toggle('Panel display, line 1', c.show_line1, v => this.set('show_line1', v))}
           ${this.toggle('Panel display, line 2', c.show_line2, v => this.set('show_line2', v))}
@@ -457,7 +484,9 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           ${this.select('Alignment', c.modes_align, [['grid', 'Standard (fixed columns, wrap left)'], ['center', 'Center on width']], v => this.set('modes_align', v))}
           ${this.slider('Buttons per row', c.columns, 2, 9, 1, '', 5, v => this.set('columns', v), false)}
           ${this.select('Shape', c.modes_shape, [['rounded', 'Rounded rectangles'], ['round', 'Round (circle around the icon)']], v => this.set('modes_shape', v))}
+          ${this.select('Button width', c.modes_width, [['fill', 'Fill the width (share it equally)'], ['fit', 'Fit the content (centered)']], v => this.set('modes_width', v))}
           ${this.slider('Space between buttons', c.modes_gap ?? 4, 0, 24, 1, ' px', 4, v => this.set('modes_gap', v === 4 ? undefined : v), false)}
+          ${this.slider('Button padding', c.modes_padding ?? 6, 0, 20, 1, ' px', 6, v => this.set('modes_padding', v === 6 ? undefined : v), false)}
           ${modes.length
             ? html`${this.group('Buttons shown')}
                 <div class="chips">${modes.map(m => {
@@ -466,6 +495,13 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
                     @click=${() => this.set('hidden_modes', hidden ? (c.hidden_modes || []).filter(x => x !== m.id && x !== m.name) : [...(c.hidden_modes || []), m.id])}>
                     <ha-icon icon=${m.icon} style=${`color:${m.color}`}></ha-icon>${m.name}</button>`;
                 })}</div>`
+            : nothing}
+          ${modes.length
+            ? this.sub('House Mode colors', html`
+                <p class="hint">Each House Mode's color comes from the House Modes tab. Set one here to use a different color
+                  on this card only.</p>
+                ${modes.map(m => this.color(m.name, (c.mode_colors || {})[m.id], `House Modes tab (${m.color})`, toHex6(m.color),
+                  v => this.setMap('mode_colors', m.id, v)))}`)
             : nothing}
           ${this.sectionBg('modes_section')}
           ${this.group('Styles')}
@@ -490,8 +526,15 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
             ['standard', 'Standard (green disarmed, red away, orange home, …)'],
             ['theme', 'Home Assistant theme (alarm state colors)'],
           ], v => this.set('alarm_colors', v))}
+          ${this.sub('Arm mode colors', html`
+            <p class="hint">Change one arm mode, or match it to a House Mode's color.</p>
+            ${Object.keys(ARM_STATE_LABELS).map(st => this.color(ARM_STATE_LABELS[st], (c.arm_colors || {})[st], 'From the choice above',
+              ARM_DEFAULT_COLORS[st], v => this.setMap('arm_colors', st, v),
+              modes.map(m => [`house:${m.id}`, `House Mode: ${m.name}`] as [string, string])))}`)}
           ${this.select('Shape', c.arm_shape, [['rounded', 'Rounded rectangles'], ['round', 'Round (circle around the icon)']], v => this.set('arm_shape', v))}
+          ${this.select('Button width', c.arm_width, [['fill', 'Fill the width (share it equally)'], ['fit', 'Fit the content (centered)']], v => this.set('arm_width', v))}
           ${this.slider('Space between buttons', c.arm_gap ?? 0, 0, 24, 1, ' px', 0, v => this.set('arm_gap', v === 0 ? undefined : v), false)}
+          ${this.slider('Button padding', c.arm_padding ?? 8, 0, 20, 1, ' px', 8, v => this.set('arm_padding', v === 8 ? undefined : v), false)}
           ${this.slider('Arm button scale', Math.round(alarm.button_scale_actions * 10) / 10, 1, 2.5, 0.1, '×', 1, v => this.setAlarm('button_scale_actions', v), false)}
           ${this.group('Code entry and messages')}
           ${ALARM_KEYS.map(k => this.toggle(ALARM_LABELS[k], !!alarm[k], v => this.setAlarm(k, v)))}
@@ -515,6 +558,12 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
             dashboards</em>. Other users see the keys disabled.</p>
           ${this.group('Show')}
           ${this.toggle('Key functions (OFF, AWAY, STAY, …)', c.show_key_labels, v => this.set('show_key_labels', v))}
+          ${this.group('Keys')}
+          ${this.select('Shape', c.keypad_shape, [['rounded', 'Rounded rectangles'], ['round', 'Round']], v => this.set('keypad_shape', v))}
+          ${this.group('When a key is pressed')}
+          ${this.color('Border glows', (c.key_flash || {}).border, 'Off', '#03a9f4', v => this.setMap('key_flash', 'border', v))}
+          ${this.color('Background flashes', (c.key_flash || {}).background, 'Off', '#03a9f4', v => this.setMap('key_flash', 'background', v))}
+          <p class="hint">For half a second, so you can see the key was sent.</p>
           ${this.sectionBg('keypad_section')}
           ${this.group('Styles')}
           ${this.textStyle('key_digit')}

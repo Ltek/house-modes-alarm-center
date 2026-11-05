@@ -104,7 +104,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
         this.saveView();
       }
     }
-    // a "start closed" change in the editor must not fold anything that is open now; only a section that can no
+    // a "start collapsed" change in the editor must not collapse anything that is open now; only a section that can no
     // longer collapse is shown again
     if (!this.config.collapsible) this.collapsed = false;
   }
@@ -340,7 +340,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
   private renderSectionById(id: string, first: boolean, x: { mode: any; alarmEnt?: string; alarmState?: string; link: any; status?: StatusSection }) {
     const c = this.config!;
     const cf: any = c;
-    // the first section of a foldable card is its title: no bar of its own
+    // the first section of a collapsible card is its title: no bar of its own
     const can = (v: boolean) => (!first || !c.collapsible ? v : false);
     if (x.status) {
       const st = x.status;

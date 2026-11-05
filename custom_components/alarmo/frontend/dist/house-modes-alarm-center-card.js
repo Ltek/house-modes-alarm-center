@@ -1102,7 +1102,7 @@ ${!1===this._config.show_icon?"":q`<div class="icon">
         justify-self: center;
         margin-bottom: 10px;
       }
-    `}};t([ue({attribute:!1})],za.prototype,"hass",void 0),t([me()],za.prototype,"_config",void 0),t([me()],za.prototype,"_alarmoConfig",void 0),t([me()],za.prototype,"_input",void 0),t([me()],za.prototype,"warning",void 0),t([me()],za.prototype,"area_id",void 0),t([me()],za.prototype,"armOptions",void 0),t([me()],za.prototype,"readyForArmModes",void 0),t([me()],za.prototype,"backendConnection",void 0),t([me()],za.prototype,"showBypassedSensors",void 0),t([ue({attribute:!1})],za.prototype,"cardConfig",null),za=t([de("hmac-alarm")],za);const Oa="2026.11.05.57";var Ca,ja,Ma,Ea;!function(e){e.STATE_ALARM_DISARMED="disarmed",e.STATE_ALARM_ARMED_HOME="armed_home",e.STATE_ALARM_ARMED_AWAY="armed_away",e.STATE_ALARM_ARMED_NIGHT="armed_night",e.STATE_ALARM_ARMED_CUSTOM_BYPASS="armed_custom_bypass",e.STATE_ALARM_ARMED_VACATION="armed_vacation",e.STATE_ALARM_PENDING="pending",e.STATE_ALARM_ARMING="arming",e.STATE_ALARM_TRIGGERED="triggered"}(Ca||(Ca={})),function(e){e.COMMAND_ALARM_DISARM="disarm",e.COMMAND_ALARM_ARM_HOME="arm_home",e.COMMAND_ALARM_ARM_AWAY="arm_away",e.COMMAND_ALARM_ARM_NIGHT="arm_night",e.COMMAND_ALARM_ARM_CUSTOM_BYPASS="arm_custom_bypass",e.COMMAND_ALARM_ARM_VACATION="arm_vacation"}(ja||(ja={})),function(e){e.Door="door",e.Window="window",e.Motion="motion",e.Tamper="tamper",e.Environmental="environmental",e.Other="other"}(Ma||(Ma={})),function(e){e.Notification="notification",e.Action="action"}(Ea||(Ea={}));const Ta=[["var(--primary-color)","Primary"],["var(--accent-color)","Accent"],["var(--primary-text-color)","Primary text"],["var(--secondary-text-color)","Secondary text"],["var(--disabled-text-color)","Disabled text"],["var(--state-active-color)","State active"],["var(--error-color)","Error"],["var(--warning-color)","Warning"],["var(--success-color)","Success"],["var(--info-color)","Info"]],Pa=["keep_keypad_visible","use_code_dialog","hide_keypad","show_messages","show_ready_indicator","show_bypassed_sensors"],Ra={keep_keypad_visible:!1,use_code_dialog:!1,hide_keypad:!1,show_messages:!0,show_ready_indicator:!0,show_bypassed_sensors:!0},Na={keep_keypad_visible:"Always show the code keypad",use_code_dialog:"Ask for the code in a dialog",hide_keypad:"Hide the code keypad",show_messages:"Messages (not ready, triggered)",show_ready_indicator:"Ready dot on the arm buttons",show_bypassed_sensors:"Warn about bypassed zones"},Ha=[300,400,500,600,700,800],Da=[["monospace","Monospace (panel display)"],["sans","Sans-serif (theme)"],["serif","Serif"]],Ba={monospace:"monospace",sans:"sans-serif",serif:"serif"},Ia=e=>JSON.parse(JSON.stringify(null!=e?e:null));let La=class extends le{constructor(){super(...arguments),this.onlyOne=e=>{var t;const a=e.currentTarget;if(!a.open)return;const s=a.classList.contains("panel")?"panel":"sub";for(const e of Array.from((null===(t=a.parentElement)||void 0===t?void 0:t.children)||[]))e!==a&&e instanceof HTMLDetailsElement&&e.classList.contains(s)&&e.open&&(e.open=!1)}}setConfig(e){this.config=Ze(e)}disconnectedCallback(){super.disconnectedCallback(),Ke.on&&Ke.set(!1)}setFxPart(e,t,a){const s=Object.assign({},(this.config||{}).effects||{}),o=Object.assign({},s[e]||{});a&&"none"!==a?o[t]=a:delete o[t],Object.keys(o).length?s[e]=o:delete s[e],this.emit(Object.assign(Object.assign({},this.config),{effects:s}))}setFx(e,t){const a=Object.assign({},(this.config||{}).effects||{});void 0===t||""===t||"none"===t?delete a[e]:a[e]=t,this.emit(Object.assign(Object.assign({},this.config),{effects:a}))}setMap(e,t,a){var s;const o=Object.assign({},(null===(s=this.config)||void 0===s?void 0:s[e])||{});void 0===a||""===a?delete o[t]:o[t]=a,this.set(e,Object.keys(o).length?o:void 0)}sectionBg(e){return q`${this.group("Background")}
+    `}};t([ue({attribute:!1})],za.prototype,"hass",void 0),t([me()],za.prototype,"_config",void 0),t([me()],za.prototype,"_alarmoConfig",void 0),t([me()],za.prototype,"_input",void 0),t([me()],za.prototype,"warning",void 0),t([me()],za.prototype,"area_id",void 0),t([me()],za.prototype,"armOptions",void 0),t([me()],za.prototype,"readyForArmModes",void 0),t([me()],za.prototype,"backendConnection",void 0),t([me()],za.prototype,"showBypassedSensors",void 0),t([ue({attribute:!1})],za.prototype,"cardConfig",null),za=t([de("hmac-alarm")],za);const Oa="2026.11.05.58";var Ca,ja,Ma,Ea;!function(e){e.STATE_ALARM_DISARMED="disarmed",e.STATE_ALARM_ARMED_HOME="armed_home",e.STATE_ALARM_ARMED_AWAY="armed_away",e.STATE_ALARM_ARMED_NIGHT="armed_night",e.STATE_ALARM_ARMED_CUSTOM_BYPASS="armed_custom_bypass",e.STATE_ALARM_ARMED_VACATION="armed_vacation",e.STATE_ALARM_PENDING="pending",e.STATE_ALARM_ARMING="arming",e.STATE_ALARM_TRIGGERED="triggered"}(Ca||(Ca={})),function(e){e.COMMAND_ALARM_DISARM="disarm",e.COMMAND_ALARM_ARM_HOME="arm_home",e.COMMAND_ALARM_ARM_AWAY="arm_away",e.COMMAND_ALARM_ARM_NIGHT="arm_night",e.COMMAND_ALARM_ARM_CUSTOM_BYPASS="arm_custom_bypass",e.COMMAND_ALARM_ARM_VACATION="arm_vacation"}(ja||(ja={})),function(e){e.Door="door",e.Window="window",e.Motion="motion",e.Tamper="tamper",e.Environmental="environmental",e.Other="other"}(Ma||(Ma={})),function(e){e.Notification="notification",e.Action="action"}(Ea||(Ea={}));const Ta=[["var(--primary-color)","Primary"],["var(--accent-color)","Accent"],["var(--primary-text-color)","Primary text"],["var(--secondary-text-color)","Secondary text"],["var(--disabled-text-color)","Disabled text"],["var(--state-active-color)","State active"],["var(--error-color)","Error"],["var(--warning-color)","Warning"],["var(--success-color)","Success"],["var(--info-color)","Info"]],Pa=["keep_keypad_visible","use_code_dialog","hide_keypad","show_messages","show_ready_indicator","show_bypassed_sensors"],Ra={keep_keypad_visible:!1,use_code_dialog:!1,hide_keypad:!1,show_messages:!0,show_ready_indicator:!0,show_bypassed_sensors:!0},Na={keep_keypad_visible:"Always show the code keypad",use_code_dialog:"Ask for the code in a dialog",hide_keypad:"Hide the code keypad",show_messages:"Messages (not ready, triggered)",show_ready_indicator:"Ready dot on the arm buttons",show_bypassed_sensors:"Warn about bypassed zones"},Ha=[300,400,500,600,700,800],Da=[["monospace","Monospace (panel display)"],["sans","Sans-serif (theme)"],["serif","Serif"]],Ba={monospace:"monospace",sans:"sans-serif",serif:"serif"},Ia=e=>JSON.parse(JSON.stringify(null!=e?e:null));let La=class extends le{constructor(){super(...arguments),this.onlyOne=e=>{var t;const a=e.currentTarget;if(!a.open)return;const s=a.classList.contains("panel")?"panel":"sub";for(const e of Array.from((null===(t=a.parentElement)||void 0===t?void 0:t.children)||[]))e!==a&&e instanceof HTMLDetailsElement&&e.classList.contains(s)&&e.open&&(e.open=!1)}}setConfig(e){this.config=Ze(e)}disconnectedCallback(){super.disconnectedCallback(),Ke.on&&Ke.set(!1)}setFxPart(e,t,a){const s=Object.assign({},(this.config||{}).effects||{}),o=Object.assign({},s[e]||{});a&&"none"!==a?o[t]=a:delete o[t],Object.keys(o).length?s[e]=o:delete s[e],this.emit(Object.assign(Object.assign({},this.config),{effects:s}))}setFx(e,t){const a=Object.assign({},(this.config||{}).effects||{});void 0===t||""===t||"none"===t?delete a[e]:a[e]=t,this.emit(Object.assign(Object.assign({},this.config),{effects:a}))}setMap(e,t,a){var s;const o=Object.assign({},(null===(s=this.config)||void 0===s?void 0:s[e])||{});void 0===a||""===a?delete o[t]:o[t]=a,this.set(e,Object.keys(o).length?o:void 0)}sectionBg(e){return q`${this.group("Background")}
       ${this.color("Section background",this.styleOf(e).background,"Card background","#262626",t=>this.setStyle(e,"background",t))}`}effectsBody(){var e;const t=(null===(e=this.config)||void 0===e?void 0:e.effects)||{},a=t.when||Ue.when,s=[["none","Off"],["glow","Glow"],["pulse","Pulse"],["both","Glow + pulse"]],o={background:"Background",border:"Border",icon:"Icon"};return q`
       ${Object.keys(Ie).map(e=>q`
         ${this.group(Ie[e].label)}
@@ -1168,16 +1168,17 @@ ${!1===this._config.show_icon?"":q`<div class="icon">
     </details>`}sub(e,t){return q`<details class="sub" @toggle=${this.onlyOne}>
       <summary><span>${e}</span><ha-icon class="chev" icon="mdi:chevron-down"></ha-icon></summary>
       <div class="sub-body">${t}</div>
-    </details>`}group(e){return q`<div class="group">${e}</div>`}textStyle(e,t){const a=be[e],s=t?t.get():this.styleOf(e),o=(a,s,i)=>t?t.set(s,i):o(e,s,i);return this.sub((null==t?void 0:t.label)||a.label,q`
+    </details>`}group(e){return q`<div class="group">${e}</div>`}textStyle(e,t,a){const s=be[e],o=t?t.get():this.styleOf(e),i=(a,s,o)=>t?t.set(s,o):i(e,s,o);return this.sub((null==t?void 0:t.label)||s.label,q`
+      ${a||V}
       ${this.group("Size and weight")}
-      ${this.slider("Size",s.size||0,6,48,1," px",a.size,t=>o(e,"size",t||void 0))}
-      ${this.select("Weight",s.weight?String(s.weight):"",[["",`Card default (${a.weight})`],...Ha.map(e=>[String(e),String(e)])],t=>o(e,"weight",t?Number(t):void 0))}
+      ${this.slider("Size",o.size||0,6,48,1," px",s.size,t=>i(e,"size",t||void 0))}
+      ${this.select("Weight",o.weight?String(o.weight):"",[["",`Card default (${s.weight})`],...Ha.map(e=>[String(e),String(e)])],t=>i(e,"weight",t?Number(t):void 0))}
       ${this.group("Font and case")}
-      ${this.select("Font",s.font||"",[["",`Card default (${Ba[a.font]})`],...Da],t=>o(e,"font",t||void 0))}
-      ${this.triState("Italic",s.italic,"Card default (off)",t=>o(e,"italic",t))}
-      ${this.triState("Capitals",s.caps,`Card default (${a.caps?"on":"off"})`,t=>o(e,"caps",t))}
+      ${this.select("Font",o.font||"",[["",`Card default (${Ba[s.font]})`],...Da],t=>i(e,"font",t||void 0))}
+      ${this.triState("Italic",o.italic,"Card default (off)",t=>i(e,"italic",t))}
+      ${this.triState("Capitals",o.caps,`Card default (${s.caps?"on":"off"})`,t=>i(e,"caps",t))}
       ${this.group("Color")}
-      ${this.color("Text color",s.color,"Card default","#e1e1e1",t=>o(e,"color",t))}
+      ${this.color("Text color",o.color,"Card default","#e1e1e1",t=>i(e,"color",t))}
     `)}iconStyle(e,t){const a=ve[e],s=this.styleOf(e);return this.sub(a.label,q`
       ${this.group("Size")}
       ${this.slider("Size",s.size||0,12,96,1," px",a.size,t=>this.setStyle(e,"size",t||void 0))}
@@ -1231,13 +1232,23 @@ ${!1===this._config.show_icon?"":q`<div class="icon">
             ${this.color("Icon color",r.color,"alarm"===e.icon?"Arm mode color":"House Mode color","#9e9e9e",t=>this.updStatus(e.id,e=>{var a;const s=Object.assign(Object.assign({},(null===(a=e.styles)||void 0===a?void 0:a.header_icon)||{}),{color:t});e.styles=Object.assign(Object.assign({},e.styles||{}),{header_icon:s})}),[["mode","alarm"===e.icon?"Arm mode color":"House Mode color"]])}`):V}
       ${a.map(e=>this.textStyle(we[e].style,s(we[e].style)))}
       <p class="hint">A style left at "Card default" uses the one under Card → Status text (all Status sections).</p>
-    `)}sectionRow(e,t,a){const s=this.cfg,o=e=>{const s=[...a];[s[t],s[t+e]]=[s[t+e],s[t]],this.setStatus(Ia(this.layout.sections),s)},i=e.startsWith("status:")?this.layout.sections.find(t=>`status:${t.id}`===e):void 0,r=i?void 0:Se[e];if(!i&&!r)return V;const n=i?i.name||"Status":r.title,l=i?(i.lines||[]).map(e=>{var t;return null===(t=we[e])||void 0===t?void 0:t.label.split(" (")[0]}).join(", ")||"icon only":r.hint,c=i?!1!==i.show:!!s[r.show],d=i?!!i.collapsible:!!s[r.collapse],h=i?!1!==i.start_collapsed:!!s[r.start],p=e=>i?this.updStatus(i.id,t=>t.show=!!e&&void 0):this.set(r.show,e),u=e=>i?this.updStatus(i.id,t=>t.collapsible=e||void 0):this.set(r.collapse,e),m=e=>i?this.updStatus(i.id,t=>t.start_collapsed=!!e&&void 0):this.set(r.start,e);return q`<div class="sec-row">
-      <input type="checkbox" aria-label=${`Show ${n}`} .checked=${c} @change=${e=>p(e.target.checked)} />
-      <span class="sec-name">${i?q`<ha-icon class="sec-ic" icon="mdi:information-outline"></ha-icon>`:V}${n}${l?q`<span class="hint inline"> · ${l}</span>`:V}</span>
-      ${c?q`<input type="checkbox" aria-label=${`Collapse ${n}`} title="a bar opens and closes this section" .checked=${d}
-              @change=${e=>u(e.target.checked)} />
-            ${d?q`<input type="checkbox" aria-label=${`Start ${n} closed`} .checked=${h} @change=${e=>m(e.target.checked)} />`:q`<span></span>`}`:q`<span></span><span></span>`}
+    `)}sectionRow(e,t,a){const s=this.cfg,o=e=>{const s=[...a];[s[t],s[t+e]]=[s[t+e],s[t]],this.setStatus(Ia(this.layout.sections),s)},i=e.startsWith("status:")?this.layout.sections.find(t=>`status:${t.id}`===e):void 0,r=i?void 0:Se[e];if(!i&&!r)return V;const n=i?i.name||"Status":r.title,l=i?(i.lines||[]).map(e=>{var t;return null===(t=we[e])||void 0===t?void 0:t.label.split(" (")[0]}).join(", ")||"icon only":r.hint,c=i?!1!==i.show:!!s[r.show],d=i?!!i.collapsible:!!s[r.collapse],h=i?!1!==i.start_collapsed:!!s[r.start],p=e=>i?this.updStatus(i.id,t=>t.show=!!e&&void 0):this.set(r.show,e),u=e=>i?this.updStatus(i.id,t=>t.collapsible=e||void 0):this.set(r.collapse,e),m=e=>i?this.updStatus(i.id,t=>t.start_collapsed=!!e&&void 0):this.set(r.start,e);return q`<div class="sec-row ${c?"":"hidden"}">
+      <ha-icon class="sec-ic" icon=${i?"mdi:information-outline":{house_modes:"mdi:home-switch-outline",alarm:"mdi:shield-lock-outline",keypad:"mdi:dialpad"}[e]}></ha-icon>
+      <div class="sec-text">
+        <span class="sec-name">${n}</span>
+        ${l?q`<span class="hint inline">${l}</span>`:V}
+        ${c?q`<span class="sec-chips">
+              <button class="chip ${d?"on":""}" aria-pressed=${d?"true":"false"}
+                title="A bar expands and collapses this section" @click=${()=>u(!d)}>
+                <ha-icon icon="mdi:unfold-less-horizontal"></ha-icon>Collapsible</button>
+              ${d?q`<button class="chip ${h?"on":""}" aria-pressed=${h?"true":"false"}
+                    title="Collapsed when the card first appears" @click=${()=>m(!h)}>
+                    <ha-icon icon="mdi:arrow-collapse-vertical"></ha-icon>Starts collapsed</button>`:V}
+            </span>`:V}
+      </div>
       <span class="order">
+        <button class="icon-btn" title=${c?"Hide":"Show"} aria-label=${`${c?"Hide":"Show"} ${n}`} @click=${()=>p(!c)}>
+          <ha-icon icon=${c?"mdi:eye-outline":"mdi:eye-off-outline"}></ha-icon></button>
         <button class="icon-btn" title="Move up" aria-label=${`Move ${n} up`} ?disabled=${0===t} @click=${()=>o(-1)}><ha-icon icon="mdi:arrow-up"></ha-icon></button>
         <button class="icon-btn" title="Move down" aria-label=${`Move ${n} down`} ?disabled=${t===a.length-1} @click=${()=>o(1)}><ha-icon icon="mdi:arrow-down"></ha-icon></button>
         ${i?q`<button class="icon-btn del" title="Delete" aria-label=${`Delete ${n}`} @click=${()=>this.removeStatus(i.id)}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button>`:q`<span class="spacer"></span>`}
@@ -1263,19 +1274,21 @@ ${!1===this._config.show_icon?"":q`<div class="icon">
         ${this.group("Status text (all Status sections)")}
         ${this.iconStyle("header_icon")}
         ${["mode_name","alarm_name","alarm_state","line1","line2","changing","since"].map(e=>this.textStyle(e))}
+        ${this.group("Collapse")}
+        ${this.toggle("Collapse the card to its first section (tap it to expand)",l.collapsible,e=>this.set("collapsible",e))}
+        ${l.collapsible?this.toggle("Start collapsed",l.start_collapsed,e=>this.set("start_collapsed",e)):V}
         ${this.group("Border")}
         ${this.select("Border color",l.border_color,[["mode","The House Mode's color"],["state","The alarm state (red alarm, orange arming / not ready, mode color armed, green ready)"]],e=>this.set("border_color",e))}
       `,!0)}
 
-      ${this.panel("sections","mdi:view-agenda-outline","Sections","Turn each part of the card on or off, and choose which ones can be collapsed.",q`
-        <div class="sec-head"><span></span><span>Section</span><span>Collapse</span><span>Start closed</span><span>Order</span></div>
-        <div class="row"><button class="add" @click=${()=>this.addStatus()}>+ Status section</button></div>
-        ${this.layout.order.map((e,t,a)=>this.sectionRow(e,t,a))}
-        ${this.group("Folding the card")}
-        ${this.toggle("Fold the whole card to its first section (tap it)",l.collapsible,e=>this.set("collapsible",e))}
-        ${l.collapsible?this.toggle("Start folded",l.start_collapsed,e=>this.set("start_collapsed",e)):V}
-        ${l.collapsible||Object.values(Se).some(e=>l[e.collapse])?q`${this.group("Collapsing")}${this.toggle("Show the open / close arrow",l.show_chevron,e=>this.set("show_chevron",e))}
-              ${this.textStyle("alarm_bar")}`:V}
+      ${this.panel("sections","mdi:view-agenda-outline","Sections","The parts of the card, in order: show or hide each one, make it collapsible, move it up or down.",q`
+        <div class="row"><button class="add" @click=${()=>this.addStatus()}>+ Status</button></div>
+        <div class="sec-list">${this.layout.order.map((e,t,a)=>this.sectionRow(e,t,a))}</div>
+        <p class="hint">Tap a chip to switch it: <em>Collapsible</em> puts the section behind a bar that expands and
+          collapses it; <em>Starts collapsed</em> is how it first appears. The eye shows or hides the section.</p>
+        ${l.collapsible||Object.values(Se).some(e=>l[e.collapse])||this.layout.sections.some(e=>e.collapsible)?this.textStyle("alarm_bar",void 0,q`
+              ${this.group("Arrow")}
+              ${this.toggle("Show the expand / collapse arrow",l.show_chevron,e=>this.set("show_chevron",e))}`):V}
       `)}
 
       ${this.layout.sections.map(e=>this.statusPanel(e))}
@@ -1489,7 +1502,7 @@ ${!1===this._config.show_icon?"":q`<div class="icon">
       border-radius: 0;
     }
     .sub[open] {
-      border: 1px solid var(--ltek-c-accent);
+      border: 1px solid var(--hmac-ed-theme-accent);
       border-radius: var(--ltek-r-ctrl);
       margin: var(--ltek-sp-1) 0;
     }
@@ -1600,23 +1613,53 @@ ${!1===this._config.show_icon?"":q`<div class="icon">
       color: var(--ltek-c-muted);
       font-weight: var(--ltek-fw-normal);
     }
-    /* Sections panel: show · name · collapse · start closed */
-    .sec-head,
+    /* Sections panel: raised rows — accent icon, name, hint and chips, then action icons (§2 section rows) */
+    .sec-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--ltek-sp-2);
+      padding: var(--ltek-sp-2) 0;
+    }
     .sec-row {
-      display: grid;
-      grid-template-columns: 22px 1fr 64px 76px 72px;
+      display: flex;
       align-items: center;
       gap: var(--ltek-sp-3);
-      padding: var(--ltek-sp-1) 0;
+      padding: 6px 8px;
+      border-radius: var(--ltek-r-card);
+      background: var(--ltek-c-surface-raised);
+      border: 1px solid var(--ltek-c-border-soft);
       font-size: var(--ltek-fs-label);
     }
-    .sec-head {
-      color: var(--ltek-c-muted);
+    .sec-row > .sec-ic {
+      --mdc-icon-size: var(--ltek-icon-lg);
+      color: var(--ltek-c-accent);
+      margin: 0;
+    }
+    .sec-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2px var(--ltek-sp-3);
+    }
+    .sec-name {
+      font-weight: var(--ltek-fw-normal);
+      color: var(--ltek-c-text);
+    }
+    .sec-chips {
+      display: inline-flex;
+      gap: var(--ltek-sp-2);
+      flex-basis: 100%;
+    }
+    .sec-chips .chip {
+      padding: 1px 8px 1px 5px;
       font-size: var(--ltek-fs-small);
     }
-    .sec-head span:nth-child(n + 3),
-    .sec-row input:nth-of-type(n + 2) {
-      justify-self: center;
+    .sec-row.hidden .sec-name,
+    .sec-row.hidden > .sec-ic {
+      color: var(--ltek-c-muted);
+      opacity: 0.6;
     }
     .line-row {
       display: flex;

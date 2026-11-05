@@ -26,7 +26,7 @@ bar and moved up or down.
   arm button means that mode cannot be armed now (open zones).
 - **Physical panel keypad** — the panel's 12 keys with their functions, sent through `alarmo.panel_keypress`.
 
-*Fold the whole card to its first section* turns the first section into the card's title: tap it to open or close
+*Collapse the card to its first section* (Card panel) turns the first section into the card's title: tap it to expand or collapse
 the rest. Cards made before Status sections show two: *House Mode Status* (the old header) and *Alarm Panel Status*.
 
 ```yaml
@@ -55,7 +55,7 @@ panel keypad*). Only options you change are written to the YAML.
 | **Sections** (*Sections* panel) | | |
 | `section_order` | `[house_status, house_modes, alarm_status, alarm, keypad]` | The order of the sections |
 | `show_header`, `show_house_modes`, `show_alarm_status`, `show_alarm` / `show_panel_keypad` | `true` / `false` | Turn a section on or off |
-| `collapsible` / `start_collapsed` | `false` / `true` | The whole card folds to its first section (tap it) |
+| `collapsible` / `start_collapsed` | `false` / `true` | The whole card collapses to its first section (tap it) |
 | `house_status_collapsible`, `modes_collapsible`, `alarm_status_collapsible`, `alarm_collapsible`, `keypad_collapsible` | `false` | The section sits behind a bar that opens and closes it |
 | `…_start_collapsed` (same names) | `true` | |
 | `show_chevron` | `false` | The open / close arrow on the header and the bars |

@@ -370,11 +370,13 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     return html`<div class="group">${title}</div>`;
   }
 
-  private textStyle(el: TextElement, scope?: { get: () => TextStyle; set: (k: string, v: unknown) => void; label?: string }): TemplateResult {
+  private textStyle(el: TextElement, scope?: { get: () => TextStyle; set: (k: string, v: unknown) => void; label?: string },
+    extra?: TemplateResult): TemplateResult {
     const d = TEXT_ELEMENTS[el];
     const t: TextStyle = scope ? scope.get() : this.styleOf(el);
     const setStyle = (_el: string, k: string, v: unknown) => (scope ? scope.set(k, v) : setStyle(el, k, v));
     return this.sub(scope?.label || d.label, html`
+      ${extra || nothing}
       ${this.group('Size and weight')}
       ${this.slider('Size', t.size || 0, 6, 48, 1, ' px', d.size, v => setStyle(el, 'size', v || undefined))}
       ${this.select('Weight', t.weight ? String(t.weight) : '', [['', `Card default (${d.weight})`], ...WEIGHTS.map(w => [String(w), String(w)] as [string, string])],
@@ -457,7 +459,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     `);
   }
 
-  /** One section in the Sections panel: [show] name · [collapse] · [start closed] (the last two only when shown). */
+  /** The card's sections: Status sections and their order. */
   private get layout() {
     return statusLayout(this.cfg as any);
   }
@@ -563,7 +565,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     `);
   }
 
-  /** One row of the Sections panel: [show] name · [collapse] · [start closed] · order ↑ ↓ (· delete for Status). */
+  /** One row of the Sections panel: icon · name · hint · chips (Collapsible, Starts collapsed) · eye ↑ ↓ (· trash). */
   private sectionRow(id: string, index: number, all: string[]) {
     const c: any = this.cfg;
     const move = (d: number) => {
@@ -582,15 +584,28 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     const setShow = (v: boolean) => (st ? this.updStatus(st.id, x => (x.show = v ? undefined : false)) : this.set(fixed.show, v));
     const setCollapse = (v: boolean) => (st ? this.updStatus(st.id, x => (x.collapsible = v || undefined)) : this.set(fixed.collapse, v));
     const setStart = (v: boolean) => (st ? this.updStatus(st.id, x => (x.start_collapsed = v ? undefined : false)) : this.set(fixed.start, v));
-    return html`<div class="sec-row">
-      <input type="checkbox" aria-label=${`Show ${title}`} .checked=${show} @change=${(e: any) => setShow(e.target.checked)} />
-      <span class="sec-name">${st ? html`<ha-icon class="sec-ic" icon="mdi:information-outline"></ha-icon>` : nothing}${title}${hint ? html`<span class="hint inline"> · ${hint}</span>` : nothing}</span>
-      ${show
-        ? html`<input type="checkbox" aria-label=${`Collapse ${title}`} title="a bar opens and closes this section" .checked=${collapse}
-              @change=${(e: any) => setCollapse(e.target.checked)} />
-            ${collapse ? html`<input type="checkbox" aria-label=${`Start ${title} closed`} .checked=${start} @change=${(e: any) => setStart(e.target.checked)} />` : html`<span></span>`}`
-        : html`<span></span><span></span>`}
+    const icon = st ? 'mdi:information-outline' : (({ house_modes: 'mdi:home-switch-outline', alarm: 'mdi:shield-lock-outline', keypad: 'mdi:dialpad' }) as any)[id];
+    return html`<div class="sec-row ${show ? '' : 'hidden'}">
+      <ha-icon class="sec-ic" icon=${icon}></ha-icon>
+      <div class="sec-text">
+        <span class="sec-name">${title}</span>
+        ${hint ? html`<span class="hint inline">${hint}</span>` : nothing}
+        ${show
+          ? html`<span class="sec-chips">
+              <button class="chip ${collapse ? 'on' : ''}" aria-pressed=${collapse ? 'true' : 'false'}
+                title="A bar expands and collapses this section" @click=${() => setCollapse(!collapse)}>
+                <ha-icon icon="mdi:unfold-less-horizontal"></ha-icon>Collapsible</button>
+              ${collapse
+                ? html`<button class="chip ${start ? 'on' : ''}" aria-pressed=${start ? 'true' : 'false'}
+                    title="Collapsed when the card first appears" @click=${() => setStart(!start)}>
+                    <ha-icon icon="mdi:arrow-collapse-vertical"></ha-icon>Starts collapsed</button>`
+                : nothing}
+            </span>`
+          : nothing}
+      </div>
       <span class="order">
+        <button class="icon-btn" title=${show ? 'Hide' : 'Show'} aria-label=${`${show ? 'Hide' : 'Show'} ${title}`} @click=${() => setShow(!show)}>
+          <ha-icon icon=${show ? 'mdi:eye-outline' : 'mdi:eye-off-outline'}></ha-icon></button>
         <button class="icon-btn" title="Move up" aria-label=${`Move ${title} up`} ?disabled=${index === 0} @click=${() => move(-1)}><ha-icon icon="mdi:arrow-up"></ha-icon></button>
         <button class="icon-btn" title="Move down" aria-label=${`Move ${title} down`} ?disabled=${index === all.length - 1} @click=${() => move(1)}><ha-icon icon="mdi:arrow-down"></ha-icon></button>
         ${st ? html`<button class="icon-btn del" title="Delete" aria-label=${`Delete ${title}`} @click=${() => this.removeStatus(st.id)}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button>` : html`<span class="spacer"></span>`}
@@ -629,6 +644,9 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
         ${this.group('Status text (all Status sections)')}
         ${this.iconStyle('header_icon')}
         ${(['mode_name', 'alarm_name', 'alarm_state', 'line1', 'line2', 'changing', 'since'] as TextElement[]).map(el => this.textStyle(el))}
+        ${this.group('Collapse')}
+        ${this.toggle('Collapse the card to its first section (tap it to expand)', c.collapsible, v => this.set('collapsible', v))}
+        ${c.collapsible ? this.toggle('Start collapsed', c.start_collapsed, v => this.set('start_collapsed', v)) : nothing}
         ${this.group('Border')}
         ${this.select('Border color', c.border_color, [
           ['mode', "The House Mode's color"],
@@ -636,16 +654,15 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
         ], v => this.set('border_color', v))}
       `, true)}
 
-      ${this.panel('sections', 'mdi:view-agenda-outline', 'Sections', 'Turn each part of the card on or off, and choose which ones can be collapsed.', html`
-        <div class="sec-head"><span></span><span>Section</span><span>Collapse</span><span>Start closed</span><span>Order</span></div>
-        <div class="row"><button class="add" @click=${() => this.addStatus()}>+ Status section</button></div>
-        ${this.layout.order.map((id, i, all) => this.sectionRow(id, i, all))}
-        ${this.group('Folding the card')}
-        ${this.toggle('Fold the whole card to its first section (tap it)', c.collapsible, v => this.set('collapsible', v))}
-        ${c.collapsible ? this.toggle('Start folded', c.start_collapsed, v => this.set('start_collapsed', v)) : nothing}
-        ${c.collapsible || Object.values(SECTION_INFO).some(x => (c as any)[x.collapse])
-          ? html`${this.group('Collapsing')}${this.toggle('Show the open / close arrow', c.show_chevron, v => this.set('show_chevron', v))}
-              ${this.textStyle('alarm_bar')}`
+      ${this.panel('sections', 'mdi:view-agenda-outline', 'Sections', 'The parts of the card, in order: show or hide each one, make it collapsible, move it up or down.', html`
+        <div class="row"><button class="add" @click=${() => this.addStatus()}>+ Status</button></div>
+        <div class="sec-list">${this.layout.order.map((id, i, all) => this.sectionRow(id, i, all))}</div>
+        <p class="hint">Tap a chip to switch it: <em>Collapsible</em> puts the section behind a bar that expands and
+          collapses it; <em>Starts collapsed</em> is how it first appears. The eye shows or hides the section.</p>
+        ${c.collapsible || Object.values(SECTION_INFO).some(x => (c as any)[x.collapse]) || this.layout.sections.some(x => x.collapsible)
+          ? this.textStyle('alarm_bar', undefined, html`
+              ${this.group('Arrow')}
+              ${this.toggle('Show the expand / collapse arrow', c.show_chevron, v => this.set('show_chevron', v))}`)
           : nothing}
       `)}
 
@@ -892,7 +909,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
       border-radius: 0;
     }
     .sub[open] {
-      border: 1px solid var(--ltek-c-accent);
+      border: 1px solid var(--hmac-ed-theme-accent);
       border-radius: var(--ltek-r-ctrl);
       margin: var(--ltek-sp-1) 0;
     }
@@ -1003,23 +1020,53 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
       color: var(--ltek-c-muted);
       font-weight: var(--ltek-fw-normal);
     }
-    /* Sections panel: show · name · collapse · start closed */
-    .sec-head,
+    /* Sections panel: raised rows — accent icon, name, hint and chips, then action icons (§2 section rows) */
+    .sec-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--ltek-sp-2);
+      padding: var(--ltek-sp-2) 0;
+    }
     .sec-row {
-      display: grid;
-      grid-template-columns: 22px 1fr 64px 76px 72px;
+      display: flex;
       align-items: center;
       gap: var(--ltek-sp-3);
-      padding: var(--ltek-sp-1) 0;
+      padding: 6px 8px;
+      border-radius: var(--ltek-r-card);
+      background: var(--ltek-c-surface-raised);
+      border: 1px solid var(--ltek-c-border-soft);
       font-size: var(--ltek-fs-label);
     }
-    .sec-head {
-      color: var(--ltek-c-muted);
+    .sec-row > .sec-ic {
+      --mdc-icon-size: var(--ltek-icon-lg);
+      color: var(--ltek-c-accent);
+      margin: 0;
+    }
+    .sec-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2px var(--ltek-sp-3);
+    }
+    .sec-name {
+      font-weight: var(--ltek-fw-normal);
+      color: var(--ltek-c-text);
+    }
+    .sec-chips {
+      display: inline-flex;
+      gap: var(--ltek-sp-2);
+      flex-basis: 100%;
+    }
+    .sec-chips .chip {
+      padding: 1px 8px 1px 5px;
       font-size: var(--ltek-fs-small);
     }
-    .sec-head span:nth-child(n + 3),
-    .sec-row input:nth-of-type(n + 2) {
-      justify-self: center;
+    .sec-row.hidden .sec-name,
+    .sec-row.hidden > .sec-ic {
+      color: var(--ltek-c-muted);
+      opacity: 0.6;
     }
     .line-row {
       display: flex;

@@ -234,7 +234,7 @@ const EDITOR_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${T
   root.querySelector('details[data-id="card"]').open = false;
   root.querySelector('details[data-id="sections"]').open = true;
   await new Promise(r => setTimeout(r, 100));
-  root.querySelector('details[data-id="status:house"]').open = true;
+  root.querySelector('details[data-id="sections"] details.sub')?.setAttribute('open', '');
   root.querySelector('details[data-id="sections"]').open = true;
   window.editorReady = true;
 </script></body></html>`;

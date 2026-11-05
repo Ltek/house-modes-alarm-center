@@ -3,6 +3,17 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.58 — 2026-11-05
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- Card editor, *Sections*: each section is a row with its icon, name and contents, chips *Collapsible* and *Starts
+  collapsed* (tap to switch), and eye / up / down (/ trash) icons; no column headers.
+- *Collapse the card to its first section* and *Start collapsed* moved to the *Card* panel ("collapse" / "expand"
+  throughout, no "fold").
+- *Show the expand / collapse arrow* is in the *Section bars* sub-panel.
+- An open sub-panel's border is the theme's accent color; top-level panels keep the primary color.
+
 ## v2026.11.05.57 — 2026-11-05
 
 Restart Home Assistant after the update.

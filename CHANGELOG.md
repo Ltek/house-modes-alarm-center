@@ -3,6 +3,17 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.51 — 2026-11-05
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **Status sections, as many as you like**: each built from an icon (House Mode, alarm state or none, optionally the
+  countdown during a delay) and the lines you choose, in order — House Mode name, alarm name, alarm state, panel
+  display lines, "Changing to …", "since …". Add, delete and order them in *Sections*; one editor panel each.
+- Status text styles are card-wide (Card → Status text) with per-section overrides; per-section background.
+- Existing cards turn into two Status sections, *House Mode Status* and *Alarm Panel Status*, in the same places
+  and with the same lines; the editor writes the new form the first time you change something.
+
 ## v2026.11.05.50 — 2026-11-05
 
 Card only; no Home Assistant restart needed (reload the browser).

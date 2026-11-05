@@ -93,11 +93,13 @@ export const buttonVars = (b: ButtonStyle | undefined, icon: IconStyle | undefin
 /** Every styled element of the card, with its defaults (shown in the editor as "Card default (…)"). */
 export const TEXT_ELEMENTS = {
   mode_name: { label: 'House Mode name', size: 22, weight: 400, font: 'monospace', caps: true },
+  changing: { label: 'Changing to …', size: 13, weight: 500, font: 'sans', caps: false },
+  since: { label: 'Since (last change)', size: 12, weight: 400, font: 'sans', caps: false },
   line1: { label: 'Panel display, line 1', size: 14, weight: 400, font: 'monospace', caps: false },
   line2: { label: 'Panel display, line 2', size: 14, weight: 400, font: 'monospace', caps: false },
   mode_label: { label: 'House Mode button text', size: 10, weight: 400, font: 'sans', caps: false },
   alarm_bar: { label: 'Section bars (collapsible sections)', size: 14, weight: 500, font: 'sans', caps: false },
-  alarm_name: { label: 'Alarm name', size: 24, weight: 400, font: 'sans', caps: false },
+  alarm_name: { label: 'Alarm name', size: 18, weight: 400, font: 'sans', caps: false },
   alarm_state: { label: 'Alarm state', size: 14, weight: 400, font: 'sans', caps: false },
   alarm_button: { label: 'Arm button text', size: 14, weight: 400, font: 'sans', caps: false },
   chip: { label: 'Option chips', size: 12, weight: 500, font: 'sans', caps: false },
@@ -265,6 +267,104 @@ export const DEFAULTS: Required<Pick<CardConfig,
   alarm_status_start_collapsed: true,
   show_alarm_line1: false,
   show_alarm_line2: false,
+};
+
+// ------------------------------------------------------------ Status sections (any number, each built from parts)
+
+export const STATUS_LINES = ['house_mode', 'alarm_name', 'alarm_state', 'panel_line1', 'panel_line2', 'changing', 'since'] as const;
+export type StatusLine = (typeof STATUS_LINES)[number];
+export const STATUS_LINE_INFO: Record<StatusLine, { label: string; style: TextElement }> = {
+  house_mode: { label: 'House Mode name', style: 'mode_name' },
+  alarm_name: { label: 'Alarm name', style: 'alarm_name' },
+  alarm_state: { label: 'Alarm state', style: 'alarm_state' },
+  panel_line1: { label: 'Panel display, line 1', style: 'line1' },
+  panel_line2: { label: 'Panel display, line 2', style: 'line2' },
+  changing: { label: 'Changing to … (while a House Mode change is under way)', style: 'changing' },
+  since: { label: 'Since (when the House Mode last changed)', style: 'since' },
+};
+export type StatusSection = {
+  id: string;
+  name?: string;
+  show?: boolean; // default true
+  /** the icon: the House Mode's (the alarm's when House Modes are off), the alarm state's, or none */
+  icon?: 'house' | 'alarm' | 'none';
+  /** the countdown circle in place of the icon during an exit or entry delay */
+  countdown?: boolean;
+  lines?: StatusLine[];
+  collapsible?: boolean;
+  start_collapsed?: boolean; // default true
+  background?: string;
+  /** this section's text and icon styles, over the card-wide ones */
+  styles?: Partial<Record<TextElement, TextStyle>> & { header_icon?: IconStyle };
+};
+
+/** The ids in section_order: the fixed sections and one 'status:<id>' per Status section. */
+export const FIXED_SECTIONS = ['house_modes', 'alarm', 'keypad'] as const;
+export type FixedSection = (typeof FIXED_SECTIONS)[number];
+
+/**
+ * The card's Status sections and section order. Configs from before Status sections (v2026.11.05.50 and older) are
+ * read as two: "House Mode Status" (the old header) and "Alarm Panel Status", with the same parts.
+ */
+export const statusLayout = (c: any): { sections: StatusSection[]; order: string[] } => {
+  if (Array.isArray(c.status_sections)) {
+    const sections = c.status_sections.filter((x: any) => x && x.id) as StatusSection[];
+    const ids = sections.map(x => `status:${x.id}`);
+    const all = [...ids, ...FIXED_SECTIONS];
+    const known = (c.section_order || []).filter((x: string) => all.includes(x));
+    const uniq = known.filter((x: string, i: number) => known.indexOf(x) === i);
+    return { sections, order: [...uniq, ...all.filter(x => !uniq.includes(x))] };
+  }
+  const d = { ...DEFAULTS, ...c };
+  const house: StatusSection = {
+    id: 'house',
+    name: 'House Mode Status',
+    show: d.show_header !== false,
+    icon: d.show_header_icon === false ? 'none' : 'house',
+    countdown: !!d.header_countdown,
+    lines: [
+      ...(d.show_mode_name !== false ? ['house_mode' as StatusLine] : []),
+      ...(d.show_line1 !== false ? ['panel_line1' as StatusLine] : []),
+      ...(d.show_line2 !== false ? ['panel_line2' as StatusLine] : []),
+    ],
+    collapsible: !!d.house_status_collapsible,
+    start_collapsed: d.house_status_start_collapsed !== false,
+    background: d.styles?.header_section?.background,
+  };
+  const alarm: StatusSection = {
+    id: 'alarm',
+    name: 'Alarm Panel Status',
+    show: d.show_alarm_status !== false && !(c.show_alarm === false && c.show_alarm_status === undefined),
+    icon: d.show_alarm_icon === false ? 'none' : 'alarm',
+    countdown: d.show_alarm_icon !== false,
+    lines: [
+      ...(d.show_alarm_name !== false ? ['alarm_name' as StatusLine] : []),
+      ...(d.show_alarm_state !== false ? ['alarm_state' as StatusLine] : []),
+      ...(d.show_alarm_line1 ? ['panel_line1' as StatusLine] : []),
+      ...(d.show_alarm_line2 ? ['panel_line2' as StatusLine] : []),
+    ],
+    collapsible: !!d.alarm_status_collapsible,
+    start_collapsed: d.alarm_status_start_collapsed !== false,
+    background: d.styles?.alarm_status_section?.background,
+  };
+  for (const x of [house, alarm]) if (!x.background) delete x.background;
+  const map: Record<string, string> = { house_status: 'status:house', alarm_status: 'status:alarm', house_modes: 'house_modes', alarm: 'alarm', keypad: 'keypad' };
+  const old = sectionOrder(c.section_order).map(x => map[x]);
+  return { sections: [house, alarm], order: old };
+};
+
+/** Old status keys, dropped once the editor writes status_sections. */
+export const OLD_STATUS_KEYS = [
+  'show_header', 'show_header_icon', 'header_countdown', 'show_mode_name', 'show_line1', 'show_line2',
+  'house_status_collapsible', 'house_status_start_collapsed', 'show_alarm_status', 'show_alarm_icon', 'show_alarm_name',
+  'show_alarm_state', 'show_alarm_line1', 'show_alarm_line2', 'alarm_status_collapsible', 'alarm_status_start_collapsed',
+];
+
+/** A new Status section id: s1, s2, … (not taken). */
+export const newStatusId = (sections: StatusSection[]): string => {
+  let n = 1;
+  while (sections.some(x => x.id === `s${n}`)) n++;
+  return `s${n}`;
 };
 
 /** The card's sections, in their default order. */
@@ -462,7 +562,7 @@ export type FxParts = Partial<Record<FxPart, FxValue>>;
 /** What can have effects, and which parts each has. */
 export const FX_TARGETS = {
   card: { label: 'Card', parts: ['background', 'border'] as FxPart[] },
-  status_icon: { label: 'Status icon (header)', parts: ['icon'] as FxPart[] },
+  status_icon: { label: 'Status icons', parts: ['icon'] as FxPart[] },
   mode_button: { label: 'House Mode buttons (the mode being changed to)', parts: ['background', 'border', 'icon'] as FxPart[] },
   arm_button: { label: 'Arm buttons (the arm mode being set)', parts: ['background', 'border', 'icon'] as FxPart[] },
 } as const;

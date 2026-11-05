@@ -184,6 +184,10 @@ const CARD_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${THE
   cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', collapsible: true, start_collapsed: true, show_chevron: true }));
   cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_alarm: false, columns: 4, modes_align: 'center',
     styles: { mode_name: { font: 'sans', weight: 600 }, line2: { color: 'var(--secondary-text-color)' } } }));
+  // one combined Status section: House Mode and alarm state, then the House Mode buttons
+  cols[1].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', status_sections: [
+      { id: 's1', name: 'Home', lines: ['house_mode', 'alarm_state', 'since'] }],
+    section_order: ['status:s1', 'house_modes'], show_alarm: false }));
   // the alarm only: Alarm Panel Status first (with the panel display), then the buttons
   cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_header: false, show_house_modes: false,
     section_order: ['alarm_status', 'alarm'], show_alarm_line1: true, show_alarm_line2: true, display_replace: [{ from: '*' }],
@@ -217,6 +221,8 @@ const EDITOR_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${T
   const root = ed.shadowRoot;
   root.querySelector('details[data-id="card"]').open = false;
   root.querySelector('details[data-id="sections"]').open = true;
+  await new Promise(r => setTimeout(r, 100));
+  root.querySelector('details[data-id="status:house"]').open = true;
   root.querySelector('details[data-id="sections"]').open = true;
   window.editorReady = true;
 </script></body></html>`;

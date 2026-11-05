@@ -165,3 +165,20 @@ test('old settings: strip becomes replacements; no alarm section means no alarm 
   assert.equal(mc2({ type: 'x', show_alarm: false }).show_alarm_status, false);
   assert.equal(mc2({ type: 'x' }).show_alarm_status, undefined);
 });
+
+import { statusLayout, newStatusId } from '../card/src/data.ts';
+
+test('Status sections: old configs become two, in the old places', () => {
+  const l = statusLayout({ type: 'x', show_alarm_line1: true, show_line2: false, section_order: ['alarm_status', 'house_status'] });
+  assert.deepEqual(l.sections.map(x => [x.id, x.lines]), [['house', ['house_mode', 'panel_line1']], ['alarm', ['alarm_name', 'alarm_state', 'panel_line1']]]);
+  assert.deepEqual(l.order, ['status:alarm', 'status:house', 'house_modes', 'alarm', 'keypad']);
+  assert.equal(statusLayout({ type: 'x', show_alarm: false }).sections[1].show, false);
+  assert.equal(statusLayout({ type: 'x', header_countdown: true }).sections[0].countdown, true);
+});
+
+test('Status sections: the new form, order completed, ids', () => {
+  const l = statusLayout({ type: 'x', status_sections: [{ id: 's1', lines: ['alarm_state'] }, { id: 's2' }], section_order: ['alarm', 'status:s2', 'nope'] });
+  assert.deepEqual(l.order, ['alarm', 'status:s2', 'status:s1', 'house_modes', 'keypad']);
+  assert.equal(newStatusId([{ id: 's1' }, { id: 's3' }]), 's2');
+  assert.deepEqual(statusLayout({ type: 'x', status_sections: [] }).sections, []);
+});

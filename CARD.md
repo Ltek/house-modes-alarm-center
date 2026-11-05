@@ -12,20 +12,36 @@ Or *Edit dashboard → Add card → House Modes & Alarm Center Card*; every opti
 
 ## Sections
 
-Five sections, each can be turned on or off, collapsed behind a bar, and moved up or down (editor: *Sections*):
+The card is a list of sections, in any order (editor: *Sections*). Each can be shown or hidden, collapsed behind a
+bar and moved up or down.
 
-- **House Mode Status** — the House Mode's icon in its color and its name, and the physical panel's 2×16 display
-  (when a panel link has a keypad sensor). With House Modes off it shows the alarm's state icon and state.
+- **Status sections** — as many as you like (*+ Status section*). Each has a name, an icon (the House Mode's, the
+  alarm state's, or none; optionally the countdown circle during an exit or entry delay) and the lines you choose,
+  in order: House Mode name, alarm name, alarm state, panel display line 1 and 2, "Changing to …" (while a House Mode
+  change is under way), "since …" (when the House Mode last changed). Text styles are set for all Status sections
+  (Card → Status text) and can be overridden per section. With House Modes off, the House Mode icon shows the alarm.
 - **House Mode buttons** — one per House Mode, with the icon and color from the House Modes tab. When a change is
   blocked, not ready or delayed, the card says why ("Away not set: open Front Door").
-- **Alarm Panel Status** — Alarmo's state icon (with the countdown during an exit or entry delay), the alarm's name
-  and state, and optionally the physical panel's display lines.
 - **Alarm Panel buttons** — arm / disarm, code entry and messages (from nielsfaber/alarmo-card). A red dot on an
   arm button means that mode cannot be armed now (open zones).
 - **Physical panel keypad** — the panel's 12 keys with their functions, sent through `alarmo.panel_keypress`.
 
 *Fold the whole card to its first section* turns the first section into the card's title: tap it to open or close
-the rest. The border is the House Mode's color (or, with `border_color: state`, the alarm state).
+the rest. Cards made before Status sections show two: *House Mode Status* (the old header) and *Alarm Panel Status*.
+
+```yaml
+status_sections:
+  - id: home
+    name: Home
+    lines: [house_mode, alarm_state, since]
+  - id: panel
+    name: Panel
+    icon: alarm            # house (default) / alarm / none
+    countdown: true
+    lines: [panel_line1, panel_line2]
+    collapsible: true
+section_order: [status:home, house_modes, status:panel, alarm, keypad]
+```
 
 ## Options
 

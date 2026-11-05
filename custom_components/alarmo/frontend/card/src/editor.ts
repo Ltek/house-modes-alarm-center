@@ -28,7 +28,13 @@ import {
   FX_TRIGGER_LABELS,
   EffectsConfig,
   SECTION_INFO,
-  sectionOrder,
+  statusLayout,
+  StatusSection,
+  StatusLine,
+  STATUS_LINES,
+  STATUS_LINE_INFO,
+  OLD_STATUS_KEYS,
+  newStatusId,
 } from './data';
 
 const THEME_COLORS: [string, string][] = [
@@ -204,6 +210,27 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     }
     if (!v.name) delete v.name;
     delete v.alarm_colors_from_modes;
+    // Status sections: once edited, the config uses status_sections + section_order (old status keys dropped)
+    const lay = statusLayout(v);
+    v.status_sections = lay.sections.map(x => {
+      const y: any = { ...x };
+      if (y.show === true) delete y.show;
+      if (!y.countdown) delete y.countdown;
+      if (!y.collapsible) delete y.collapsible;
+      if (y.start_collapsed === true) delete y.start_collapsed;
+      if (y.icon === 'house') delete y.icon;
+      if (!y.background) delete y.background;
+      if (y.styles && !Object.keys(pruneStyles(y.styles) || {}).length) delete y.styles;
+      else if (y.styles) y.styles = pruneStyles(y.styles);
+      return y;
+    });
+    v.section_order = lay.order;
+    for (const k of OLD_STATUS_KEYS) delete v[k];
+    if (v.styles) {
+      delete v.styles.header_section;
+      delete v.styles.alarm_status_section;
+      if (!Object.keys(v.styles).length) delete v.styles;
+    }
     for (const k of ['effects', 'mode_colors', 'arm_colors', 'key_flash']) if (v[k] && !Object.keys(v[k]).length) delete v[k];
     if (!v.entity) delete v.entity;
     this.config = v;
@@ -342,20 +369,21 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     return html`<div class="group">${title}</div>`;
   }
 
-  private textStyle(el: TextElement): TemplateResult {
+  private textStyle(el: TextElement, scope?: { get: () => TextStyle; set: (k: string, v: unknown) => void; label?: string }): TemplateResult {
     const d = TEXT_ELEMENTS[el];
-    const t: TextStyle = this.styleOf(el);
-    return this.sub(d.label, html`
+    const t: TextStyle = scope ? scope.get() : this.styleOf(el);
+    const setStyle = (_el: string, k: string, v: unknown) => (scope ? scope.set(k, v) : setStyle(el, k, v));
+    return this.sub(scope?.label || d.label, html`
       ${this.group('Size and weight')}
-      ${this.slider('Size', t.size || 0, 6, 48, 1, ' px', d.size, v => this.setStyle(el, 'size', v || undefined))}
+      ${this.slider('Size', t.size || 0, 6, 48, 1, ' px', d.size, v => setStyle(el, 'size', v || undefined))}
       ${this.select('Weight', t.weight ? String(t.weight) : '', [['', `Card default (${d.weight})`], ...WEIGHTS.map(w => [String(w), String(w)] as [string, string])],
-        v => this.setStyle(el, 'weight', v ? Number(v) : undefined))}
+        v => setStyle(el, 'weight', v ? Number(v) : undefined))}
       ${this.group('Font and case')}
-      ${this.select('Font', t.font || '', [['', `Card default (${FONT_NAME[d.font]})`], ...FONTS], v => this.setStyle(el, 'font', v || undefined))}
-      ${this.triState('Italic', t.italic, 'Card default (off)', v => this.setStyle(el, 'italic', v))}
-      ${this.triState('Capitals', t.caps, `Card default (${d.caps ? 'on' : 'off'})`, v => this.setStyle(el, 'caps', v))}
+      ${this.select('Font', t.font || '', [['', `Card default (${FONT_NAME[d.font]})`], ...FONTS], v => setStyle(el, 'font', v || undefined))}
+      ${this.triState('Italic', t.italic, 'Card default (off)', v => setStyle(el, 'italic', v))}
+      ${this.triState('Capitals', t.caps, `Card default (${d.caps ? 'on' : 'off'})`, v => setStyle(el, 'caps', v))}
       ${this.group('Color')}
-      ${this.color('Text color', t.color, 'Card default', '#e1e1e1', v => this.setStyle(el, 'color', v))}
+      ${this.color('Text color', t.color, 'Card default', '#e1e1e1', v => setStyle(el, 'color', v))}
     `);
   }
 
@@ -412,30 +440,142 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
   }
 
   /** One section in the Sections panel: [show] name · [collapse] · [start closed] (the last two only when shown). */
-  /** One row of the Sections panel: [show] name · [collapse] · [start closed] · order ↑ ↓. */
+  private get layout() {
+    return statusLayout(this.cfg as any);
+  }
+
+  /** Write the Status sections (and keep the order in step). */
+  private setStatus(sections: StatusSection[], order?: string[]) {
+    this.emit({ ...(this.config as CardConfig), status_sections: sections, section_order: order || this.layout.order } as any);
+  }
+
+  private updStatus(id: string, fn: (x: StatusSection) => void) {
+    const sections = clone(this.layout.sections);
+    const x = sections.find(y => y.id === id);
+    if (!x) return;
+    fn(x);
+    this.setStatus(sections);
+  }
+
+  private addStatus() {
+    const { sections, order } = this.layout;
+    const id = newStatusId(sections);
+    const x: StatusSection = { id, name: `Status ${sections.length + 1}`, icon: 'house', countdown: true, lines: ['house_mode'] };
+    this.setStatus([...clone(sections), x], [`status:${id}`, ...order]);
+  }
+
+  private removeStatus(id: string) {
+    const { sections, order } = this.layout;
+    const x = sections.find(y => y.id === id);
+    if (!window.confirm(`Delete the Status section "${x?.name || id}"?`)) return;
+    this.setStatus(sections.filter(y => y.id !== id), order.filter(o => o !== `status:${id}`));
+  }
+
+  /** One Status section's panel: name, icon slot, lines (ordered), background, styles. */
+  private statusPanel(st: StatusSection) {
+    const lines = st.lines || [];
+    const sty = (el: TextElement) => ({
+      get: () => ((st.styles || {}) as any)[el] || {},
+      set: (k: string, v: unknown) => this.updStatus(st.id, x => {
+        const styles: any = { ...(x.styles || {}) };
+        const e = { ...(styles[el] || {}) };
+        if (v === undefined || v === '' || v === null) delete e[k];
+        else e[k] = v;
+        if (Object.keys(e).length) styles[el] = e;
+        else delete styles[el];
+        x.styles = Object.keys(styles).length ? styles : undefined;
+      }),
+      label: `${TEXT_ELEMENTS[el].label} (this section)`,
+    });
+    const moveLine = (i: number, d: number) => this.updStatus(st.id, x => {
+      const l = [...(x.lines || [])];
+      [l[i], l[i + d]] = [l[i + d], l[i]];
+      x.lines = l;
+    });
+    const free = STATUS_LINES.filter(l => !lines.includes(l));
+    const icon = st.styles?.header_icon || {};
+    return this.panel(`status:${st.id}`, 'mdi:information-outline', st.name || 'Status', 'A status block: an icon (or the countdown during a delay) and the lines you choose, in order.', html`
+      ${this.group('Name')}
+      <div class="row"><span class="lab">Name</span>
+        <input class="ctl" type="text" .value=${st.name || ''} @change=${(e: any) => this.updStatus(st.id, x => (x.name = e.target.value || undefined))} /></div>
+      ${this.group('Icon')}
+      ${this.select('Icon', st.icon || 'house', [
+        ['house', "House Mode's icon (the alarm's when House Modes are off)"],
+        ['alarm', "The alarm state's icon"],
+        ['none', 'No icon'],
+      ], v => this.updStatus(st.id, x => (x.icon = v as any)))}
+      ${st.icon !== 'none' ? this.toggle('Countdown circle in its place during an exit or entry delay', !!st.countdown, v => this.updStatus(st.id, x => (x.countdown = v || undefined))) : nothing}
+      ${this.group('Lines')}
+      <div class="row">
+        <select class="add-sel" aria-label="Add a line" @change=${(e: any) => {
+          const v = e.target.value as StatusLine;
+          e.target.value = '';
+          if (v) this.updStatus(st.id, x => (x.lines = [...(x.lines || []), v]));
+        }}>
+          <option value="">+ Line…</option>
+          ${free.map(l => html`<option value=${l}>${STATUS_LINE_INFO[l].label}</option>`)}
+        </select>
+      </div>
+      ${lines.map((l, i) => html`<div class="line-row">
+        <span>${STATUS_LINE_INFO[l]?.label || l}</span>
+        <span class="order">
+          <button class="icon-btn" title="Move up" aria-label="Move up" ?disabled=${i === 0} @click=${() => moveLine(i, -1)}><ha-icon icon="mdi:arrow-up"></ha-icon></button>
+          <button class="icon-btn" title="Move down" aria-label="Move down" ?disabled=${i === lines.length - 1} @click=${() => moveLine(i, 1)}><ha-icon icon="mdi:arrow-down"></ha-icon></button>
+          <button class="icon-btn del" title="Remove" aria-label="Remove" @click=${() => this.updStatus(st.id, x => (x.lines = (x.lines || []).filter(y => y !== l)))}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button>
+        </span>
+      </div>`)}
+      ${!lines.length ? html`<p class="hint">No lines: only the icon is shown.</p>` : nothing}
+      ${lines.some(l => l.startsWith('panel_')) ? this.displayBody() : nothing}
+      ${this.group('Background')}
+      ${this.color('Section background', st.background, 'Card background', '#262626', v => this.updStatus(st.id, x => (x.background = v)))}
+      ${this.group('Styles')}
+      ${st.icon !== 'none'
+        ? this.sub('Icon (this section)', html`
+            ${this.slider('Size', icon.size || 0, 12, 96, 1, ' px', ICON_ELEMENTS.header_icon.size, v => this.updStatus(st.id, x => {
+              const ic = { ...(x.styles?.header_icon || {}), size: v || undefined };
+              x.styles = { ...(x.styles || {}), header_icon: ic };
+            }))}
+            ${this.color('Icon color', icon.color, st.icon === 'alarm' ? 'Arm mode color' : 'House Mode color', '#9e9e9e', v => this.updStatus(st.id, x => {
+              const ic = { ...(x.styles?.header_icon || {}), color: v };
+              x.styles = { ...(x.styles || {}), header_icon: ic };
+            }), [['mode', st.icon === 'alarm' ? 'Arm mode color' : 'House Mode color']])}`)
+        : nothing}
+      ${lines.map(l => this.textStyle(STATUS_LINE_INFO[l].style, sty(STATUS_LINE_INFO[l].style)))}
+      <p class="hint">A style left at "Card default" uses the one under Card → Status text (all Status sections).</p>
+    `);
+  }
+
+  /** One row of the Sections panel: [show] name · [collapse] · [start closed] · order ↑ ↓ (· delete for Status). */
   private sectionRow(id: string, index: number, all: string[]) {
     const c: any = this.cfg;
-    const info = (SECTION_INFO as any)[id];
     const move = (d: number) => {
       const next = [...all];
       [next[index], next[index + d]] = [next[index + d], next[index]];
-      this.set('section_order', next.join() === sectionOrder().join() ? undefined : next);
+      this.setStatus(clone(this.layout.sections), next);
     };
+    const st = id.startsWith('status:') ? this.layout.sections.find(x => `status:${x.id}` === id) : undefined;
+    const fixed = st ? undefined : (SECTION_INFO as any)[id];
+    if (!st && !fixed) return nothing;
+    const title = st ? st.name || 'Status' : fixed.title;
+    const hint = st ? (st.lines || []).map(l => STATUS_LINE_INFO[l]?.label.split(' (')[0]).join(', ') || 'icon only' : fixed.hint;
+    const show = st ? st.show !== false : !!c[fixed.show];
+    const collapse = st ? !!st.collapsible : !!c[fixed.collapse];
+    const start = st ? st.start_collapsed !== false : !!c[fixed.start];
+    const setShow = (v: boolean) => (st ? this.updStatus(st.id, x => (x.show = v ? undefined : false)) : this.set(fixed.show, v));
+    const setCollapse = (v: boolean) => (st ? this.updStatus(st.id, x => (x.collapsible = v || undefined)) : this.set(fixed.collapse, v));
+    const setStart = (v: boolean) => (st ? this.updStatus(st.id, x => (x.start_collapsed = v ? undefined : false)) : this.set(fixed.start, v));
     return html`<div class="sec-row">
-      <input type="checkbox" aria-label=${`Show ${info.title}`} .checked=${!!c[info.show]} @change=${(e: any) => this.set(info.show, e.target.checked)} />
-      <span class="sec-name">${info.title}${info.hint ? html`<span class="hint inline"> · ${info.hint}</span>` : nothing}</span>
-      ${c[info.show]
-        ? html`<input type="checkbox" aria-label=${`Collapse ${info.title}`} title="a bar opens and closes this section"
-              .checked=${!!c[info.collapse]} @change=${(e: any) => this.set(info.collapse, e.target.checked)} />
-            ${c[info.collapse]
-              ? html`<input type="checkbox" aria-label=${`Start ${info.title} closed`} .checked=${!!c[info.start]} @change=${(e: any) => this.set(info.start, e.target.checked)} />`
-              : html`<span></span>`}`
+      <input type="checkbox" aria-label=${`Show ${title}`} .checked=${show} @change=${(e: any) => setShow(e.target.checked)} />
+      <span class="sec-name">${st ? html`<ha-icon class="sec-ic" icon="mdi:information-outline"></ha-icon>` : nothing}${title}${hint ? html`<span class="hint inline"> · ${hint}</span>` : nothing}</span>
+      ${show
+        ? html`<input type="checkbox" aria-label=${`Collapse ${title}`} title="a bar opens and closes this section" .checked=${collapse}
+              @change=${(e: any) => setCollapse(e.target.checked)} />
+            ${collapse ? html`<input type="checkbox" aria-label=${`Start ${title} closed`} .checked=${start} @change=${(e: any) => setStart(e.target.checked)} />` : html`<span></span>`}`
         : html`<span></span><span></span>`}
       <span class="order">
-        <button class="icon-btn" title="Move up" aria-label=${`Move ${info.title} up`} ?disabled=${index === 0} @click=${() => move(-1)}>
-          <ha-icon icon="mdi:arrow-up"></ha-icon></button>
-        <button class="icon-btn" title="Move down" aria-label=${`Move ${info.title} down`} ?disabled=${index === all.length - 1} @click=${() => move(1)}>
-          <ha-icon icon="mdi:arrow-down"></ha-icon></button>
+        <button class="icon-btn" title="Move up" aria-label=${`Move ${title} up`} ?disabled=${index === 0} @click=${() => move(-1)}><ha-icon icon="mdi:arrow-up"></ha-icon></button>
+        <button class="icon-btn" title="Move down" aria-label=${`Move ${title} down`} ?disabled=${index === all.length - 1} @click=${() => move(1)}><ha-icon icon="mdi:arrow-down"></ha-icon></button>
+        ${st ? html`<button class="icon-btn del" title="Delete" aria-label=${`Delete ${title}`} @click=${() => this.removeStatus(st.id)}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button>` : html`<span class="spacer"></span>`}
       </span>
     </div>`;
   }
@@ -463,6 +603,10 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
         ${this.color('Card background', frame.background, 'Theme card background', '#1c1c1c', v => this.setStyle('card', 'background', v), [['transparent', 'Transparent']])}
         <p class="hint">The card background is the default for every section; a section can set its own below (Header,
           House Mode buttons, Alarm, Physical panel keypad).</p>
+        ${this.group('Status text (all Status sections)')}
+        ${this.iconStyle('header_icon')}
+        ${(['mode_name', 'alarm_name', 'alarm_state', 'line1', 'line2', 'changing', 'since'] as TextElement[]).map(el => this.textStyle(el))}
+        ${this.group('Border')}
         ${this.select('Border color', c.border_color, [
           ['mode', "The House Mode's color"],
           ['state', 'The alarm state (red alarm, orange arming / not ready, mode color armed, green ready)'],
@@ -471,7 +615,8 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
 
       ${this.panel('sections', 'mdi:view-agenda-outline', 'Sections', 'Turn each part of the card on or off, and choose which ones can be collapsed.', html`
         <div class="sec-head"><span></span><span>Section</span><span>Collapse</span><span>Start closed</span><span>Order</span></div>
-        ${sectionOrder(c.section_order).map((id, i, all) => this.sectionRow(id, i, all))}
+        <div class="row"><button class="add" @click=${() => this.addStatus()}>+ Status section</button></div>
+        ${this.layout.order.map((id, i, all) => this.sectionRow(id, i, all))}
         ${this.group('Folding the card')}
         ${this.toggle('Fold the whole card to its first section (tap it)', c.collapsible, v => this.set('collapsible', v))}
         ${c.collapsible ? this.toggle('Start folded', c.start_collapsed, v => this.set('start_collapsed', v)) : nothing}
@@ -481,22 +626,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           : nothing}
       `)}
 
-      ${this.panel('header', 'mdi:home-circle-outline', 'House Mode Status', "The House Mode's icon and name, and the physical panel's two display lines.", c.show_header
-        ? html`
-          ${this.group('Show')}
-          ${this.toggle('House Mode icon', c.show_header_icon, v => this.set('show_header_icon', v))}
-          ${c.show_header_icon ? this.toggle('Countdown circle in its place during an exit or entry delay', c.header_countdown, v => this.set('header_countdown', v)) : nothing}
-          ${this.toggle('House Mode name', c.show_mode_name, v => this.set('show_mode_name', v))}
-          ${this.toggle('Panel display, line 1', c.show_line1, v => this.set('show_line1', v))}
-          ${this.toggle('Panel display, line 2', c.show_line2, v => this.set('show_line2', v))}
-          ${c.show_line1 || c.show_line2 ? this.displayBody() : nothing}
-          ${this.sectionBg('header_section')}
-          ${this.group('Styles')}
-          ${c.show_header_icon ? this.iconStyle('header_icon', { defaultLabel: 'House Mode color', presets: [] }) : nothing}
-          ${c.show_mode_name ? this.textStyle('mode_name') : nothing}
-          ${c.show_line1 ? this.textStyle('line1') : nothing}
-          ${c.show_line2 ? this.textStyle('line2') : nothing}`
-        : html`<p class="hint">Turned off under Sections.</p>`)}
+      ${this.layout.sections.map(st => this.statusPanel(st))}
 
       ${this.panel('modes', 'mdi:home-switch-outline', 'House Mode buttons', 'One button per House Mode; icons and colors come from the House Modes tab.', c.show_house_modes
         ? html`
@@ -532,23 +662,6 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
             bg: 'Card default (transparent)', abg: 'Card default (faint gray)', ic: 'Card default (secondary text)', aic: 'House Mode color' })}
           ${c.show_mode_icons ? this.iconStyle('mode_icon') : nothing}
           ${c.show_mode_labels ? this.textStyle('mode_label') : nothing}`
-        : html`<p class="hint">Turned off under Sections.</p>`)}
-
-      ${this.panel('alarm_status', 'mdi:shield-check-outline', 'Alarm Panel Status', "The alarm's state icon (with the countdown during a delay), its name and state, and optionally the physical panel's display.", c.show_alarm_status
-        ? html`
-          ${this.group('Show')}
-          ${this.toggle('State icon and countdown', c.show_alarm_icon, v => this.set('show_alarm_icon', v))}
-          ${this.toggle('Alarm name', c.show_alarm_name, v => this.set('show_alarm_name', v))}
-          ${this.toggle('Alarm state', c.show_alarm_state, v => this.set('show_alarm_state', v))}
-          ${this.toggle('Panel display, line 1', c.show_alarm_line1, v => this.set('show_alarm_line1', v))}
-          ${this.toggle('Panel display, line 2', c.show_alarm_line2, v => this.set('show_alarm_line2', v))}
-          ${c.show_alarm_line1 || c.show_alarm_line2 ? html`<p class="hint">The display text and its replacements are set under House Mode Status.</p>` : nothing}
-          ${this.sectionBg('alarm_status_section' as any)}
-          ${this.group('Styles')}
-          ${c.show_alarm_name ? this.textStyle('alarm_name') : nothing}
-          ${c.show_alarm_state ? this.textStyle('alarm_state') : nothing}
-          ${c.show_alarm_line1 ? this.textStyle('line1') : nothing}
-          ${c.show_alarm_line2 ? this.textStyle('line2') : nothing}`
         : html`<p class="hint">Turned off under Sections.</p>`)}
 
       ${this.panel('alarm', 'mdi:shield-lock-outline', 'Alarm Panel buttons', 'Arm and disarm Alarmo, enter the code, see why it will not arm.', c.show_alarm
@@ -837,7 +950,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     .sec-head,
     .sec-row {
       display: grid;
-      grid-template-columns: 22px 1fr 64px 76px 52px;
+      grid-template-columns: 22px 1fr 64px 76px 72px;
       align-items: center;
       gap: var(--ltek-sp-3);
       padding: var(--ltek-sp-1) 0;
@@ -850,6 +963,29 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     .sec-head span:nth-child(n + 3),
     .sec-row input:nth-of-type(n + 2) {
       justify-self: center;
+    }
+    .line-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--ltek-sp-3);
+      padding: var(--ltek-sp-1) var(--ltek-sp-2);
+      border-top: 1px solid var(--ltek-c-border-soft);
+      font-size: var(--ltek-fs-label);
+    }
+    .add-sel {
+      border-style: dashed;
+      border-color: var(--ltek-c-accent);
+      color: var(--ltek-c-accent);
+    }
+    .sec-ic {
+      --mdc-icon-size: var(--ltek-icon-sm);
+      color: var(--ltek-c-accent);
+      margin-right: 4px;
+      vertical-align: -2px;
+    }
+    .spacer {
+      width: var(--ltek-icon-sm);
     }
     .order {
       display: flex;

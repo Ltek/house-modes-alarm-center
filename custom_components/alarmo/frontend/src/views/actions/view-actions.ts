@@ -1,4 +1,4 @@
-import { LitElement, html } from 'lit';
+import { LitElement, html, nothing } from 'lit';
 import { property, customElement } from 'lit/decorators.js';
 import { loadHaForm } from '../../load-ha-elements';
 
@@ -207,8 +207,8 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
         ` : ''}
 
         ${showActions ? html`
-        <ha-card>${sectionHead(this.only === 'other' ? 'Other Alarm Events' : localize('panels.actions.title', this.hass.language), 'settings')}
-          <div class="card-content">${this.only === 'other'
+        <ha-card>${this.only === 'other' ? nothing : sectionHead(localize('panels.actions.title', this.hass.language), 'settings')}
+          <div class="card-content" style=${this.only === 'other' ? 'padding:12px 16px 4px' : ''}>${this.only === 'other'
             ? html`Alarm Events that run a script, or still use the old built-in list of actions (legacy: migrate them to scenes and
                 scripts). Events that run a scene are shown on that scene above.`
             : localize('panels.actions.cards.actions.description', this.hass.language)}</div>

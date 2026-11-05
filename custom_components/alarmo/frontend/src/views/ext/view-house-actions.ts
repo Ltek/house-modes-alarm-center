@@ -18,7 +18,7 @@ import {
 } from '../../data/house-actions';
 import { extStyles } from './ext-styles';
 import './scene-editor';
-import { entityBadge, lockToggle, sectionHead } from './page-intro';
+import { collapsibleCard, entityBadge, lockToggle } from './page-intro';
 
 const KIND_LABEL: Record<string, string> = { automation: 'Automation', script: 'Script', scene: 'Scene' };
 const KIND_COLOR: Record<string, string> = { automation: '#1e88e5', script: '#8e24aa', scene: '#00897b' };
@@ -125,7 +125,9 @@ export class AlarmViewHouseActions extends LitElement {
     const dirty = Object.keys(this.draft).length;
     return html`
       ${this.error ? html`<div class="notice error" style="white-space:pre-line;margin:0 0 12px">${this.error}</div>` : nothing}
-      <ha-card>${sectionHead('House Mode Actions', 'settings')}
+      ${collapsibleCard('house-actions', 'mdi:home-lightning-bolt-outline', 'House Mode Actions',
+        `${info.items.filter(i => i.labels.length).length} labelled${suggestions.length ? ` · ${suggestions.length} suggestion(s)` : ''}`,
+        'settings', html`
         <div class="card-content desc">
           <p>Every native Home Assistant automation, script and scene that belongs to a House Mode, in one place. A tick
             means it carries the Home Assistant label <em>${info.label_prefix}&lt;mode&gt;</em>; one item can belong to several
@@ -173,8 +175,8 @@ export class AlarmViewHouseActions extends LitElement {
           <tbody>${rows.map(i => this.renderRow(i, info.modes))}</tbody>
         </table></div>
         ${!rows.length ? html`<div class="empty">Nothing matches. Choose "Everything" to label any automation, script or scene.</div>` : nothing}
-      </ha-card>
-      <alarmo-ext-scene-editor .hass=${this.hass} .modes=${info.modes}
+      `)}
+      <alarmo-ext-scene-editor embedded .hass=${this.hass} .modes=${info.modes}
         .labels=${this.sceneLabels(info)}
         @scenes-changed=${() => window.setTimeout(() => this.load(), 800)}></alarmo-ext-scene-editor>
       ${dirty

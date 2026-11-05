@@ -3,6 +3,18 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.61 — 2026-11-05
+
+Restart Home Assistant after the update.
+
+- House Modes tab: the row of mode buttons is gone; the Modes list has a switch button (▶) on each mode instead,
+  so every mode is listed once. The entities are a list of their own, *Helpers and notifications*: House Mode
+  selector, Current House Mode, Previous House Mode and Notifications, each with what it is for. Under the selector
+  it says which mode names are missing from its options, or that they all match.
+- Actions tab: House Mode Actions, Scenes and Other Alarm Events are collapsible cards, collapsed to start with,
+  each with a one-line summary (labelled items and suggestions, number of scenes). A card stays open or closed
+  while you move between tabs.
+
 ## v2026.11.05.60 — 2026-11-05
 
 Restart Home Assistant after the update.

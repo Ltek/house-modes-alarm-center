@@ -32,11 +32,18 @@ if (!chromium) {
 // page path, file name, optional action before the shot
 const SHOTS = [
   ['/alarmo/house', '01-house-modes'],
-  ['/alarmo/actions', '02-actions'],
+  ['/alarmo/actions', '02-actions', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab').shadowRoot.querySelector('alarm-view-house-actions');
+      v.shadowRoot.querySelector('details.collapse').open = true;
+      await new Promise(r => setTimeout(r, 100));
+    });
+  }],
   ['/alarmo/actions', '03-scenes', async (p) => {
     await p.evaluate(() => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab').shadowRoot.querySelector('alarm-view-house-actions');
       const ed = v.shadowRoot.querySelector('alarmo-ext-scene-editor');
+      ed.shadowRoot.querySelector('details.collapse').open = true;
       ed.startNew();
       ed.draft = { id: 'demo', name: 'Evening lights', icon: 'mdi:weather-sunset',
         entities: { 'light.living_room': { state: 'on', brightness: 153, color_temp_kelvin: 2700 },

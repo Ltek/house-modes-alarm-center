@@ -25,7 +25,7 @@ import {
   sceneSupported,
 } from '../../data/scenes';
 import { extStyles } from './ext-styles';
-import { entityBadge, sectionHead } from './page-intro';
+import { collapsibleCard, entityBadge } from './page-intro';
 import './multi-picker';
 import './slider-field';
 import './icon-field';
@@ -167,7 +167,7 @@ export class SceneEditor extends LitElement {
   render() {
     const scenes = this.scenes();
     return html`
-      <ha-card>${sectionHead('Scenes', 'settings')}
+      ${collapsibleCard('scenes', 'mdi:palette-outline', 'Scenes', `${scenes.length} scene(s)`, 'settings', html`
         <div class="card-content desc">
           <p>Native Home Assistant scenes, created and edited here. They are ordinary <code>scene.*</code> entities: use them in
             House Modes (House Modes tab → a mode → <em>Scenes and scripts</em>), automations, dashboards or voice.</p>
@@ -214,7 +214,7 @@ export class SceneEditor extends LitElement {
           </tbody>
         </table></div>
         ${!scenes.length ? html`<div class="empty">No scenes yet.</div>` : nothing}
-      </ha-card>
+      `)}
     `;
   }
 

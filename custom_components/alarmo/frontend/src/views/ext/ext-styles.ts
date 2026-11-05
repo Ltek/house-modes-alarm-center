@@ -524,6 +524,31 @@ export const extStyles = css`
     font-weight: 600;
     font-size: 13px;
   }
+  /* a whole card that collapses (collapsibleCard) */
+  ha-card.fold-card {
+    padding: 4px 0;
+  }
+  ha-card.fold-card details.collapse.top {
+    margin: 8px 12px;
+  }
+  details.collapse.top > summary {
+    padding: 12px;
+  }
+  .fold-icon {
+    --mdc-icon-size: 22px;
+    color: var(--primary-color);
+  }
+  .fold-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--primary-text-color);
+  }
+  details.collapse.top > summary .grow {
+    flex: 1;
+  }
+  .fold-body {
+    padding: 0 0 8px;
+  }
   .collapse-body {
     padding: 0 12px 12px;
   }

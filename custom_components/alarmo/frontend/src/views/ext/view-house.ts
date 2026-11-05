@@ -1,6 +1,6 @@
 // House Modes tab: current mode, mode editor (partitions, who may change it, readiness,
 // failure handling, timers), input_select mirror, lock keypads, history.
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
 import { Path } from '../../common/navigation';
@@ -156,9 +156,6 @@ export class AlarmViewHouse extends LitElement {
           <p>Lights, locks and other actions stay in your automations: trigger them on
             <code>select.alarmo_house_mode</code> or the <code>alarmo_house_mode_changed</code> event. Automations change
             the mode with <code>alarmo.set_house_mode</code> (mode + source).</p>
-          <p><em>House Mode input_select entity</em> — an existing input_select kept in step both ways; its options must
-            match the mode names. <em>Notifications</em> — where House Mode messages go. Lock keypads and per-user keypad
-            actions are on the <a href="/alarmo/codes">Users, Codes, Keypads</a> tab.</p>
         </div>
         <div class="toolbar">
           <span>House Modes</span>
@@ -180,14 +177,6 @@ export class AlarmViewHouse extends LitElement {
               runs, no notification is sent, and the input_select is never written.
             </div>`
           : nothing}
-        ${s.enabled && s.modes.length
-          ? html`<div class="toolbar">
-              ${s.modes.map(m => html`<ha-button appearance=${m.id === s.current ? 'filled' : 'plain'} ?disabled=${this.busy || this.dirty} @click=${() => this.choose(m.id)}>
-                <ha-icon slot="start" icon=${m.icon}></ha-icon>${m.name}</ha-button>`)}
-              ${this.dirty ? html`<span class="secondary" style="display:inline">Save first.</span>` : nothing}
-            </div>`
-          : nothing}
-        ${this.renderSettingsRow()}
         ${this.lastBlocked
           ? html`<div class="notice warn">${this.lastBlocked.reason}
               <button class="link" @click=${() => this.choose(this.lastBlocked!.mode, true)}>Change anyway</button></div>`
@@ -199,6 +188,7 @@ export class AlarmViewHouse extends LitElement {
             })}</div>`
           : nothing}
         ${this.renderModes()}
+        ${this.renderSettingsRow()}
       </ha-card>
     `;
   }
@@ -280,16 +270,23 @@ export class AlarmViewHouse extends LitElement {
     const d = this.draft!;
     const names: Record<string, string> = {};
     this.info!.targets.forEach(t => (names[t.key] = t.name));
+    const st = this.info!.settings;
+    const cur = st.current;
+    const enabled = st.enabled;
+    const shadow = runState(st) === 'shadow';
+    const saved = new Set(st.modes.map(m => m.id));
     return html`
-      <div class="subhead" style="padding:8px 16px 0;border-top:1px solid var(--divider-color);margin-top:8px">Modes (${d.modes.length})</div>
+      <div class="hm-sub">Modes (${d.modes.length})</div>
         <div class="card-content desc" style="padding-top:4px">
-          <p>Edit a mode (pencil) to set which partitions it arms, who may switch into or out of it, readiness checks, what
-            happens if arming fails, and timers. Save at the bottom of the page.</p>
+          <p><ha-icon icon="mdi:play-circle-outline" style="--mdc-icon-size:18px"></ha-icon> switches to a mode now.
+            The pencil edits it: which partitions it arms, who may switch into or out of it, readiness checks, what happens
+            if arming fails, and timers. Save at the bottom of the page.</p>
         </div>
         <div class="toolbar">
           <ha-button appearance="plain" ?disabled=${this.detecting} @click=${() => this.runDetect()}><ha-icon slot="start" icon="mdi:magnify-scan"></ha-icon>Detect from your input_selects</ha-button>
           <ha-button appearance="plain" @click=${this.addMode}><ha-icon slot="start" icon="mdi:plus-circle"></ha-icon>Add House Mode</ha-button>
           ${!d.modes.length ? html`<ha-button appearance="plain" @click=${this.addStarter}><ha-icon slot="start" icon="mdi:auto-fix"></ha-icon>Add starter modes</ha-button>` : nothing}
+          ${this.dirty ? html`<span class="secondary" style="display:inline">Save before switching modes.</span>` : nothing}
         </div>
         ${this.detect ? this.renderDetect() : nothing}
         ${d.modes.length
@@ -302,9 +299,14 @@ export class AlarmViewHouse extends LitElement {
                   return html`
                     <tr>
                       <td class="icon"><ha-icon icon=${m.icon} style=${`color:${m.color || defaultModeColor(m.name)}`}></ha-icon></td>
-                      <td class="name">${m.name}${m.id === this.info!.settings.current ? html`<span class="secondary">current</span>` : nothing}</td>
+                      <td class="name">${m.name}${m.id === cur ? html`<span class="secondary">${shadow ? 'current (would be)' : 'current'}</span>` : nothing}</td>
                       <td>${describeTargets(m, names, s => STATE_LABEL[s] || s) || html`<span class="secondary" style="display:inline">leaves the partitions alone</span>`}</td>
                       <td class="row-actions">
+                        ${m.id === cur || !enabled
+                          ? html`<ha-icon-button class="hm-noswitch" aria-hidden="true" tabindex="-1"><ha-icon icon="mdi:play-circle-outline"></ha-icon></ha-icon-button>`
+                          : html`<ha-icon-button .label=${`Switch to ${m.name}`} title=${shadow ? `Switch to ${m.name} (Shadow: only logged)` : `Switch to ${m.name}`}
+                              ?disabled=${this.busy || this.dirty || !saved.has(m.id)} @click=${() => this.choose(m.id)}>
+                              <ha-icon icon="mdi:play-circle-outline"></ha-icon></ha-icon-button>`}
                         <ha-icon-button .label=${open ? 'Close' : 'Edit'} title=${open ? 'Close' : 'Edit'} @click=${toggle}>
                           <ha-icon icon=${open ? 'mdi:chevron-up' : 'mdi:pencil'}></ha-icon></ha-icon-button>
                         <ha-icon-button .label=${'Delete'} title="Delete"
@@ -604,37 +606,45 @@ export class AlarmViewHouse extends LitElement {
       .filter(e => /^(input_select|input_text)\./.test(e))
       .sort();
     const notifies = Object.keys(this.hass.services.notify || {}).map(s => ({ value: `notify.${s}`, label: `notify.${s}` }));
+    const opts: string[] = d.input_select ? (this.hass.states[d.input_select]?.attributes.options as string[]) || [] : [];
+    const missing = d.modes.map(m => m.name).filter(n => !opts.some(o => o.toLowerCase() === n.toLowerCase()));
+    const pick = (value: string | null | undefined, list: string[], set: (v: string | null) => void, label: string) =>
+      html`<select aria-label=${label} @change=${(e: any) => set(e.target.value || null)}>
+        <option value="" ?selected=${!value}>none</option>
+        ${list.map(x => html`<option value=${x} ?selected=${value === x}>${this.hass.states[x].attributes.friendly_name || x} (${x})</option>`)}
+      </select>`;
+    const row = (icon: string, title: string, hint: unknown, control: unknown) =>
+      html`<div class="hm-row">
+        <ha-icon class="hm-row-icon" icon=${icon}></ha-icon>
+        <div class="hm-row-label"><strong>${title}</strong><span class="secondary">${hint}</span></div>
+        <div class="hm-row-ctl">${control}</div>
+      </div>`;
     return html`
-      <div class="detail-grid" style="padding:4px 16px 12px;align-items:flex-start">
-        <label>House Mode input_select entity
-          <select @change=${(e: any) => this.set(x => (x.input_select = e.target.value || null))}>
-            <option value="" ?selected=${!d.input_select}>none</option>
-            ${selects.map(s => html`<option value=${s} ?selected=${d.input_select === s}>${this.hass.states[s].attributes.friendly_name || s} (${s})</option>`)}
-          </select>
-        </label>
-        ${(['current_entity', 'previous_entity'] as const).map(
-          key => html`<label>${key === 'current_entity' ? 'Current House Mode entity' : 'Previous House Mode entity'}
-              <select @change=${(e: any) => this.set(x => (x[key] = e.target.value || null))}>
-                <option value="" ?selected=${!d[key]}>none</option>
-                ${compares.map(s => html`<option value=${s} ?selected=${d[key] === s}>${this.hass.states[s].attributes.friendly_name || s} (${s})</option>`)}
-              </select>
-            </label>`
-        )}
-        <alarmo-ext-multi-picker
-          .label=${'Notifications'}
-          .placeholder=${'Add a notify service…'}
-          .options=${notifies}
-          .value=${d.notify_services || []}
-          @value-changed=${(e: CustomEvent) => this.set(x => (x.notify_services = e.detail.value))}
-        ></alarmo-ext-multi-picker>
+      <div class="hm-sub">Helpers and notifications</div>
+      <div class="hm-rows">
+        ${row('mdi:form-dropdown', 'House Mode selector',
+          'Your input_select that people and automations change. Kept in step both ways; its options must match the mode names.',
+          html`${pick(d.input_select, selects, v => this.set(x => (x.input_select = v)), 'House Mode selector')}
+            ${d.input_select && d.modes.length
+              ? missing.length
+                ? html`<div class="notice warn" style="margin:6px 0 0">Missing options on ${d.input_select}: ${missing.join(', ')}.</div>`
+                : html`<div class="secondary hm-ok"><ha-icon icon="mdi:check-circle"></ha-icon>Its options match the ${d.modes.length} modes.</div>`
+              : nothing}`)}
+        ${row('mdi:home-outline', 'Current House Mode',
+          'Optional. Live writes the mode name here after each change; Shadow compares it with what House Modes would have set.',
+          pick(d.current_entity, compares, v => this.set(x => (x.current_entity = v)), 'Current House Mode'))}
+        ${row('mdi:history', 'Previous House Mode', 'Optional. Live writes the mode it changed from here.',
+          pick(d.previous_entity, compares, v => this.set(x => (x.previous_entity = v)), 'Previous House Mode'))}
+        ${row('mdi:bell-outline', 'Notifications', 'Where House Mode messages go: blocked, failed to arm, timers.',
+          html`<alarmo-ext-multi-picker
+            .placeholder=${'Add a notify service…'}
+            .options=${notifies}
+            .value=${d.notify_services || []}
+            @value-changed=${(e: CustomEvent) => this.set(x => (x.notify_services = e.detail.value))}
+          ></alarmo-ext-multi-picker>`)}
       </div>
-      ${d.input_select && d.modes.length
-        ? html`<div class="notice" style="margin:0 16px 12px">Options needed on ${d.input_select}: ${d.modes.map(m => m.name).join(', ')}.</div>`
-        : nothing}
-      ${d.current_entity || d.previous_entity
-        ? html`<div class="secondary" style="margin:0 16px 12px">Current / previous House Mode entities: Live writes the mode
-            names to them (previous first), Shadow compares them with what House Modes would have set.</div>`
-        : nothing}
+      <div class="secondary" style="margin:0 16px 12px">Lock keypads and per-user keypad actions are on the
+        <a href="/alarmo/codes">Users, Codes, Keypads</a> tab.</div>
     `;
   }
 
@@ -652,5 +662,67 @@ export class AlarmViewHouse extends LitElement {
     }
   }
 
-  static styles = extStyles;
+  static styles = [
+    extStyles,
+    css`
+      .hm-sub {
+        padding: 12px 16px 0;
+        border-top: 1px solid var(--divider-color);
+        margin-top: 8px;
+        color: var(--accent-color);
+        font-weight: 600;
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .hm-rows {
+        padding: 4px 16px 8px;
+      }
+      .hm-row {
+        display: grid;
+        grid-template-columns: 28px minmax(200px, 340px) minmax(240px, 520px);
+        gap: 6px 14px;
+        align-items: start;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--divider-color);
+      }
+      .hm-row:last-child {
+        border-bottom: none;
+      }
+      .hm-row-icon {
+        color: var(--primary-color);
+        --mdc-icon-size: 22px;
+        padding-top: 2px;
+      }
+      .hm-row-label {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .hm-row-ctl select {
+        width: 100%;
+      }
+      .hm-ok {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 6px;
+      }
+      .hm-ok ha-icon {
+        --mdc-icon-size: 16px;
+        color: var(--success-color, #4caf50);
+      }
+      .hm-noswitch {
+        visibility: hidden;
+      }
+      @media (max-width: 760px) {
+        .hm-row {
+          grid-template-columns: 28px 1fr;
+        }
+        .hm-row-ctl {
+          grid-column: 2;
+        }
+      }
+    `,
+  ];
 }

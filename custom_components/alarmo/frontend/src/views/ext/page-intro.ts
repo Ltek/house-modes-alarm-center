@@ -61,6 +61,28 @@ export const roleChip = (role: IntroRole) =>
 export const sectionHead = (title: unknown, role?: IntroRole, extra: unknown = nothing) =>
   html`<div class="sec-head"><h2>${title}</h2><span class="sec-side">${extra}${role ? roleChip(role) : nothing}</span></div>`;
 
+/** Which collapsible cards are open, by id. Module-level so a card stays as it was across re-renders and tab changes. */
+const CARD_OPEN: Record<string, boolean> = {};
+
+/**
+ * A top-level card that collapses to one line: chevron, icon, title, a short summary of what is inside, role chip.
+ * Starts collapsed so a tab shows at a glance what it holds.
+ */
+export const collapsibleCard = (id: string, icon: string, title: string, summary: unknown, role: IntroRole | undefined, body: unknown) =>
+  html`<ha-card class="fold-card">
+    <details class="collapse top" ?open=${!!CARD_OPEN[id]} @toggle=${(e: Event) => (CARD_OPEN[id] = (e.target as HTMLDetailsElement).open)}>
+      <summary>
+        <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+        <ha-icon class="fold-icon" icon=${icon}></ha-icon>
+        <span class="fold-title">${title}</span>
+        <span class="secondary" style="display:inline">${summary}</span>
+        <span class="grow"></span>
+        ${role ? roleChip(role) : nothing}
+      </summary>
+      <div class="fold-body">${body}</div>
+    </details>
+  </ha-card>`;
+
 /** Lock/unlock toggle for tables with zone settings. Emits nothing; call onToggle. */
 export const lockToggle = (locked: boolean, onToggle: () => void) =>
   html`<ha-button appearance=${locked ? 'plain' : 'filled'} @click=${onToggle}

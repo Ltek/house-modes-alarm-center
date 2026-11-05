@@ -3,6 +3,18 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.47 — 2026-11-05
+
+Card only; no Home Assistant restart needed (reload the browser). (v2026.11.05.46 does need one.)
+
+- **Round buttons**: House Mode buttons and arm buttons can be rounded rectangles (as before) or round, a circle
+  around each icon with the text below; the circle carries the background and border colors.
+- **Space between buttons**, separately for House Mode buttons and arm buttons.
+- **House Modes off**: the header shows the alarm's state icon in its arm mode color instead of a gray shield.
+- **Shadow without your own House Mode helper**: a House Mode button says *"Shadow: House Modes would set …; nothing was
+  changed"* instead of appearing to do nothing.
+- CARD.md: how the card behaves without House Modes, without a panel, and in Shadow.
+
 ## v2026.11.05.46 — 2026-11-05
 
 Restart Home Assistant after the update (the integration now reports House Mode changes in progress).

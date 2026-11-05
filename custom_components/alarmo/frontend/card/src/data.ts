@@ -170,6 +170,12 @@ export type CardConfig = {
   /** @deprecated v2026.11.04.42–.44; false → alarm_colors: standard */
   alarm_colors_from_modes?: boolean;
   styles?: CardStyles;
+  /** 'rounded' = rounded rectangles (standard); 'round' = a circle around each icon, the text below */
+  modes_shape?: 'rounded' | 'round';
+  arm_shape?: 'rounded' | 'round';
+  /** space between the buttons, px */
+  modes_gap?: number;
+  arm_gap?: number;
   /** characters stripped from both ends of each panel display line, e.g. "*" */
   display_strip?: string;
   /** text replaced in the panel display lines, in order (after stripping) */
@@ -184,7 +190,7 @@ export const DEFAULTS: Required<Pick<CardConfig,
   | 'modes_align' | 'show_mode_labels' | 'show_mode_name' | 'show_line1' | 'show_line2' | 'alarm_collapsible' | 'alarm_start_collapsed'
   | 'show_alarm_name' | 'show_alarm_state' | 'show_arm_options' | 'alarm_colors' | 'modes_collapsible'
   | 'modes_start_collapsed' | 'keypad_collapsible' | 'keypad_start_collapsed' | 'show_header_icon' | 'show_mode_icons'
-  | 'show_alarm_icon' | 'show_arm_icons' | 'show_arm_labels' | 'show_key_labels'>> = {
+  | 'show_alarm_icon' | 'show_arm_icons' | 'show_arm_labels' | 'show_key_labels' | 'modes_shape' | 'arm_shape'>> = {
   show_header: true,
   show_house_modes: true,
   show_alarm: true,
@@ -214,6 +220,21 @@ export const DEFAULTS: Required<Pick<CardConfig,
   show_arm_icons: true,
   show_arm_labels: true,
   show_key_labels: true,
+  modes_shape: 'rounded',
+  arm_shape: 'rounded',
+};
+
+/** Header icon for an alarm state, used when House Modes are off. */
+export const ALARM_STATE_ICONS: Record<string, string> = {
+  disarmed: 'mdi:lock-open-variant',
+  armed_away: 'mdi:shield-lock',
+  armed_home: 'mdi:shield-home',
+  armed_night: 'mdi:shield-moon',
+  armed_vacation: 'mdi:shield-airplane',
+  armed_custom_bypass: 'mdi:lock-percent-open',
+  arming: 'mdi:shield-sync-outline',
+  pending: 'mdi:shield-alert-outline',
+  triggered: 'mdi:bell-ring',
 };
 
 const FONTS: Record<string, string> = {
@@ -477,7 +498,9 @@ export const resultMessage = (r: LastResult | null | undefined, name: (eid: stri
     case 'error':
       return `${what}: ${r.reason || 'error'}`;
     case 'shadow':
-      return r.would && r.would !== 'changed' ? `Shadow: ${what} would be ${r.would.replace('_', ' ')}` : null;
+      return r.would && r.would !== 'changed'
+        ? `Shadow: ${what} would be ${r.would.replace('_', ' ')}`
+        : `Shadow: House Modes would set ${what}; nothing was changed`;
     default:
       return null;
   }

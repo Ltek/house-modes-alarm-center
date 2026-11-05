@@ -34,7 +34,9 @@ export class AlarmoActionsBar extends LitElement {
 
     const bs = (this.config as any).button_style || {};
     return html`
-      <div class="container ${bs.text_follows_icon ? 'follow' : ''}" style=${bs.track ? `--b-track:${String(bs.track === 'none' ? 'transparent' : bs.track).replace(/[;{}<>]/g, '')};--b-track-opacity:1` : ''}>
+      <div class="container ${bs.text_follows_icon ? 'follow' : ''} ${(this.config as any).shape === 'round' ? 'round' : ''}"
+        style=${[bs.track ? `--b-track:${String(bs.track === 'none' ? 'transparent' : bs.track).replace(/[;{}<>]/g, '')};--b-track-opacity:1` : '',
+          (this.config as any).gap !== undefined ? `--b-gap:${Number((this.config as any).gap)}px` : ''].filter(Boolean).join(';')}>
         ${this._renderOptions(state)}
       </div>
     `;
@@ -139,6 +141,7 @@ export class AlarmoActionsBar extends LitElement {
         width: 100%;
         gap: 0px;
         flex-wrap: wrap;
+        gap: var(--b-gap, 0px);
         padding: 4px;
         box-sizing: border-box;
         --selected-color: var(--alarm-state-color);
@@ -250,6 +253,47 @@ export class AlarmoActionsBar extends LitElement {
       }
       div.container.follow div.button.selected div.content span {
         color: var(--b-aic, white);
+      }
+      /* round: a circle around the icon (selected: filled), the text below */
+      div.container.round {
+        --disc: calc(var(--content-scale, 1) * var(--hmac-alarm-icon-size, 22px) * 1.8);
+      }
+      div.container.round div.content,
+      div.container.round div.content.has-text {
+        height: auto;
+        background: none;
+        box-shadow: none;
+        padding: 4px 2px;
+        justify-content: flex-start;
+      }
+      div.container.round div.content ha-icon {
+        width: var(--disc);
+        height: var(--disc);
+        align-items: center;
+        justify-content: center;
+      }
+      div.container.round div.content::before,
+      div.container.round div.content::after {
+        width: var(--disc);
+        height: var(--disc);
+        left: 50%;
+        top: 4px;
+        transform: translateX(-50%);
+        border-radius: 50%;
+      }
+      div.container.round div.content::after {
+        content: "";
+        position: absolute;
+        z-index: -2;
+        background: var(--b-bg, transparent);
+        box-shadow: inset 0 0 0 1px var(--b-bd, transparent);
+      }
+      div.container.round div.button.selected div.content::after {
+        box-shadow: inset 0 0 0 1px var(--b-abd, var(--b-bd, transparent));
+      }
+      div.container.round div.content ha-icon.badge {
+        width: auto;
+        height: auto;
       }
       @media (max-width: 280px) {
         div.container {

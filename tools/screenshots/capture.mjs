@@ -186,6 +186,8 @@ const CARD_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${THE
     styles: { mode_name: { font: 'sans', weight: 600 }, line2: { color: 'var(--secondary-text-color)' } } }));
   cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_header: false, show_house_modes: false, alarm_collapsible: true, alarm_start_collapsed: true, show_chevron: true,
     show_panel_keypad: true, keypad_collapsible: true }));
+  cols[1].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_header: false, show_alarm: false, columns: 5, modes_shape: 'round', modes_gap: 8,
+    styles: { mode_button: { active_background: 'mode', border: 'mode' }, mode_icon: { color: 'mode', active_color: '#ffffff' } } }));
   cols[1].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_header: false, show_alarm: false, columns: 5,
     styles: { mode_button: { background: 'transparent', border: 'mode', active_background: 'mode', text_follows_icon: true },
               mode_icon: { color: 'mode', active_color: '#ffffff' } } }));

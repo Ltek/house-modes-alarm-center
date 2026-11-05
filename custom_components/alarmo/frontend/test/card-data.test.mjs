@@ -36,7 +36,7 @@ test('messages after a House Mode button', () => {
   assert.equal(resultMessage({ result: 'blocked', requested: 'Away', reason: 'Spa cannot be changed by manual' }, name), 'Away not set: Spa cannot be changed by manual');
   assert.equal(resultMessage({ result: 'not_ready', requested: 'Night', open: ['binary_sensor.d'] }, name), 'Night not set: open Front Door');
   assert.equal(resultMessage({ result: 'delayed', requested: 'Stay', minutes: 30 }, name), 'Stay in 30 min');
-  assert.equal(resultMessage({ result: 'shadow', would: 'changed' }, name), null);
+  assert.match(resultMessage({ result: 'shadow', would: 'changed' }, name), /nothing was changed/);
   assert.equal(resultMessage({ result: 'shadow', requested: 'Away', would: 'not_ready' }, name), 'Shadow: Away would be not ready');
 });
 
@@ -122,4 +122,11 @@ test('effects: only while a chosen trigger is true', () => {
 test('card and section backgrounds', () => {
   assert.equal(styleVars({ card: { background: 'transparent' }, header_section: { background: '#222222' } }),
     '--hmac-card-bg:transparent;--hmac-header-bg:#222222');
+});
+
+import { resultMessage as rm2, ALARM_STATE_ICONS } from '../card/src/data.ts';
+
+test('Shadow without an own helper says nothing changed; alarm icons when House Modes are off', () => {
+  assert.equal(rm2({ result: 'shadow', would: 'changed', requested: 'Stay' }, e => e), 'Shadow: House Modes would set Stay; nothing was changed');
+  assert.equal(ALARM_STATE_ICONS.disarmed, 'mdi:lock-open-variant');
 });

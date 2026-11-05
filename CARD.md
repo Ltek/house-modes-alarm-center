@@ -48,6 +48,8 @@ panel keypad*). Only options you change are written to the YAML.
 | **Layout** | | |
 | `modes_align` | `grid` | `grid`: fixed columns, the last row wraps left; `center`: every row centered across the width |
 | `columns` | `5` | House Mode buttons per row (2–9) |
+| `modes_shape`, `arm_shape` | `rounded` | `rounded` rectangles, or `round`: a circle around each icon with the text below |
+| `modes_gap`, `arm_gap` | `4` / `0` | Space between the House Mode buttons / the arm buttons, px |
 | `hidden_modes` | | House Modes (id or name) without a button |
 | `alarm_colors` | `modes` | Arm mode colors (arm buttons, alarm bar, the `mode` keyword): `modes` = the House Mode that sets each arm mode, `standard` = green disarmed / red away / orange home / …, `theme` = Home Assistant's alarm state colors |
 | `keypad_labels` | Vista | e.g. `{"6": "BYP"}` |
@@ -97,6 +99,18 @@ effects:
   Mode change is being applied, waits (delayed request) or, in Shadow, is being watched; *triggered*: an alarm.
 - The editor's *Preview the effects now* shows them without waiting for the real thing (not saved).
 - Respects the system's reduced-motion setting.
+
+## Without House Modes, without a panel, in Shadow
+
+- **House Modes off** (or none set up): no House Mode buttons; the header shows the alarm instead — its state icon in
+  the arm mode color and the alarm's state (or `name`).
+- **No physical panel link**: the header has no display lines, the keypad section is not shown, and the border uses
+  the alarm's state only. Everything else works.
+- **Shadow**: House Mode buttons set your own House Mode input_select, so your automations stay in charge. Without one,
+  they ask House Modes, which only log what they would do: the card then says *"Shadow: House Modes would set Stay;
+  nothing was changed"*. The alarm section always arms and disarms Alarmo itself. With the panel link in Shadow,
+  Alarmo does not pass that on to the panel (your automations do). The panel keypad always sends straight to the
+  panel, checked against *Panel keypad on dashboards*.
 
 ## Who may use the panel keypad
 

@@ -28,7 +28,7 @@ def('ha-icon', class extends Base {
   connectedCallback() { this.render(); }
   render() {
     const size = getComputedStyle(this).getPropertyValue('--mdc-icon-size').trim() || '24px';
-    this.shadowRoot.innerHTML = `<style>:host{display:inline-flex;vertical-align:middle;width:${size};height:${size}}</style>${svg(iconPath(this.icon), parseInt(size))}`;
+    this.shadowRoot.innerHTML = `<style>:host{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:${size};height:${size}}</style>${svg(iconPath(this.icon), parseInt(size))}`;
   }
 });
 def('ha-svg-icon', class extends Base {

@@ -18,6 +18,7 @@ import {
   fxVars,
   FX_PREVIEW,
   FX_TRIGGERS,
+  ALARM_STATE_ICONS,
   resolveColor,
   keypadKeys,
   lcdLines,
@@ -158,7 +159,8 @@ export class HouseModesAlarmCenterCard extends LitElement {
       DATA_CACHE = data;
       this.error = '';
       const r = data.house.last_result;
-      if (this.requestedAt && r?.at && Date.parse(r.at) >= this.requestedAt - 2000) {
+      const viaOwnHelper = data.house.shadow && data.house.select_entity !== 'select.alarmo_house_mode';
+      if (this.requestedAt && r?.at && Date.parse(r.at) >= this.requestedAt - 2000 && !(viaOwnHelper && r.result === 'shadow')) {
         this.requestedAt = 0;
         const m = resultMessage(r, e => this.name(e));
         if (m) this.flash(m);
@@ -280,6 +282,8 @@ export class HouseModesAlarmCenterCard extends LitElement {
       show_arm_options: c.show_arm_options,
       show_icons: c.show_arm_icons,
       show_labels: c.show_arm_labels,
+      shape: c.arm_shape,
+      gap: c.arm_gap,
       button_style: c.styles?.arm_button,
       icon_style: c.styles?.alarm_icon,
     };
@@ -322,13 +326,19 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const kp = link?.keypad_entity ? this.hass!.states[link.keypad_entity] : undefined;
     const [l1, l2] = lcdLines((kp?.attributes as any)?.alpha ?? kp?.state, this.config!.display_strip, this.config!.display_replace);
     const title = h.enabled ? (mode ? mode.name : 'unknown') : this.config!.name || (alarmState ? alarmState.replace(/_/g, ' ') : '');
+    // House Modes off: the header shows the alarm (its state icon, in the arm mode color)
+    const alarmSt = alarmState;
+    const icon = h.enabled ? mode?.icon || 'mdi:shield-home' : ALARM_STATE_ICONS[alarmSt || ''] || 'mdi:shield-home';
+    const own = h.enabled
+      ? mode?.color || 'var(--secondary-text-color)'
+      : armColors(this.data!, this.alarmEntity, this.config!.alarm_colors)[alarmSt || ''] || 'var(--secondary-text-color)';
     return html`
       <div class="head ${this.config!.collapsible ? 'clickable' : ''} ${this.config!.collapsible && this.config!.show_chevron ? 'chevron' : ''}" @click=${this.toggle}
         @contextmenu=${(e: Event) => { e.preventDefault(); this.moreInfo(link?.keypad_entity || this.alarmEntity); }}
         role=${this.config!.collapsible ? 'button' : nothing} aria-expanded=${this.config!.collapsible ? String(!this.collapsed) : nothing}>
         ${this.config!.show_header_icon
-          ? html`<ha-icon class="mode-icon" icon=${mode?.icon || 'mdi:shield-home'}
-              style=${`color:${resolveColor(this.config!.styles?.header_icon?.color, mode?.color || 'var(--secondary-text-color)') || mode?.color || 'var(--secondary-text-color)'}`}></ha-icon>`
+          ? html`<ha-icon class="mode-icon" icon=${icon}
+              style=${`color:${resolveColor(this.config!.styles?.header_icon?.color, own) || own}`}></ha-icon>`
           : nothing}
         <div class="head-text">
           ${this.config!.show_mode_name ? html`<div class="mode-name">${title}</div>` : nothing}
@@ -349,8 +359,8 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const h = this.data!.house;
     const modes = visibleModes(this.data!, this.config!.hidden_modes);
     return html`
-      <div class="modes ${this.config!.modes_align === 'center' ? 'center' : ''} ${this.config!.styles?.mode_button?.text_follows_icon ? 'follow' : ''}"
-        style=${`--cols:${Math.max(1, Math.min(9, this.config!.columns || 5))}`}>
+      <div class="modes ${this.config!.modes_align === 'center' ? 'center' : ''} ${this.config!.styles?.mode_button?.text_follows_icon ? 'follow' : ''} ${this.config!.modes_shape === 'round' ? 'round' : ''}"
+        style=${`--cols:${Math.max(1, Math.min(9, this.config!.columns || 5))}${this.config!.modes_gap !== undefined ? `;--hmac-modes-gap:${Number(this.config!.modes_gap)}px` : ''}`}>
         ${modes.map(m => {
           const on = m.id === h.current;
           const st = this.config!.styles || {};
@@ -358,7 +368,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
           return html`<button class="mode ${on ? 'on' : ''} ${target ? 'fx-target' : ''}" aria-pressed=${on ? 'true' : 'false'} title=${m.name}
               style=${`--mode-color:${m.color};${buttonVars(st.mode_button, st.mode_icon, m.color)}`}
               @click=${() => this.chooseMode(m.name)}>
-              ${this.config!.show_mode_icons ? html`<ha-icon icon=${m.icon}></ha-icon>` : nothing}
+              ${this.config!.show_mode_icons ? html`<span class="disc"><ha-icon icon=${m.icon}></ha-icon></span>` : nothing}
               ${this.config!.show_mode_labels ? html`<span>${m.name}</span>` : nothing}
             </button>`;
         })}
@@ -412,6 +422,12 @@ export class HouseModesAlarmCenterCard extends LitElement {
     }
     ha-card.fx-status_icon-pulse .mode-icon {
       animation: hmac-fx-icon var(--fx-speed) ease-in-out infinite;
+    }
+    ha-card.fx-mode_button-glow .modes.round .mode.fx-target {
+      box-shadow: none;
+    }
+    ha-card.fx-mode_button-glow .modes.round .mode.fx-target .disc {
+      box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 8) color-mix(in srgb, var(--mode-color, var(--fx-c)) 55%, transparent);
     }
     ha-card.fx-mode_button-glow .mode.fx-target {
       box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 8) color-mix(in srgb, var(--mode-color, var(--fx-c)) 55%, transparent);
@@ -559,7 +575,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
     .modes {
       display: grid;
       grid-template-columns: repeat(var(--cols, 5), 1fr);
-      gap: 4px;
+      gap: var(--hmac-modes-gap, 4px);
       padding: 4px 8px 8px;
     }
     /* 'center': same button width, every row (the last one too) centered across the card */
@@ -569,7 +585,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
       justify-content: center;
     }
     .modes.center .mode {
-      flex: 0 0 calc((100% - (var(--cols, 5) - 1) * 4px) / var(--cols, 5));
+      flex: 0 0 calc((100% - (var(--cols, 5) - 1) * var(--hmac-modes-gap, 4px)) / var(--cols, 5));
     }
     .mode {
       display: flex;
@@ -591,6 +607,32 @@ export class HouseModesAlarmCenterCard extends LitElement {
     }
     .mode.on ha-icon {
       color: var(--b-aic, var(--mode-color));
+    }
+    .disc {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* round: a circle around the icon carries the background and border, the text sits below */
+    .modes.round .mode,
+    .modes.round .mode.on {
+      background: none;
+      border-color: transparent;
+    }
+    .modes.round .disc {
+      width: calc(var(--hmac-mode-icon-size, 36px) * 1.6);
+      height: calc(var(--hmac-mode-icon-size, 36px) * 1.6);
+      border-radius: 50%;
+      background: var(--b-bg, rgba(127, 127, 127, 0.08));
+      box-shadow: inset 0 0 0 1px var(--b-bd, transparent);
+      box-sizing: border-box;
+    }
+    .modes.round .mode.on .disc {
+      background: var(--b-abg, rgba(127, 127, 127, 0.2));
+      box-shadow: inset 0 0 0 1px var(--b-abd, var(--b-bd, transparent));
+    }
+    .modes.round .mode ha-icon {
+      --mdc-icon-size: calc(var(--hmac-mode-icon-size, 36px) * 0.8);
     }
     /* text follows the icon color */
     .modes.follow .mode span {

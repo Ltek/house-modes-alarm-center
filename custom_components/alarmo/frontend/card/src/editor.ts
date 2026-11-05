@@ -456,6 +456,8 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           ${this.group('Layout')}
           ${this.select('Alignment', c.modes_align, [['grid', 'Standard (fixed columns, wrap left)'], ['center', 'Center on width']], v => this.set('modes_align', v))}
           ${this.slider('Buttons per row', c.columns, 2, 9, 1, '', 5, v => this.set('columns', v), false)}
+          ${this.select('Shape', c.modes_shape, [['rounded', 'Rounded rectangles'], ['round', 'Round (circle around the icon)']], v => this.set('modes_shape', v))}
+          ${this.slider('Space between buttons', c.modes_gap ?? 4, 0, 24, 1, ' px', 4, v => this.set('modes_gap', v === 4 ? undefined : v), false)}
           ${modes.length
             ? html`${this.group('Buttons shown')}
                 <div class="chips">${modes.map(m => {
@@ -488,6 +490,8 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
             ['standard', 'Standard (green disarmed, red away, orange home, …)'],
             ['theme', 'Home Assistant theme (alarm state colors)'],
           ], v => this.set('alarm_colors', v))}
+          ${this.select('Shape', c.arm_shape, [['rounded', 'Rounded rectangles'], ['round', 'Round (circle around the icon)']], v => this.set('arm_shape', v))}
+          ${this.slider('Space between buttons', c.arm_gap ?? 0, 0, 24, 1, ' px', 0, v => this.set('arm_gap', v === 0 ? undefined : v), false)}
           ${this.slider('Arm button scale', Math.round(alarm.button_scale_actions * 10) / 10, 1, 2.5, 0.1, '×', 1, v => this.setAlarm('button_scale_actions', v), false)}
           ${this.group('Code entry and messages')}
           ${ALARM_KEYS.map(k => this.toggle(ALARM_LABELS[k], !!alarm[k], v => this.setAlarm(k, v)))}

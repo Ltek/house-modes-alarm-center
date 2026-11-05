@@ -193,18 +193,19 @@ export const defaultModeIcon = (name: string): string => {
 /** Default card color for a House Mode name (same rules as the backend's mode_color). */
 export const defaultModeColor = (name: string): string => {
   const n = name.trim().toLowerCase();
+  // the colors of the original button-card setup (CSS green, red, orange, …), as hex
   const rules: [RegExp, string][] = [
-    [/late.?night/, '#00b0ff'],
+    [/late.?night/, '#00bfff'],
     [/vacation|holiday|travel/, '#dc143c'],
-    [/disarm|^off$|wake|^day/, '#4caf50'],
-    [/away|out|leave/, '#f44336'],
-    [/sleep|night|bed/, '#5c6bc0'],
-    [/stay|home/, '#ff9800'],
-    [/spa|bypass|custom|pool|hot.?tub/, '#00bcd4'],
-    [/guest|party|visitor|clean/, '#e040fb'],
-    [/local/, '#9c27b0'],
+    [/disarm|^off$|wake|^day/, '#008000'],
+    [/away|out|leave/, '#ff0000'],
+    [/sleep|night|bed/, '#191970'],
+    [/stay|home/, '#ffa500'],
+    [/spa|bypass|custom|pool|hot.?tub/, '#00ffff'],
+    [/guest|party|visitor|clean/, '#ff00ff'],
+    [/local/, '#800080'],
   ];
-  return rules.find(([re]) => re.test(n))?.[1] || '#9e9e9e';
+  return rules.find(([re]) => re.test(n))?.[1] || '#808080';
 };
 
 const NAMED: Record<string, string> = {

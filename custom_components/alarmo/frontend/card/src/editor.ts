@@ -442,8 +442,10 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
         ${this.color('Card background', frame.background, 'Theme card background', '#1c1c1c', v => this.setStyle('card', 'background', v), [['transparent', 'Transparent']])}
         <p class="hint">The card background is the default for every section; a section can set its own below (Header,
           House Mode buttons, Alarm, Physical panel keypad).</p>
-        <p class="hint">The border shows the state: red alarm, orange arming or not ready, the House Mode's color while
-          armed, green ready.</p>
+        ${this.select('Border color', c.border_color, [
+          ['mode', "The House Mode's color"],
+          ['state', 'The alarm state (red alarm, orange arming / not ready, mode color armed, green ready)'],
+        ], v => this.set('border_color', v))}
       `, true)}
 
       ${this.panel('sections', 'mdi:view-agenda-outline', 'Sections', 'Turn each part of the card on or off, and choose which ones can be collapsed.', html`

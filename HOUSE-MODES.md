@@ -95,7 +95,8 @@ Blueprints are in `blueprints/automation/alarmo/` in the ZIP: copy them to
 ## Colors and clock-time timers
 
 - **Color** (open a mode with the pencil): used by the dashboard card for the mode's icon and the armed border.
-  *Automatic* picks one from the name.
+  *Automatic* picks one from the name: Disarmed green, Away red, Stay orange, Sleep midnight blue, Late Night deep
+  sky blue, Vacation crimson, Spa cyan, Guest magenta, Local purple, anything else gray.
 - **Timers** can run *after* N minutes or *at* a clock time: the next time that time comes round after the mode
   began. Example **Late Night**: partitions Home; under *Who may change it* untick **Schedule** in *Out of this mode*
   (the 23:30 Sleep schedule is then blocked); timer *at 01:00 → Sleep*.

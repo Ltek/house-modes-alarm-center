@@ -11,12 +11,12 @@ const data = {
 };
 
 test('border: alarm, delay, armed in the mode color, ready / not ready', () => {
-  assert.equal(borderColor('triggered', 'disarmed', 'on'), '#f44336');
-  assert.equal(borderColor('disarmed', 'triggered', 'on'), '#f44336');
-  assert.equal(borderColor('arming', 'disarmed', 'on'), '#ff9800');
+  assert.equal(borderColor('triggered', 'disarmed', 'on'), '#ff0000');
+  assert.equal(borderColor('disarmed', 'triggered', 'on'), '#ff0000');
+  assert.equal(borderColor('arming', 'disarmed', 'on'), '#ffa500');
   assert.equal(borderColor('armed_home', 'armed_home', 'off', '#5c6bc0'), '#5c6bc0');
-  assert.equal(borderColor('disarmed', 'disarmed', 'on'), '#4caf50');
-  assert.equal(borderColor('disarmed', 'disarmed', 'off'), '#ff9800');
+  assert.equal(borderColor('disarmed', 'disarmed', 'on'), '#008000');
+  assert.equal(borderColor('disarmed', 'disarmed', 'off'), '#ffa500');
   assert.equal(borderColor(undefined, undefined, undefined), 'var(--divider-color)');
 });
 
@@ -64,7 +64,7 @@ test('arm button colors follow the House Modes', () => {
   const c = armColors(d, 'alarm_control_panel.gf');
   assert.equal(c.armed_home, '#123456'); // this partition
   assert.equal(c.armed_night, '#654321'); // another partition
-  assert.equal(c.armed_away, '#f44336'); // default
+  assert.equal(c.armed_away, '#ff0000'); // default
 });
 
 import { buttonVars, resolveColor } from '../card/src/data.ts';
@@ -83,7 +83,7 @@ import { migrateConfig, presetOf, BUTTON_PRESETS, ARM_DEFAULT_COLORS } from '../
 
 test('arm mode colors: standard and theme, old setting migrated', () => {
   assert.deepEqual(armColors(data, 'x', 'standard'), ARM_DEFAULT_COLORS);
-  assert.equal(armColors(data, 'x', 'standard').disarmed, '#4caf50');
+  assert.equal(armColors(data, 'x', 'standard').disarmed, '#008000');
   assert.deepEqual(armColors(data, 'x', 'theme'), {});
   assert.deepEqual(migrateConfig({ type: 'x', alarm_colors_from_modes: false }), { type: 'x', alarm_colors: 'standard' });
   assert.deepEqual(migrateConfig({ type: 'x', alarm_colors_from_modes: true }), { type: 'x' });
@@ -147,7 +147,7 @@ test('color mapping: card-only House Mode colors, arm modes matched to a House M
   assert.equal(v.house.modes[0].color, '#111111');
   assert.equal(d.house.modes[0].color, '#ff9800'); // the original is untouched
   const c = armColorsFor(v, 'alarm_control_panel.gf', 'standard', { disarmed: 'house:spa', armed_away: '#222222', armed_home: 'house:none' });
-  assert.equal(c.disarmed, '#00bcd4');
+  assert.equal(c.disarmed, '#00bcd4'); // the test data's Spa color
   assert.equal(c.armed_away, '#222222');
-  assert.equal(c.armed_home, '#ff9800'); // unknown House Mode: the standard color stays
+  assert.equal(c.armed_home, '#ffa500'); // unknown House Mode: the standard color stays
 });

@@ -3,6 +3,16 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.49 — 2026-11-05
+
+Restart Home Assistant after the update (the default House Mode colors are set by the integration).
+
+- **Default House Mode colors are the original card's**: Disarmed green, Away red, Stay orange, Sleep midnight blue,
+  Late Night deep sky blue, Vacation crimson, Spa cyan, Guest magenta, Local purple, anything else gray (the CSS
+  colors, stored as hex). Modes with a color you chose keep it. The standard arm mode colors follow the same set.
+- **Card border** is the House Mode's color by default, as the original `sensor.alarm_border_color`; *Border color →
+  The alarm state* keeps the red / orange / green state border.
+
 ## v2026.11.05.48 — 2026-11-05
 
 Card only; no Home Assistant restart needed (reload the browser).

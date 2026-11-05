@@ -24,7 +24,7 @@ def test_mode_color_and_clock_timer() -> None:
         {"id": "ln", "name": "Late Night", "timers": [{"at": "01:00", "then": "sleep"}]},
         {"id": "sleep", "name": "Sleep", "color": "midnightblue"},
     ]})
-    assert mode_color(s["modes"][0]) == "#00b0ff" and mode_color(s["modes"][1]) == "midnightblue"
+    assert mode_color(s["modes"][0]) == "#00bfff" and mode_color(s["modes"][1]) == "midnightblue"
     tz = dt.timezone(dt.timedelta(hours=-7))
     t = s["modes"][0]["timers"][0]
     assert timer_due(t, dt.datetime(2026, 11, 4, 23, 30, tzinfo=tz)) == dt.datetime(2026, 11, 5, 1, 0, tzinfo=tz).timestamp()
@@ -45,7 +45,7 @@ async def test_card_data_for_ordinary_users(hass: Any, hass_storage: Any, hass_w
     client = await hass_ws_client(hass, hass_read_only_access_token)
     await client.send_json({"id": 1, "type": "alarmo/ext/card/get"})
     res = (await client.receive_json())["result"]
-    assert res["house"]["modes"] == [{"id": "stay", "name": "Stay", "icon": "mdi:shield-home", "color": "#ff9800", "targets": {GF: "armed_home"}}]
+    assert res["house"]["modes"] == [{"id": "stay", "name": "Stay", "icon": "mdi:shield-home", "color": "#ffa500", "targets": {GF: "armed_home"}}]
     assert res["house"]["shadow"] and res["house"]["select_entity"] == "input_select.sel"
     assert res["links"][0]["panel_entity"] == PANEL and res["links"][0]["mode"] == "shadow"
     assert res["keypad"]["allowed"] is False and "administrators" in res["keypad"]["reason"]

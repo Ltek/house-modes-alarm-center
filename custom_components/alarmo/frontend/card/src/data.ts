@@ -178,6 +178,9 @@ export type CardConfig = {
   /** 'fill' = the buttons share the width (standard); 'fit' = as wide as their content, centered */
   modes_width?: 'fill' | 'fit';
   arm_width?: 'fill' | 'fit';
+  /** 'mode' = the House Mode's color, always (as the original sensor.alarm_border_color); 'state' = alarm red,
+   * arming / not ready orange, armed the mode's color, ready green */
+  border_color?: 'mode' | 'state';
   /** during an exit or entry delay the header shows the countdown circle instead of the House Mode icon */
   header_countdown?: boolean;
   /** a key's border / background flashes in these colors for 500 ms when pressed */
@@ -206,7 +209,7 @@ export const DEFAULTS: Required<Pick<CardConfig,
   | 'show_alarm_name' | 'show_alarm_state' | 'show_arm_options' | 'alarm_colors' | 'modes_collapsible'
   | 'modes_start_collapsed' | 'keypad_collapsible' | 'keypad_start_collapsed' | 'show_header_icon' | 'show_mode_icons'
   | 'show_alarm_icon' | 'show_arm_icons' | 'show_arm_labels' | 'show_key_labels' | 'modes_shape' | 'arm_shape' | 'keypad_shape'
-  | 'modes_width' | 'arm_width' | 'header_countdown'>> = {
+  | 'modes_width' | 'arm_width' | 'header_countdown' | 'border_color'>> = {
   show_header: true,
   show_house_modes: true,
   show_alarm: true,
@@ -242,6 +245,7 @@ export const DEFAULTS: Required<Pick<CardConfig,
   modes_width: 'fill',
   arm_width: 'fill',
   header_countdown: false,
+  border_color: 'mode',
 };
 
 /** The card's view of the House Modes: the card-only color overrides applied. */
@@ -352,12 +356,13 @@ export const pruneStyles = (styles: CardStyles | undefined): CardStyles | undefi
 };
 
 export const ARM_DEFAULT_COLORS: Record<string, string> = {
-  disarmed: '#4caf50',
-  armed_away: '#f44336',
-  armed_home: '#ff9800',
-  armed_night: '#5c6bc0',
+  // the House Mode defaults for the matching modes (Disarmed, Away, Stay, Sleep, Vacation, Spa)
+  disarmed: '#008000',
+  armed_away: '#ff0000',
+  armed_home: '#ffa500',
+  armed_night: '#191970',
   armed_vacation: '#dc143c',
-  armed_custom_bypass: '#00bcd4',
+  armed_custom_bypass: '#00ffff',
 };
 
 /**
@@ -563,11 +568,11 @@ const ARMED = ['armed_away', 'armed_home', 'armed_night', 'armed_vacation', 'arm
  * disarmed → green when the panel is ready, orange when not, the divider color when unknown.
  */
 export const borderColor = (alarm: string | undefined, panel: string | undefined, ready: string | undefined, modeColor?: string): string => {
-  if (alarm === 'triggered' || panel === 'triggered') return '#f44336';
-  if (alarm === 'arming' || alarm === 'pending' || panel === 'arming' || panel === 'pending') return '#ff9800';
-  if ((alarm && ARMED.includes(alarm)) || (panel && ARMED.includes(panel))) return modeColor || '#f44336';
-  if (ready === 'on') return '#4caf50';
-  if (ready === 'off') return '#ff9800';
+  if (alarm === 'triggered' || panel === 'triggered') return '#ff0000';
+  if (alarm === 'arming' || alarm === 'pending' || panel === 'arming' || panel === 'pending') return '#ffa500';
+  if ((alarm && ARMED.includes(alarm)) || (panel && ARMED.includes(panel))) return modeColor || '#ff0000';
+  if (ready === 'on') return '#008000';
+  if (ready === 'off') return '#ffa500';
   return 'var(--divider-color)';
 };
 

@@ -15,8 +15,7 @@ Or *Edit dashboard → Add card → House Modes & Alarm Center Card*; every opti
 Each one can be turned off.
 
 - **Header** — the House Mode's icon in its color and its name, and the physical panel's 2×16 display (when a panel
-  link has a keypad sensor). The border shows the state: red alarm, orange arming / entry delay / not ready, the House
-  Mode's color while armed, green ready. "shadow" while House Modes run in Shadow. Long-press (right-click) opens the
+  link has a keypad sensor). The border is the House Mode's color (or, with `border_color: state`, the alarm state). "shadow" while House Modes run in Shadow. Long-press (right-click) opens the
   panel display's details.
 - **House Mode buttons** — one per House Mode, with the icon and color from the House Modes tab. When a change is
   blocked, not ready or delayed, the card says why ("Away not set: open Front Door"). In Shadow the buttons set your
@@ -54,6 +53,7 @@ panel keypad*). Only options you change are written to the YAML.
 | `modes_padding`, `arm_padding` | `6` / `8` | Inner padding of the buttons, px |
 | `keypad_shape` | `rounded` | `round` keys |
 | `key_flash` | | `{border: <color>, background: <color>}`: a pressed key glows / flashes for 500 ms |
+| `border_color` | `mode` | `mode`: the House Mode's color, always; `state`: red alarm, orange arming / not ready, the mode's color while armed, green ready |
 | `header_countdown` | `false` | The countdown circle in place of the header icon during an exit or entry delay |
 | `mode_colors` | | Card-only House Mode colors: `{stay: "#ff9800"}` |
 | `arm_colors` | | Per arm mode: `{disarmed: "house:guest", armed_away: "#f44336"}` (`house:<id>` = that House Mode's color) |

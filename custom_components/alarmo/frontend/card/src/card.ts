@@ -269,7 +269,10 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const alarmState = alarmEnt ? this.hass.states[alarmEnt]?.state : undefined;
     const panelState = link ? this.hass.states[link.panel_entity]?.state : undefined;
     const ready = link?.ready_entity ? this.hass.states[link.ready_entity]?.state : undefined;
-    const border = borderColor(alarmState, panelState, ready, mode?.color);
+    // border: the House Mode's color (the default, as the original card), or the alarm / panel state
+    const border = c.border_color === 'state' || !h.enabled || !mode
+      ? borderColor(alarmState, panelState, ready, mode?.color)
+      : mode.color;
     const active = FX_PREVIEW.on ? [...FX_TRIGGERS] : fxTriggers(alarmState, panelState, h.changing_to);
     const fx = fxClasses(c.effects, active);
     this.fxRun = fxRunning(c.effects, active);

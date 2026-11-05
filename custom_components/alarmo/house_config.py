@@ -278,16 +278,17 @@ def timers_for(mode: dict, previous: str | None, now: dt.time) -> list[dict]:
     return out
 
 
+# the colors of the original button-card setup (CSS green, red, orange, …), as hex so color pickers can show them
 DEFAULT_COLORS: list[tuple[str, str]] = [
-    (r"late.?night", "#00b0ff"),
-    (r"vacation|holiday|travel", "#dc143c"),
-    (r"disarm|^off$|wake|^day", "#4caf50"),
-    (r"away|out|leave", "#f44336"),
-    (r"sleep|night|bed", "#5c6bc0"),
-    (r"stay|home", "#ff9800"),
-    (r"spa|bypass|custom|pool|hot.?tub", "#00bcd4"),
-    (r"guest|party|visitor|clean", "#e040fb"),
-    (r"local", "#9c27b0"),
+    (r"late.?night", "#00bfff"),  # deepskyblue
+    (r"vacation|holiday|travel", "#dc143c"),  # crimson
+    (r"disarm|^off$|wake|^day", "#008000"),  # green
+    (r"away|out|leave", "#ff0000"),  # red
+    (r"sleep|night|bed", "#191970"),  # midnightblue
+    (r"stay|home", "#ffa500"),  # orange
+    (r"spa|bypass|custom|pool|hot.?tub", "#00ffff"),  # cyan
+    (r"guest|party|visitor|clean", "#ff00ff"),  # magenta
+    (r"local", "#800080"),  # purple
 ]
 
 
@@ -296,7 +297,7 @@ def mode_color(mode: dict) -> str:
     if mode.get("color"):
         return mode["color"]
     n = mode["name"].strip().lower()
-    return next((c for pat, c in DEFAULT_COLORS if re.search(pat, n)), "#9e9e9e")
+    return next((c for pat, c in DEFAULT_COLORS if re.search(pat, n)), "#808080")  # gray
 
 
 def timer_due(timer: dict, now: dt.datetime) -> float:

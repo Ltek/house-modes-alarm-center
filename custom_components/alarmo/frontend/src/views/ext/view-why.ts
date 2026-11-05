@@ -99,11 +99,11 @@ export class AlarmViewWhy extends LitElement {
     return html`
       <ha-card>${sectionHead("Why won't it arm?", 'readonly')}
         <div class="card-content desc">
-          <p>Alarmo's own check, live: for each partition and Arm Mode, the zones that would stop it from arming now.</p>
+          <p>The alarm's own check, live: for each partition and Arm Mode, the zones that would stop it from arming now.</p>
           <ul>
             <li>Zones with <em>Use exit delay</em> may be open when you start arming, but must be closed when the exit delay
               ends.</li>
-            <li>Open motion zones do not count while disarmed (Alarmo ignores them for "ready").</li>
+            <li>Open motion zones do not count while disarmed (the alarm ignores them for "ready").</li>
             <li>Auto-bypassed zones are listed separately: they are skipped, not blocking.</li>
           </ul>
         </div>
@@ -197,7 +197,7 @@ export class AlarmViewWhy extends LitElement {
             it ticks off. Nothing is armed and nothing is changed.</p>
           <ul>
             <li>Run it with the partition <strong>disarmed</strong>. <em>Always on</em> zones (fire, 24-hour) would raise the
-              Alarmo alarm even then, so they are left out.</li>
+              alarm even then, so they are left out.</li>
             <li>The physical panel still reacts to its own zones. If it would sound, put it in its own test mode first
               (Vista: usually code + 5 at the keypad — check your panel's manual).</li>
           </ul>

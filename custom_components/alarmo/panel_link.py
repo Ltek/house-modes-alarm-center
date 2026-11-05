@@ -101,9 +101,7 @@ class PanelLinkManager:
         rec = getattr(self.ext, "recorder", None)
         if rec is not None:
             rec.link_log(level, msg)
-        getattr(_LOGGER, "warning" if level == "error" else "info")(
-            "Alarmo panel link %s: %s", link, msg
-        )
+        getattr(_LOGGER, "warning" if level == "error" else "info")("Panel link %s: %s", link, msg)
 
     # ---------------------------------------------------------------- lifecycle
 
@@ -124,25 +122,17 @@ class PanelLinkManager:
             self.bypassed = set(self.ext.extras.data.get("panel_bypassed") or [])
             self.held_open = set(self.ext.extras.data.get("panel_held_open") or [])
             self._bypassed_loaded = True
-        panels = [
-            c["panel_entity"] for c in settings["links"].values() if c["mode"] != "off"
-        ]
+        panels = [c["panel_entity"] for c in settings["links"].values() if c["mode"] != "off"]
         # bypass tracking runs for linked panels' zones and for every mirrored zone (no link needed)
         zones = sorted({z for p in panels for z in self.panel_zones(p)} | set(settings["mirrors"]))
         if zones:
-            self._unsubs.append(
-                async_track_state_change_event(self.hass, zones, self._on_zone_change)
-            )
+            self._unsubs.append(async_track_state_change_event(self.hass, zones, self._on_zone_change))
         self._keypads = self._find_keypads(zones)
         if self._keypads:
-            self._unsubs.append(
-                async_track_state_change_event(self.hass, list(self._keypads), self._on_keypad)
-            )
+            self._unsubs.append(async_track_state_change_event(self.hass, list(self._keypads), self._on_keypad))
         if settings.get("bypass_entity"):
             self._unsubs.append(
-                async_track_state_change_event(
-                    self.hass, [settings["bypass_entity"]], self._on_bypass_entity
-                )
+                async_track_state_change_event(self.hass, [settings["bypass_entity"]], self._on_bypass_entity)
             )
 
     @callback
@@ -183,9 +173,7 @@ class PanelLinkManager:
         entry = er.async_get(self.hass).async_get(panel_entity)
         if not entry:
             return None
-        return (entry.options.get("alarm_control_panel") or {}).get(
-            "default_code"
-        ) or None
+        return (entry.options.get("alarm_control_panel") or {}).get("default_code") or None
 
     def bypass_helper_on(self) -> bool:
         """The bypass helper (if set) is on."""
@@ -201,9 +189,7 @@ class PanelLinkManager:
 
     def _persist_bypassed(self) -> None:
         self.hass.async_create_task(
-            self.ext.extras.async_update(
-                panel_bypassed=sorted(self.bypassed), panel_held_open=sorted(self.held_open)
-            ),
+            self.ext.extras.async_update(panel_bypassed=sorted(self.bypassed), panel_held_open=sorted(self.held_open)),
             "alarmo_ext_bypassed",
         )
 
@@ -312,6 +298,7 @@ class PanelLinkManager:
                         changed = True
                     self.held_open.add(z)
             self._bypass_confirm[kp] = (guessed, set())
+
             @callback
             def _later(_now, k=kp) -> None:
                 self._confirm_bypasses(k)
@@ -416,9 +403,7 @@ class PanelLinkManager:
         if svc:
             domain, name = svc.split(".", 1)
             try:
-                await self.hass.services.async_call(
-                    domain, name, {"title": title, "message": message}, blocking=True
-                )
+                await self.hass.services.async_call(domain, name, {"title": title, "message": message}, blocking=True)
             except Exception as err:
                 self.add_log(None, "error", f"notify {svc} failed: {err}")
 
@@ -453,19 +438,11 @@ class PanelLink:
         """Listen to both entities. False if the Alarmo entity does not exist."""
         alarmo = self.mgr.alarmo_entity(self.key)
         if alarmo is None or not alarmo.entity_id:
-            self.mgr.add_log(
-                self.key, "error", "Alarmo entity not found; link not started"
-            )
+            self.mgr.add_log(self.key, "error", "Alarm entity not found; link not started")
             return False
         self.alarmo_entity_id = alarmo.entity_id
-        self._unsubs.append(
-            async_track_state_change_event(
-                self.hass, [alarmo.entity_id], self._on_alarmo
-            )
-        )
-        self._unsubs.append(
-            async_track_state_change_event(self.hass, [self.panel], self._on_panel)
-        )
+        self._unsubs.append(async_track_state_change_event(self.hass, [alarmo.entity_id], self._on_alarmo))
+        self._unsubs.append(async_track_state_change_event(self.hass, [self.panel], self._on_panel))
         self.mgr.add_log(
             self.key,
             "info",
@@ -509,13 +486,13 @@ class PanelLink:
         self._log(
             "warning",
             f"{self._check_why} check: physical panel did not report "
-            f"({panel.state if panel else 'missing'}); Alarmo and the panel were not compared",
+            f"({panel.state if panel else 'missing'}); the alarm and the panel were not compared",
         )
         if self.live:
             self.hass.async_create_task(
                 self.mgr.async_notify(
                     "Alarm panel not reporting",
-                    f"The alarm panel has not reported since Home Assistant started, so Alarmo could not check "
+                    f"The alarm panel has not reported since Home Assistant started, so the alarm could not check "
                     f"that both are in the same state. Check {self.panel}.",
                 )
             )
@@ -539,26 +516,28 @@ class PanelLink:
 
     def _reconcile(self, why: str, astate: str, pstate: str) -> None:  # noqa: PLR0911
         if self._agree(astate, pstate):
-            self._log("info", f"{why} check: in step (Alarmo {astate}, physical panel {pstate})", ok=True)
+            self._log("info", f"{why} check: in step (alarm {astate}, physical panel {pstate})", ok=True)
             return
         if astate in TRANSIENT or pstate in TRANSIENT or (pstate not in SERVICE_FOR):
-            self._log("warning", f"{why} check: Alarmo is {astate}, physical panel is {pstate}; nothing changed")
+            self._log("warning", f"{why} check: the alarm is {astate}, physical panel is {pstate}; nothing changed")
             if self.live:
                 self.hass.async_create_task(
                     self.mgr.async_notify(
-                        "Alarmo and the alarm panel differ",
-                        f"After {why}: Alarmo is {astate}, the alarm panel is {pstate}. "
+                        "The alarm and the panel differ",
+                        f"After {why}: the alarm is {astate}, the alarm panel is {pstate}. "
                         "Nothing was changed automatically; please check.",
                     )
                 )
             return
         if not self.cfg["follow_panel"]:
-            self._log("warning", f"{why} check: Alarmo is {astate}, physical panel is {pstate} (follow panel is off)")
+            self._log(
+                "warning", f"{why} check: the alarm is {astate}, physical panel is {pstate} (follow panel is off)"
+            )
             if self.live:
                 self.hass.async_create_task(
                     self.mgr.async_notify(
-                        "Alarmo and the alarm panel differ",
-                        f"After {why}: Alarmo is {astate}, the alarm panel is {pstate}.",
+                        "The alarm and the panel differ",
+                        f"After {why}: the alarm is {astate}, the alarm panel is {pstate}.",
                     )
                 )
             return
@@ -567,28 +546,32 @@ class PanelLink:
             return
         note = " If your House Mode selector still shows the old mode, set it again."
         if pstate == "disarmed":
-            self._log("warning", f"{why} check: physical panel is disarmed, Alarmo restored {astate} → disarm Alarmo")
+            self._log(
+                "warning", f"{why} check: physical panel is disarmed, the alarm restored {astate} → disarm the alarm"
+            )
             if not self.live:
                 return
             self.expect_alarmo = {"target": "disarmed", "deadline": time.monotonic() + EXPECT_SECONDS}
             self.hass.async_create_task(alarmo.async_alarm_disarm(code=None, skip_code=True))
             self.hass.async_create_task(
                 self.mgr.async_notify(
-                    "Alarmo disarmed to match the alarm panel",
-                    f"After {why}, Alarmo was {astate} but the alarm panel is disarmed, so Alarmo was disarmed. "
+                    "Alarm disarmed to match the alarm panel",
+                    f"After {why}, the alarm was {astate} but the alarm panel is disarmed, so the alarm was disarmed. "
                     f"Zones only Home Assistant watches are not armed now.{note}",
                 )
             )
             return
         mode = follow_mode(self.cfg, pstate)
-        self._log("warning", f"{why} check: physical panel is {pstate}, Alarmo restored {astate} → arm Alarmo {mode}")
+        self._log(
+            "warning", f"{why} check: physical panel is {pstate}, the alarm restored {astate} → arm the alarm {mode}"
+        )
         if not self.live:
             return
         self._follow_arm(mode, pstate, skip_delay=True, notify=False)
         self.hass.async_create_task(
             self.mgr.async_notify(
-                "Alarmo armed to match the alarm panel",
-                f"After {why}, Alarmo was {astate} but the alarm panel is {pstate}, so Alarmo was armed "
+                "Alarm armed to match the alarm panel",
+                f"After {why}, the alarm was {astate} but the alarm panel is {pstate}, so the alarm was armed "
                 f"{mode.replace('armed_', '')} (no exit delay; open zones the panel does not watch are bypassed)."
                 f"{note}",
             )
@@ -604,9 +587,7 @@ class PanelLink:
             self._task.cancel()
 
     def _log(self, level: str, msg: str, **data: Any) -> None:
-        self.mgr.add_log(
-            self.key, level, ("" if self.live else "[shadow] ") + msg, **data
-        )
+        self.mgr.add_log(self.key, level, ("" if self.live else "[shadow] ") + msg, **data)
 
     @staticmethod
     def _valid(expect: dict | None) -> bool:
@@ -663,9 +644,7 @@ class PanelLink:
         cmd = self.cfg["commands"][state]
         panel_state = self.hass.states.get(self.panel)
         if panel_state is not None and panel_state.state in cmd["accept"]:
-            self._log(
-                "info", f"Alarmo {state}; physical panel already {panel_state.state}"
-            )
+            self._log("info", f"Alarm {state}; physical panel already {panel_state.state}")
             return
         self._start(state, leading=False)
 
@@ -673,9 +652,7 @@ class PanelLink:
         if self._task and not self._task.done():
             self._task.cancel()
         self._target = target
-        self._task = self.hass.async_create_background_task(
-            self._run(target, leading), "alarmo_panel_command"
-        )
+        self._task = self.hass.async_create_background_task(self._run(target, leading), "alarmo_panel_command")
 
     def _alarmo_exit_time(self, target: str) -> int:
         alarmo = self.mgr.alarmo_entity(self.key)
@@ -764,15 +741,12 @@ class PanelLink:
 
     async def _run_inner(self, target: str, cmd: dict, leading: bool) -> None:  # noqa: PLR0912, PLR0915
         if cmd["method"] == "none":
-            self._log("info", f"Alarmo {target}; nothing configured to send")
+            self._log("info", f"Alarm {target}; nothing configured to send")
             return
         code = self.mgr.panel_code(self.panel)
         try:
             keys = render_keys(cmd["keys"], code) if cmd["method"] == "keypress" else ""
-            bypass = [
-                (eid, render_keys(self.cfg["bypass_keys"], code, num))
-                for eid, num in self._bypass_zones(target)
-            ]
+            bypass = [(eid, render_keys(self.cfg["bypass_keys"], code, num)) for eid, num in self._bypass_zones(target)]
         except ValueError as err:
             self._log(
                 "error",
@@ -790,11 +764,7 @@ class PanelLink:
         attempts = self.cfg["retries"] + 1 if self.live else 1
         sent_at = time.monotonic()
         for attempt in range(1, attempts + 1):
-            what = (
-                f"keys {mask_code(keys, code)}"
-                if keys
-                else f"service {SERVICE_FOR[target]}"
-            )
+            what = f"keys {mask_code(keys, code)}" if keys else f"service {SERVICE_FOR[target]}"
             try:
                 for eid, bkeys in bypass:
                     self._log("info", f"bypass {eid}: keys {mask_code(bkeys, code)}")
@@ -806,8 +776,7 @@ class PanelLink:
                     async_dispatcher_send(self.hass, SIGNAL_MIRRORS)
                 self._log(
                     "info",
-                    f"Alarmo {target} → physical panel: {what} "
-                    f"(try {attempt}/{attempts})",
+                    f"Alarm {target} → physical panel: {what} (try {attempt}/{attempts})",
                 )
                 self.expect_panel = {
                     "accept": accept_now,
@@ -839,23 +808,20 @@ class PanelLink:
                 if leading and target != "disarmed":
                     alarmo_exit = self._alarmo_exit_time(target)
                     if alarmo_exit + 2 < total:
-                        note = f" — Alarmo's exit time is {alarmo_exit} s; set it to about {total + 3} s"
+                        note = f" — the alarm's exit time is {alarmo_exit} s; set it to about {total + 3} s"
                 self._log("info", f"physical panel is {got} after {total} s{note}", ok=True)
                 self.expect_panel = None
                 return
             if not self.live:
                 self._log(
                     "warning",
-                    f"physical panel did not reach {'/'.join(cmd['accept'])} "
-                    f"within {cmd['timeout']} s",
+                    f"physical panel did not reach {'/'.join(cmd['accept'])} within {cmd['timeout']} s",
                 )
                 return
             if attempt < attempts:
                 await asyncio.sleep(self.cfg["retry_delay"])
         self.expect_panel = None
-        await self._failed(
-            target, f"physical panel did not reach {'/'.join(cmd['accept'])}"
-        )
+        await self._failed(target, f"physical panel did not reach {'/'.join(cmd['accept'])}")
 
     async def _failed(self, target: str, reason: str) -> None:
         """All tries failed: notify and apply the failure policy."""
@@ -871,9 +837,9 @@ class PanelLink:
         if not self.live:
             return
         policy = self.cfg["failure_policy"]
-        msg = f"The alarm panel did not follow Alarmo ({target}): {reason}."
+        msg = f"The alarm panel did not follow the alarm ({target}): {reason}."
         if target != "disarmed" and policy == "disarm":
-            msg += " Alarmo was disarmed again."
+            msg += " The alarm was disarmed again."
             alarmo = self.mgr.alarmo_entity(self.key)
             if alarmo is not None:
                 self.expect_alarmo = {
@@ -906,9 +872,7 @@ class PanelLink:
                 self._follow_arming(now)
             return
         if state in ARMED and self._arming_since is not None:
-            self.hass.async_create_task(
-                self._learn(state, round(now - self._arming_since))
-            )
+            self.hass.async_create_task(self._learn(state, round(now - self._arming_since)))
         self._arming_since = None
         if state == "disarmed":
             self.mgr.clear_bypassed()
@@ -929,15 +893,13 @@ class PanelLink:
         astate = self.hass.states.get(self.alarmo_entity_id)
         astate = astate.state if astate else None
         if state == "disarmed" and astate not in (None, "disarmed"):
-            self._log("info", "physical panel disarmed at its keypad → disarm Alarmo")
+            self._log("info", "physical panel disarmed at its keypad → disarm the alarm")
             if self.live:
                 self.expect_alarmo = {
                     "target": "disarmed",
                     "deadline": now + EXPECT_SECONDS,
                 }
-                self.hass.async_create_task(
-                    alarmo.async_alarm_disarm(code=None, skip_code=True)
-                )
+                self.hass.async_create_task(alarmo.async_alarm_disarm(code=None, skip_code=True))
         elif state in ARMED and astate == "disarmed":
             self._follow_arm(follow_mode(self.cfg, state), state, skip_delay=True)
 
@@ -952,7 +914,7 @@ class PanelLink:
         kst = self.hass.states.get(kp) if kp else None
         panel_mode = mode_from_keypad(str(kst.attributes.get("alpha") or kst.state) if kst else None)
         if panel_mode is None:
-            self._log("info", "physical panel is arming at its keypad; Alarmo follows once the mode is known")
+            self._log("info", "physical panel is arming at its keypad; the alarm follows once the mode is known")
             return
         self._follow_arm(follow_mode(self.cfg, panel_mode), panel_mode, skip_delay=False)
 
@@ -961,10 +923,10 @@ class PanelLink:
         if alarmo is None:
             return
         ha_open = self._open_ha_only(mode)
-        extra = f" (Alarmo {mode})" if mode != panel_mode else ""
+        extra = f" (alarm {mode})" if mode != panel_mode else ""
         how = "armed" if skip_delay else "arming"
         bypass_note = f"; open zones the panel does not watch will be bypassed: {', '.join(ha_open)}" if ha_open else ""
-        self._log("info", f"physical panel {how} {panel_mode} at its keypad → arm Alarmo {mode}{extra}{bypass_note}")
+        self._log("info", f"physical panel {how} {panel_mode} at its keypad → arm the alarm {mode}{extra}{bypass_note}")
         if not self.live:
             return
         self.expect_alarmo = {
@@ -980,7 +942,7 @@ class PanelLink:
                 self.mgr.async_notify(
                     "Armed at the alarm panel",
                     f"Armed {panel_mode.replace('armed_', '')} at the keypad. "
-                    f"Not protected (open, bypassed in Alarmo): {', '.join(ha_open)}",
+                    f"Not protected (open, bypassed in the alarm): {', '.join(ha_open)}",
                 )
             )
 
@@ -1034,21 +996,12 @@ class PanelLink:
         settings = self.mgr.settings
         panel_zones = set(self.mgr.panel_zones(self.panel))
         mirrors = set(settings["mirrors"])
-        ha_only = [
-            e
-            for e in open_sensors
-            if e not in panel_zones and self._mirror_source(e) not in mirrors
-        ]
+        ha_only = [e for e in open_sensors if e not in panel_zones and self._mirror_source(e) not in mirrors]
         if not ha_only:
             return  # the panel watches these zones itself
         policies = {e: trip_policy(e, settings) for e in ha_only}
         names = ", ".join(
-            (
-                self.hass.states.get(e).attributes.get("friendly_name")
-                if self.hass.states.get(e)
-                else None
-            )
-            or e
+            (self.hass.states.get(e).attributes.get("friendly_name") if self.hass.states.get(e) else None) or e
             for e in ha_only
         )
         if any(p == "panel" for p in policies.values()):
@@ -1056,9 +1009,7 @@ class PanelLink:
         if any(p in ("panel", "notify") for p in policies.values()):
             self._log("warning", f"alarm by zone(s) the panel does not watch: {names}")
             if self.live:
-                await self.mgr.async_notify(
-                    "Alarm triggered", f"Alarmo alarm by: {names}"
-                )
+                await self.mgr.async_notify("Alarm triggered", f"Alarm set off by: {names}")
         self.hass.bus.async_fire(
             EVENT_PANEL,
             {
@@ -1084,14 +1035,10 @@ class PanelLink:
                 if not trip.get("entity"):
                     raise ValueError(f"no {method} entity configured")
                 domain = trip["entity"].split(".", 1)[0]
-                await self.hass.services.async_call(
-                    domain, "turn_on", {"entity_id": trip["entity"]}, blocking=True
-                )
+                await self.hass.services.async_call(domain, "turn_on", {"entity_id": trip["entity"]}, blocking=True)
             elif method == "panic":
                 if trip["panic_method"] == "keypress":
-                    keys = render_keys(
-                        trip["panic_keys"], self.mgr.panel_code(self.panel)
-                    )
+                    keys = render_keys(trip["panic_keys"], self.mgr.panel_code(self.panel))
                     await self._send("keypress", "disarmed", keys)
                 else:
                     await self.hass.services.async_call(

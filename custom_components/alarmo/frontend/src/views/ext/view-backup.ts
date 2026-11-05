@@ -78,7 +78,7 @@ export class AlarmViewBackup extends LitElement {
     return html`
       <ha-card>${sectionHead('Backup & restore', 'settings')}
         <div class="card-content desc">
-          <p>A backup is a copy of the whole Alarmo configuration: partitions, zones, users, notifications, actions and the ext settings.</p>
+          <p>A backup is a copy of the whole configuration: partitions, zones, users, notifications, actions and the ext settings.</p>
           <ul>
             <li>One is made automatically before every save on these pages and before every import.</li>
             <li>You can also make one here, download the configuration as YAML, or import / restore one.</li>

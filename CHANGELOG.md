@@ -3,6 +3,17 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.60 — 2026-11-05
+
+Restart Home Assistant after the update.
+
+- Wording: "Alarmo" is gone from the panel, the card, its editor, the service descriptions, notifications, the
+  Activity log and the docs. *The alarm* is the built-in alarm, *the panel* the physical one, *the alarm system*
+  both. Entity ids, services and events keep their `alarmo` names. Some labels changed with it: *Link a
+  partition…*, *Use mirrors as zones*, *not a zone*, *Delete zone*, and the Arm Modes tab.
+- README: a **Terms** table (House Mode, Alarm, Partition, Arm Mode, Zone, Panel, Panel link, Alarm system,
+  Shadow / Live), and no build number at the top any more; `tools/package.sh` now refuses a README that has one.
+
 ## v2026.11.05.59 — 2026-11-05
 
 Restart Home Assistant after the update.

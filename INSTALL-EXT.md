@@ -76,19 +76,19 @@ In your Home Assistant `/config` folder (Samba, SSH, or File editor):
 
 1. On `alarm_control_panel.alarm_partition_1` open **Settings → entity settings** and make sure a
    **default code** is set (Envisalink normally copies its code there). Keypresses use it as `{code}`.
-2. **Physical Panel** tab → *Link Alarmo…* your partition (after the migration: **Master**; before it: *All partitions*)
+2. **Physical Panel** tab → *Link a partition…* your partition (after the migration: **Master**; before it: *All partitions*)
    to the Vista partition → mode **shadow** → Save.
-   Your automations keep doing the work; Alarmo sends nothing.
-3. Use the house as normal for a few days. In **Activity** check that every "Alarmo X → panel …"
+   Your automations keep doing the work; nothing is sent.
+3. Use the house as normal for a few days. In **Activity** check that every "Alarm X → panel …"
    line is followed by "panel is X after N s" (sent by your automations). Note the learned exit
    delays.
 4. Compare the key sequences with your automations (Stay Instant = `{code}7`, Away without exit
    delay = `{code}4`, Custom = bypass + `{code}7`) and adjust the table.
-5. Optional: **Physical Panel → Panel zones** → Unlock, tick Mirror for the window zones, Save, then **Use mirrors in Alarmo** so the Alarmo zones
+5. Optional: **Physical Panel → Panel zones** → Unlock, tick Mirror for the window zones, Save, then **Use mirrors as zones** so the zones
    follow the mirrors instead of `template_window_real_zone_*`.
 6. When the log matches: disable the automations *House Mode 2: Alarmo set -> set Panel*,
    *House Modes 3: Alarmo Failed to Arm, Retry* and *Panel Disarms -> Disarm Selector*, set the link
-   to **live**, Save, and test arm/disarm from Alarmo and from the keypad.
+   to **live**, Save, and test arm/disarm from the alarm and from the keypad.
 
 Moving from partitions-per-sensor-type to one partition: see `MIGRATION.md`, section 2.
 

@@ -101,7 +101,7 @@ export class ExtEventMigrate extends LitElement {
           : this.plan
             ? this.renderPlan()
             : html`
-                <div class="title">${n} Alarm Event${n == 1 ? '' : 's'} still use Alarmo's own list of actions</div>
+                <div class="title">${n} Alarm Event${n == 1 ? '' : 's'} still use the old built-in list of actions</div>
                 <p>
                   Alarm Events now run native Home Assistant scenes and scripts, the same as House Modes. Migrating
                   turns each event's actions into a scene (plain on/off, lock, open/close states) or a script

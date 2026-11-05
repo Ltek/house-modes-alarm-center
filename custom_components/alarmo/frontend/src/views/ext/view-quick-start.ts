@@ -33,19 +33,19 @@ const SETUPS: { id: string; icon: string; title: string; text: string }[] = [
     id: 'house',
     icon: 'mdi:home-switch-outline',
     title: 'House Modes only',
-    text: 'Home, Away, Sleep, Guest, … to tell your automations what is going on. No alarm: the House Modes do not arm anything (Alarmo keeps one partition in the background).',
+    text: 'Home, Away, Sleep, Guest, … to tell your automations what is going on. No alarm: the House Modes do not arm anything (one partition is kept in the background).',
   },
   {
     id: 'virtual',
     icon: 'mdi:shield-home-outline',
     title: 'Alarm without a physical panel',
-    text: 'Alarmo is the alarm: a partition with Away, Home and Night, your door, window and motion sensors as zones, and a user code.',
+    text: 'The built-in alarm: a partition with Away, Home and Night, your door, window and motion sensors as zones, and a user code.',
   },
   {
     id: 'panel',
     icon: 'mdi:alarm-panel-outline',
     title: 'House Modes and a physical panel',
-    text: 'Alarmo and your panel (e.g. a Vista through Envisalink) kept in step, with House Modes. Everything starts in Shadow next to your own automations, so nothing changes until you switch to Live.',
+    text: 'The alarm and your panel (e.g. a Vista through Envisalink) kept in step, with House Modes. Everything starts in Shadow next to your own automations, so nothing changes until you switch to Live.',
   },
 ];
 

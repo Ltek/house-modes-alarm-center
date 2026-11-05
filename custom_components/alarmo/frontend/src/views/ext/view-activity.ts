@@ -160,8 +160,8 @@ export class AlarmViewActivity extends LitElement {
     return html`
       <ha-card>${sectionHead('Activity', 'readonly')}
         <div class="card-content desc">
-          <p>Everything around House Modes, Alarmo, the physical panel, locks and bypasses, grouped into <em>sequences</em>:
-            a sequence starts with a House Mode helper change, a lock keypad use, an Alarmo or panel change, the BYPASS
+          <p>Everything around House Modes, the alarm, the physical panel, locks and bypasses, grouped into <em>sequences</em>:
+            a sequence starts with a House Mode helper change, a lock keypad use, an alarm or panel change, the BYPASS
             indicator or an alarm, and collects everything that follows until nothing happens for
             ${i.settings.window_s} s. Each entry shows the time since the start and, where known, what caused it.</p>
           <p>It only records — it never changes anything. Codes are never recorded.</p>
@@ -174,7 +174,7 @@ export class AlarmViewActivity extends LitElement {
               ? html`<span class="rec on"><ha-icon icon="mdi:record-circle"></ha-icon>RECORDING ENABLED</span> · ${Object.keys(i.watched || {}).length} entities watched ·
                   ${i.open ? html`a sequence is open now (started ${clock(i.open.start)})` : 'waiting for the next sequence'} ·
                   ${i.last_write ? html`last saved ${new Date(i.last_write * 1000).toLocaleString()}` : 'nothing saved since Home Assistant started'}`
-              : html`<strong>The recorder is not running.</strong> Check Settings → System → Logs for "Alarmo ext" or "Activity recorder".`}
+              : html`<strong>The recorder is not running.</strong> Check Settings → System → Logs for "alarmo" or "Activity recorder".`}
           ${i.last_error ? html`<div><strong>Error:</strong> ${i.last_error}</div>` : nothing}
         </div>
         <div class="toolbar">
@@ -202,7 +202,7 @@ export class AlarmViewActivity extends LitElement {
               ${this.summary.sequences} sequence(s) · started by ${Object.keys(this.summary.starters).map(k => `${i.kinds[k] || k} ${this.summary!.starters[k]}`).join(', ')}
               ${this.summary.failures ? html` · <span style="color:var(--error-color,#f44336)">${this.summary.failures} problem(s)</span>` : nothing}
               ${Object.keys(this.summary.panel_latency).length
-                ? html`<br />Panel after Alarmo: ${Object.keys(this.summary.panel_latency).map(k => {
+                ? html`<br />Panel after the alarm: ${Object.keys(this.summary.panel_latency).map(k => {
                     const l = this.summary!.panel_latency[k];
                     return `${k.replace('armed_', '')} avg ${l.avg} s (max ${l.max} s, ${l.n}×)`;
                   }).join(' · ')}`
@@ -279,8 +279,8 @@ export class AlarmViewActivity extends LitElement {
             <alarmo-ext-multi-picker .label=${'Also record'} .placeholder=${'Add an entity…'} .options=${options} .value=${d.entities}
               @value-changed=${(e: CustomEvent) => (this.draft = { ...d, entities: e.detail.value })}></alarmo-ext-multi-picker>
             <div class="secondary" style="padding:6px">
-              Recorded automatically (${Object.keys(watched).length}): ${Object.keys(watched).sort().join(', ')}. Alarmo zones and mirrors
-              are recorded inside a sequence; automations that ran, commands to the panel/Alarmo/locks and notifications too.
+              Recorded automatically (${Object.keys(watched).length}): ${Object.keys(watched).sort().join(', ')}. Zones and mirrors
+              are recorded inside a sequence; automations that ran, commands to the panel, alarm and locks and notifications too.
               Files: <code>${this.info!.directory}</code>.
             </div>
             ${this.dirty ? html`<div class="toolbar" style="padding:8px 0 0">

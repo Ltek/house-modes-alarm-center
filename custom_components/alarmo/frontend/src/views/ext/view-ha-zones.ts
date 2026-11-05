@@ -81,14 +81,14 @@ export class AlarmViewHaZones extends LitElement {
       ${this.error ? html`<div class="notice error" style="white-space:pre-line;margin:0 0 12px">${this.error}</div>` : nothing}
       <ha-card>${sectionHead('How HA-only zones raise the alarm', 'settings')}
         <div class="card-content desc">
-          <p>Some Alarmo zones are watched only by Home Assistant — Zigbee/Z-Wave motion, garage covers, smoke detectors
+          <p>Some zones are watched only by Home Assistant — Zigbee/Z-Wave motion, garage covers, smoke detectors
             — not by your physical panel. When one of them triggers the alarm while armed, the physical panel knows
             nothing about it.</p>
-          <p>Choose here what Alarmo does then, by default. Each zone can do something else: Zones → open the
+          <p>Choose here what the alarm does then, by default. Each zone can do something else: Zones → open the
             zone (›) → <em>When tripped</em>. Now: ${zones.length} HA-only zone(s)${custom ? `, ${custom} with their own choice` : ''}; default
             <em>${defLabel}</em>. Use <em>notify only</em> for zones that give false alarms, like outdoor motion.</p>
           ${!linked
-            ? html`<div class="notice warn" style="margin:0 0 8px">No physical panel is linked (Physical Panel tab), so these settings are not used yet — Alarmo only uses its own notifications.</div>`
+            ? html`<div class="notice warn" style="margin:0 0 8px">No physical panel is linked (Physical Panel tab), so these settings are not used yet — the alarm only uses its own notifications.</div>`
             : nothing}
         </div>
         <div class="detail-grid" style="padding:0 16px 12px">

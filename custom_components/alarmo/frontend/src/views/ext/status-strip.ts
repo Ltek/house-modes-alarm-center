@@ -70,7 +70,7 @@ export class StatusStrip extends LitElement {
       }
     })();
     return html`
-      <div class="strip" role="status" aria-label="Alarmo status">
+      <div class="strip" role="status" aria-label="Alarm system status">
         ${i.house.enabled
           ? this.chip(i.house.icon || 'mdi:home', `House Mode: ${i.house.name || 'unknown'}${i.house.shadow ? ' · shadow' : ''}`, `Changed by ${i.house.source || '—'}`, '/alarmo/house')
           : nothing}

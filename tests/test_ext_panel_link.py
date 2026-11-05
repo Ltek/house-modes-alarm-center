@@ -116,7 +116,7 @@ async def test_shadow_sends_nothing_and_logs(
     assert _sent(calls) == 0
     log = _log(hass)
     assert any(
-        "[shadow] Alarmo armed_home → physical panel: service alarm_arm_home" in m for m in log
+        "[shadow] Alarm armed_home → physical panel: service alarm_arm_home" in m for m in log
     )
     assert any("did not reach" in m for m in log)
     assert (
@@ -278,7 +278,7 @@ async def test_monitored_panel_only_notifies(
     await _settle(hass)
     assert hass.states.get(ALARMO_GF).state == "triggered"
     assert not calls["siren"]
-    assert any("Alarmo alarm by" in c.data["message"] for c in calls["notify"])
+    assert any("Alarm set off by" in c.data["message"] for c in calls["notify"])
 
 
 async def test_mirror_holds_while_bypassed(
@@ -614,7 +614,7 @@ async def test_start_check_disarms_stale_alarmo(hass: Any, hass_storage: Any, tm
     await _settle(hass)
     assert hass.states.get(ALARMO_GF).state == "disarmed"
     assert _sent(calls) == 0
-    assert any("Alarmo restored armed_home → disarm Alarmo" in m for m in _log(hass))
+    assert any("the alarm restored armed_home → disarm the alarm" in m for m in _log(hass))
     assert any("disarmed to match" in c.data["title"] for c in calls["notify"])
 
 
@@ -636,7 +636,7 @@ async def test_start_check_in_step_and_shadow(hass: Any, hass_storage: Any, tmp_
     calls = await _setup(hass, hass_storage, tmp_path)
     await _save(hass, **_link())
     await advance_time(hass, 31)
-    assert any("check: in step (Alarmo disarmed, physical panel disarmed)" in m for m in _log(hass))
+    assert any("check: in step (alarm disarmed, physical panel disarmed)" in m for m in _log(hass))
     await _save(hass, **_link("off"))
     await _arm(hass, "home", force=True)
     await advance_time(hass, 300)
@@ -660,7 +660,7 @@ async def test_start_check_waits_for_the_panel(hass: Any, hass_storage: Any, tmp
     await _settle(hass)
     await advance_time(hass, 31)
     assert hass.states.get(ALARMO_GF).state == "armed_home"
-    assert any("in step (Alarmo armed_home, physical panel armed_home)" in m for m in _log(hass))
+    assert any("in step (alarm armed_home, physical panel armed_home)" in m for m in _log(hass))
     # a later outage that never ends
     hass.states.async_set(PANEL, "unavailable")
     await _settle(hass)

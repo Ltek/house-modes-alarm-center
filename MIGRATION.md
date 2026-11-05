@@ -81,7 +81,7 @@ Motion - Back, Outdoor Motion - Front, Fire, Garage Motion), all armed through M
 - a ready-made import file does all of the zone/partition/notification changes:
   `configs/alarmo_migrated_one_partition.yaml` (Backup tab → Import / restore → upload →
   **Replace** → preview → apply);
-- 21 `template_window_real_zone_*` zones → **Physical Panel → Panel zones**: Unlock, tick Mirror for Vista zones 9–32 → Save → **Use mirrors in Alarmo**
+- 21 `template_window_real_zone_*` zones → **Physical Panel → Panel zones**: Unlock, tick Mirror for Vista zones 9–32 → Save → **Use mirrors as zones**
   (keeps their settings); until then set their trip action to *nothing extra*, because Alarmo
   can't tell they are panel zones;
 - `binary_sensor.alarm_partition_1_fire` (the Vista's own fire status) → trip action *notify only*;

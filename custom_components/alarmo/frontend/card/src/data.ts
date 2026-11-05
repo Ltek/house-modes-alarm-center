@@ -573,7 +573,7 @@ export type FxTarget = keyof typeof FX_TARGETS;
 export const FX_TRIGGERS = ['arming', 'entry', 'changing', 'triggered'] as const;
 export type FxTrigger = (typeof FX_TRIGGERS)[number];
 export const FX_TRIGGER_LABELS: Record<FxTrigger, string> = {
-  arming: 'Arming (exit delay: Alarmo or the physical panel)',
+  arming: 'Arming (exit delay: the alarm or the physical panel)',
   entry: 'Entry delay (pending)',
   changing: 'House Mode changing (being applied, delayed or, in Shadow, watched)',
   triggered: 'Alarm triggered',

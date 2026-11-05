@@ -36,7 +36,8 @@ sub(f"{cc}/manifest.json", r'"version": "[^"]+"', f'"version": "{ver}"')
 sub(f"{cc}/frontend/src/const.ts", r"^export const VERSION = '[^']+';", f"export const VERSION = '{ver}';")
 import os
 readme = os.path.join(os.path.dirname(os.path.dirname(cc)), 'README.md')
-sub(readme, r'^> \*\*(?:Current build: |Ext build )v[^*]+\*\*', f'> **Current build: v{ver}**')
+# READMEs never carry a build number (user's rule, 2026-11-04)
+assert not re.search(r'Current build|Ext build v|Version: v', open(readme).read()), 'README carries a build number'
 EOF
 
 (cd "$FE" && npm run build > /tmp/build.log 2>&1)

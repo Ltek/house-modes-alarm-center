@@ -1,11 +1,11 @@
 # House Modes & Alarm Center Card
 
-A dashboard card for the House Mode, the Alarmo alarm and the physical panel's keypad. It comes with the integration:
+A dashboard card for the House Mode, the alarm and the physical panel's keypad. It comes with the integration:
 no separate HACS download and no dashboard resource. After an update, reload the browser.
 
 ```yaml
 type: custom:house-modes-alarm-center-card
-entity: alarm_control_panel.master     # the Alarmo alarm (partition) for the alarm section
+entity: alarm_control_panel.master     # the alarm (partition) for the alarm section
 ```
 
 Or *Edit dashboard → Add card → House Modes & Alarm Center Card*; every option is in the visual editor.
@@ -50,7 +50,7 @@ panel keypad*). Only options you change are written to the YAML.
 
 | Option | Default | |
 |---|---|---|
-| `entity` | first linked alarm | Alarmo `alarm_control_panel` for the alarm section and the panel link |
+| `entity` | first linked alarm | the alarm's `alarm_control_panel` for the alarm section and the panel link |
 | `name` | | Title when House Modes are off |
 | **Sections** (*Sections* panel) | | |
 | `section_order` | `[house_status, house_modes, alarm_status, alarm, keypad]` | The order of the sections |
@@ -125,7 +125,7 @@ effects:
   color: var(--warning-color)   # card and status icon; default: the border's state color
 ```
 
-- *arming*: Alarmo or the physical panel counts down the exit delay; *entry*: the entry delay; *changing*: a House
+- *arming*: the alarm or the physical panel counts down the exit delay; *entry*: the entry delay; *changing*: a House
   Mode change is being applied, waits (delayed request) or, in Shadow, is being watched; *triggered*: an alarm.
 - Buttons glow and pulse in their own House Mode / arm mode color.
 - The editor's *Preview the effects now* shows them without waiting for the real thing (not saved).
@@ -139,8 +139,8 @@ effects:
   the alarm's state only. Everything else works.
 - **Shadow**: House Mode buttons set your own House Mode input_select, so your automations stay in charge. Without one,
   they ask House Modes, which only log what they would do: the card then says *"Shadow: House Modes would set Stay;
-  nothing was changed"*. The alarm section always arms and disarms Alarmo itself. With the panel link in Shadow,
-  Alarmo does not pass that on to the panel (your automations do). The panel keypad always sends straight to the
+  nothing was changed"*. The alarm section always arms and disarms the alarm itself. With the panel link in Shadow,
+  the alarm does not pass that on to the panel (your automations do). The panel keypad always sends straight to the
   panel, checked against *Panel keypad on dashboards*.
 
 ## Who may use the panel keypad

@@ -203,7 +203,7 @@ export class AutomationEditorCard extends LitElement {
         : this.viewMode == ViewMode.UI
         ? html`
                 <div class="legacy-note">
-                  This event uses Alarmo's old list of actions. Use <b>Migrate to scenes and scripts</b> above the
+                  This event uses the old built-in list of actions. Use <b>Migrate to scenes and scripts</b> above the
                   Alarm Events list to turn it into a native scene or script.
                 </div>
                 <alarmo-settings-row .narrow=${this.narrow} .large=${true} first>

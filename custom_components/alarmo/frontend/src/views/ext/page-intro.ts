@@ -11,19 +11,19 @@ export const PAGE_INTROS: Record<string, { role: IntroRole; text: string }> = {
   general: {
     role: 'settings',
     text:
-      'Alarmo-wide options: what happens after an alarm, MQTT, and the "All partitions" alarm entity.' +
+      'Options for the whole alarm: what happens after an alarm, MQTT, and the "All partitions" alarm entity.' +
       '\n\nThe "All partitions" entity only exists when there are two or more partitions.',
   },
   partitions: {
     role: 'settings',
     text:
-      'Alarmo partitions are parts of the building that are armed separately. Each has its own alarm entity: alarm_control_panel.<partition name>.' +
+      'Partitions are parts of the building that are armed separately. Each has its own alarm entity: alarm_control_panel.<partition name>.' +
       '\n\nMost homes need one partition. The zone, notification and action counts link to those pages.',
   },
   modes: {
     role: 'settings',
     text:
-      "Alarmo's arm modes per partition: which ones the partition offers, and Alarmo's exit delay, entry delay and trigger time for each." +
+      "The Arm Modes per partition: which ones the partition offers, and the alarm's exit delay, entry delay and trigger time for each." +
       "\n\nWith a physical panel, the physical panel's own delays still apply to its own zones.",
   },
   zones_legacy: {
@@ -34,15 +34,15 @@ export const PAGE_INTROS: Record<string, { role: IntroRole; text: string }> = {
   },
   codes: {
     role: 'settings',
-    text: 'Who may arm and disarm Alarmo with a code, and when a code is needed.',
+    text: 'Who may arm and disarm the alarm with a code, and when a code is needed.',
   },
   notifications: {
     role: 'settings',
-    text: 'Messages Alarmo sends on alarm events — armed, disarmed, triggered, failed to arm … — per partition.',
+    text: 'Messages sent on alarm events — armed, disarmed, triggered, failed to arm … — per partition.',
   },
   actions: {
     role: 'settings',
-    text: 'Home Assistant actions Alarmo runs on alarm events, per partition.',
+    text: 'Home Assistant actions run on alarm events, per partition.',
   },
 };
 

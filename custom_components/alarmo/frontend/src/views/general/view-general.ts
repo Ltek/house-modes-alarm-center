@@ -107,7 +107,7 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
     if (!this.hass || !this.data) return html``;
     return html`
         <ha-card>${sectionHead('Alarm behavior', 'settings')}
-          <div class="card-content">What Alarmo does after an alarm, and whether it has an "All partitions" alarm.</div>
+          <div class="card-content">What the alarm does after it goes off, and whether it has an "All partitions" alarm.</div>
           <alarmo-settings-row .narrow=${this.narrow}>
             <span slot="heading">
               ${localize('panels.general.cards.general.fields.disarm_after_trigger.heading', this.hass.language)}
@@ -181,7 +181,7 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
     if (!this.hass || !this.data) return html``;
     return html`
         <ha-card>${sectionHead('MQTT', 'settings')}
-          <div class="card-content">Publish Alarmo's state to MQTT and accept commands from it (e.g. for wall panels).</div>
+          <div class="card-content">Publish the alarm's state to MQTT and accept commands from it (e.g. for wall panels).</div>
           <alarmo-settings-row .narrow=${this.narrow}>
             <span slot="heading">
               ${localize('panels.general.cards.general.fields.enable_mqtt.heading', this.hass.language)}

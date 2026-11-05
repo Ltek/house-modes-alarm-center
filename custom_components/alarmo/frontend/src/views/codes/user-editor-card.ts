@@ -92,7 +92,7 @@ export class UserEditorCard extends LitElement {
           <div class="field-row">
             <label><input type="checkbox" .checked=${this.data.enabled !== false} @change=${(e: any) => this.set({ enabled: e.target.checked })} />
               Enabled</label>
-            <span class="secondary" style="display:inline">a disabled user's code works nowhere (Alarmo or the locks' keypad actions)</span>
+            <span class="secondary" style="display:inline">a disabled user's code works nowhere (the alarm or the locks' keypad actions)</span>
           </div>
           ${this.changeCode
             ? html`<div class="field-row">
@@ -109,7 +109,7 @@ export class UserEditorCard extends LitElement {
                 <ha-button appearance="plain" @click=${() => (this.changeCode = true)}>Change code</ha-button>
               </div>`}
           <div class="field-row">
-            <label for="access">In Alarmo, this code can</label>
+            <label for="access">With the alarm, this code can</label>
             <select id="access" @change=${(e: any) => this.set(flagsOf(e.target.value))}>
               ${ACCESS.map(a => html`<option value=${a.id} ?selected=${a.id === access}>${a.label}</option>`)}
             </select>

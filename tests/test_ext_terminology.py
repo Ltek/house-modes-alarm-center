@@ -91,12 +91,12 @@ def test_english_terms_renamed() -> None:
     en = json.loads((ROOT / LANG_DIR / "en.json").read_text(encoding="utf-8"))
     assert en["panels"]["general"]["cards"]["areas"]["title"] == "Partitions"
     assert en["panels"]["sensors"]["title"] == "Zones"
-    assert en["panels"]["general"]["cards"]["modes"]["title"] == "Alarmo Arm Modes"
+    assert en["panels"]["general"]["cards"]["modes"]["title"] == "Arm Modes"
     assert "cross-zone" in en["panels"]["sensors"]["dialogs"]["manage_groups"]["title"]
     assert en["panels"]["sensor_table"]["title"] == "Zones"
     assert en["panels"]["zones"]["title"] == "Zones"
     assert en["panels"]["zones_legacy"]["title"] == "Zones (legacy)"
-    assert en["panels"]["modes"]["title"] == "Alarmo Arm Modes"
+    assert en["panels"]["modes"]["title"] == "Arm Modes"
     assert en["panels"]["panel"]["title"] == "Physical Panel"
     # device-type descriptions describe physical sensors and are not renamed
     choose = en["panels"]["sensors"]["cards"]["editor"]["fields"]["device_type"][

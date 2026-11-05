@@ -180,7 +180,7 @@ class LockManager:
         if user_id is None:
             return await self.async_save(lc.remove_link(s, entity_id, slot))
         if user_id not in self.users():
-            raise LockCodeError("Unknown Alarmo User")
+            raise LockCodeError("Unknown User")
         return await self.async_save(lc.set_link(s, user_id, entity_id, slot))
 
     async def async_import(self, entity_id: str, wanted: list[dict]) -> list[dict]:
@@ -572,7 +572,7 @@ async def ws_locks_actions(hass, connection, msg):
     s = mgr.settings
     if msg.get("user_id"):
         if msg["user_id"] not in mgr.users():
-            raise LockCodeError("Unknown Alarmo User")
+            raise LockCodeError("Unknown User")
         acts = {
             op: lc.ACTION_SCHEMA(msg[op])
             for op in lc.OPERATIONS
@@ -694,7 +694,7 @@ async def ws_user_set_code(hass, connection, msg):
     coord = mgr.ext.coordinator
     code = msg["code"].strip()
     if msg["user_id"] not in mgr.users():
-        raise LockCodeError("Unknown Alarmo User")
+        raise LockCodeError("Unknown User")
     other = await coord.async_authenticate_user(code)
     if other and other["user_id"] != msg["user_id"]:
         raise LockCodeError("Another user already has this code")

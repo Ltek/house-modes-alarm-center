@@ -92,7 +92,7 @@ export class AlarmViewConnections extends LitElement {
   }
 
   private async migrate() {
-    if (!window.confirm(`Move ${this.legacy.length} old "code slot → House Mode" setting(s) to Alarmo Users? Each slot gets a lock-only user (or the user with the same code) whose unlock action is that House Mode. A backup is in Backup if you need it.`)) return;
+    if (!window.confirm(`Move ${this.legacy.length} old "code slot → House Mode" setting(s) to Users? Each slot gets a lock-only user (or the user with the same code) whose unlock action is that House Mode. A backup is in Backup if you need it.`)) return;
     this.busy = true;
     try {
       const res = await migrateLegacy(this.hass);
@@ -176,13 +176,13 @@ export class AlarmViewConnections extends LitElement {
     return html`
       <ha-card>${sectionHead('Keypads', 'settings')}
         <div class="card-content desc">
-          <p>Each Z-Wave lock, with one row per code slot. A slot's code belongs to an Alarmo User; that user's keypad
-            actions (a House Mode, Alarmo partition targets, or both) run when the code is used at the lock.</p>
+          <p>Each Z-Wave lock, with one row per code slot. A slot's code belongs to a User; that user's keypad
+            actions (a House Mode, partition targets, or both) run when the code is used at the lock.</p>
           <ul>
             <li><strong>Import</strong> makes a <em>lock-only</em> user for each code that has no user yet: the code works at
-              the lock and for its keypad actions, but cannot arm or disarm Alarmo until you allow it. A code that is
-              already an Alarmo User's code is linked to that user instead.</li>
-            <li><em>Code</em> compares the slot's code with the user's code (<em>Slot = User Code</em>). Alarmo stores codes only hashed. The eye
+              the lock and for its keypad actions, but cannot arm or disarm the alarm until you allow it. A code that is
+              already a User's code is linked to that user instead.</li>
+            <li><em>Code</em> compares the slot's code with the user's code (<em>Slot = User Code</em>). Codes are stored only hashed. The eye
               shows a lock's code for 30 seconds, read from the lock right then; it is never stored.</li>
             <li>Click a user (above) to change its name, code, permissions, lock slots and keypad actions.</li>
           </ul>
@@ -232,7 +232,7 @@ export class AlarmViewConnections extends LitElement {
               : nothing}
             ${read
               ? html`<div class="table-wrap"><table>
-                  <thead><tr><th>Slot</th><th>On the lock</th><th>Alarmo User</th><th>Code</th><th>When this code is used</th></tr></thead>
+                  <thead><tr><th>Slot</th><th>On the lock</th><th>User</th><th>Code</th><th>When this code is used</th></tr></thead>
                   <tbody>${read.slots.filter(r => r.in_use || r.user_id).map(r => {
                     const key = `${lock.entity_id}:${r.slot}`;
                     const acts = r.user_id && ls ? ls.actions[r.user_id] : undefined;
@@ -240,7 +240,7 @@ export class AlarmViewConnections extends LitElement {
                       <td>${r.slot}</td>
                       <td>${r.in_use ? 'in use' : 'empty'}${r.lock_name ? html`<span class="secondary">${r.lock_name}</span>` : nothing}</td>
                       <td>
-                        <select aria-label=${`Alarmo User for slot ${r.slot}`} @change=${(e: any) => this.link(lock.entity_id, r.slot, e.target.value || null)}>
+                        <select aria-label=${`User for slot ${r.slot}`} @change=${(e: any) => this.link(lock.entity_id, r.slot, e.target.value || null)}>
                           <option value="" ?selected=${!r.user_id}>— not linked —</option>
                           ${this.users.map(u => html`<option value=${u.user_id} ?selected=${r.user_id === u.user_id}>${u.name}${u.enabled ? '' : ' (disabled)'}</option>`)}
                         </select>

@@ -59,8 +59,8 @@
           }
         },
         "modes": {
-          "title": "Alarmo Arm Modes",
-          "description": "Alarmo's arm modes (Away, Home/Stay, Night, Vacation, Custom): which ones each Alarmo partition offers, and Alarmo's exit and entry delays for each. With a physical panel, its own delays still apply to its own zones.",
+          "title": "Arm Modes",
+          "description": "The alarm's Arm Modes (Away, Home/Stay, Night, Vacation, Custom): which ones each partition offers, and the alarm's exit and entry delays for each. With a physical panel, its own delays still apply to its own zones.",
           "modes": {
             "armed_away": "Armed away will be used when all people left the house. All doors and windows allowing access to the house will be guarded, as well as motion zones inside the house.",
             "armed_home": "Armed home (also known as armed stay) will be used when setting the alarm while people are in the house. All doors and windows allowing access to the house will be guarded, but not motion zones inside the house.",
@@ -102,7 +102,7 @@
             },
             "command_topic": {
               "heading": "Command topic",
-              "description": "Topic which Alarmo listens to for arm/disarm commands."
+              "description": "Topic the alarm listens to for arm/disarm commands."
             },
             "require_code": {
               "heading": "Require code",
@@ -585,7 +585,7 @@
       "title": "Partitions & Arm Modes"
     },
     "modes": {
-      "title": "Alarmo Arm Modes"
+      "title": "Arm Modes"
     },
     "notifications": {
       "title": "Notifications"

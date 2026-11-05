@@ -39,9 +39,12 @@ EXACT = {
         "Are you sure you want to remove the 'All partitions' alarm entity? It has "
         "{automations} automations, which will be removed with this action."
     ),
-    "panels.general.cards.modes.title": "Alarmo Arm Modes",
+    "panels.general.cards.modes.title": "Arm Modes",
     "panels.general.cards.modes.description": (
-        "Alarmo's arm modes (Away, Home/Stay, Night, Vacation, Custom): which ones each Alarmo partition offers, and Alarmo's exit and entry delays for each. With a physical panel, its own delays still apply to its own zones."
+        "The alarm's Arm Modes (Away, Home/Stay, Night, Vacation, Custom): which ones each partition offers, and the alarm's exit and entry delays for each. With a physical panel, its own delays still apply to its own zones."
+    ),
+    "panels.general.cards.mqtt.fields.command_topic.description": (
+        "Topic the alarm listens to for arm/disarm commands."
     ),
     "panels.general.cards.areas.description": (
         "Partitions divide the alarm system into parts that are armed separately "
@@ -98,7 +101,7 @@ EXT_KEYS = {
     ("panels", "backup", "title"): "Integrations & Backup",
     # ext.4 tabs
     ("panels", "partitions", "title"): "Partitions & Arm Modes",
-    ("panels", "modes", "title"): "Alarmo Arm Modes",
+    ("panels", "modes", "title"): "Arm Modes",
     ("panels", "notifications", "title"): "Notifications",
     ("panels", "zones", "title"): "Zones",
     ("panels", "zones_legacy", "title"): "Zones (legacy)",

@@ -1,6 +1,6 @@
 # House Modes & Alarm Center
 
-> **Current build: v2026.11.05.59** · based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
+> Based on Alarmo 1.10.19 · full history in [CHANGELOG.md](CHANGELOG.md)
 
 A Home Assistant alarm integration built on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber: one place for
 **House Modes**, alarm **partitions and zones**, a **physical alarm panel** (Honeywell/Ademco Vista or DSC via
@@ -90,6 +90,20 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 </table>
 <!-- SCREENSHOTS:END -->
 
+## Terms
+
+| Term | Meaning |
+|---|---|
+| **House Mode** | What is going on at home: Away, Stay, Sleep, Guest, … Each mode sets partitions to an Arm Mode. |
+| **Alarm** | The alarm built into this integration (what Alarmo was). Also called the virtual alarm where it has to be told apart from the panel. |
+| **Partition** | A part of the building that is armed on its own. Each has an `alarm_control_panel` entity. |
+| **Arm Mode** | Away, Home (Stay), Night, Vacation or Custom, with exit and entry delays. |
+| **Zone** | A sensor the alarm watches: a door, window, motion sensor, lock or garage door. |
+| **Panel** | The physical alarm panel, e.g. a Honeywell Vista through Envisalink. |
+| **Panel link** | Keeps the alarm and the panel in step, in both directions. |
+| **Alarm system** | The alarm and the panel together. |
+| **Shadow / Live** | Shadow only logs what it would do, next to your own automations; Live does it. Used by House Modes and the panel link. |
+
 ## What it adds to Alarmo
 
 **Quick Start** — the first tab: what is configured, and three guided setups (House Modes only; an alarm without a
@@ -106,16 +120,16 @@ the remaining Alarm Events (scripts, and legacy ones to migrate).
 
 **Physical panel link** (Envisalink; other panels via HA services)
 - **Shadow mode** first: logs what it would do next to your own automations; **live** when the log matches.
-- **Start-up check:** after a restart, reload or panel reconnect, Alarmo is compared with the panel once both have
-  settled; if a restored Alarmo state is stale, Alarmo follows the panel and you are told (alarms are never cleared).
-- **Panel-led arming:** Alarmo checks every zone, the panel gets the command at once, Alarmo counts as armed when the
-  panel is — one exit delay. Retries, failure policy, learned exit delays and *Match Alarmo's exit times*.
+- **Start-up check:** after a restart, reload or panel reconnect, the alarm is compared with the panel once both have
+  settled; if a restored alarm state is stale, the alarm follows the panel and you are told (alarms are never cleared).
+- **Panel-led arming:** the alarm checks every zone, the panel gets the command at once, the alarm counts as armed when
+  the panel is — one exit delay. Retries, failure policy, learned exit delays and *Match the alarm's exit times*.
 - **Arming at the panel keypad** is followed from the start (mode read from the keypad text, mapping per mode); zones
   only Home Assistant watches are bypassed and you are told.
 - What happens when a zone the panel does not watch trips: set off the panel (siren, relay, panic key) or notify.
 
 **Panel zones and mirrors**
-- Every panel zone with live state, *add to Alarmo*, *ignore*, and **mirrors**: a copy of a zone that keeps its last
+- Every panel zone with live state, *add as zone*, *ignore*, and **mirrors**: a copy of a zone that keeps its last
   state while the zone is bypassed — a **Vista** stops reporting bypassed zones (DSC does not need mirrors).
 - Vista bypasses are read from the panel itself (BYPASS indicator and the "BYPAS zz" keypad list), across restarts.
 
@@ -125,19 +139,19 @@ the remaining Alarm Events (scripts, and legacy ones to migrate).
 - Garage doors (covers) and locks as zones; per-zone *When tripped* for zones only HA watches.
 
 **Users, Codes, Keypads**
-- One Alarmo User per person: what the code may do in Alarmo (arm and disarm / arm only / lock only), partitions.
+- One User per person: what the code may do with the alarm (arm and disarm / arm only / lock only), partitions.
 - **Z-Wave lock code slots** linked to users: import a lock's codes as users, check *Slot = User Code*, write a user's
   code to its slots, show a slot's code for 30 s (admin only, never stored). Codes are stored only hashed.
 - **Keypad actions per user:** when the code unlocks (or keypad-locks) a lock → a House Mode and/or partition targets.
 
-**Arm Check** (a panel on the Activity tab) — *Why won't it arm?* (Alarmo's own check, live, per partition and Arm Mode, plus the panel's Ready) and
+**Arm Check** (a panel on the Activity tab) — *Why won't it arm?* (the alarm's own check, live, per partition and Arm Mode, plus the panel's Ready) and
 a **walk test**.
 
 **Dashboard card** — *House Modes & Alarm Center Card*, included ([CARD.md](CARD.md)): the House Mode with its icon and
-color, the panel's display, House Mode buttons, Alarmo's arm / disarm and code entry, and the panel keypad (who may
+color, the panel's display, House Mode buttons, the alarm's arm / disarm and code entry, and the panel keypad (who may
 use it is set in the integration). No separate download or resource.
 
-**Activity** — a recorder of sequences: House Mode helpers, Alarmo, the panel and its keypad text, locks, bypasses,
+**Activity** — a recorder of sequences: House Mode helpers, the alarm, the panel and its keypad text, locks, bypasses,
 mirrors, automations that ran (as the *cause*), commands and notifications, grouped from the trigger until things go
 quiet. Daily files, filters, download, a summary with panel timings. Only observes; never records codes.
 
@@ -182,7 +196,7 @@ from template mirrors: [MIGRATION.md](MIGRATION.md).
 - `upstream` remote: [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo) (base commit `47b31a6`). Upstream is not
   merged any more; files may differ freely.
 
-## Credits and licence
+## Credits and license
 
 Based on [Alarmo](https://github.com/nielsfaber/alarmo) © Niels Faber and contributors, licensed under the
 [Apache License 2.0](LICENSE). This build is modified extensively; the changes are listed in [CHANGELOG.md](CHANGELOG.md).

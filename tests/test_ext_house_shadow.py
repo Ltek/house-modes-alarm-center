@@ -152,7 +152,7 @@ async def test_shadow_failed_arm_counts_as_match(hass: Any, hass_storage: Any, t
     await hass.services.async_call("alarmo", "arm", {"entity_id": E_GF, "code": "1234", "mode": "away"}, blocking=True)
     await _settle(hass)
     await advance_time(hass, 181)
-    assert any("Alarmo could not arm (open:" in m and "fail the same way" in m and ok for m, ok in _log(mgr))
+    assert any("the alarm could not arm (open:" in m and "fail the same way" in m and ok for m, ok in _log(mgr))
     assert mgr.shadow_log.summary()["differed"] == 0
 
 

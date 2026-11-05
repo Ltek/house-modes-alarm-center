@@ -267,7 +267,7 @@ export class UserLocksCard extends LitElement {
                 return html`<div class="notice warn" style="margin:0 16px 8px">${w} That part will be skipped.
                   ${need && this.permissions
                     ? html`<button class="link" @click=${() => this.dispatchEvent(new CustomEvent('grant', { detail: { ...this.permissions, ...need } }))}>
-                        Allow it (${need.can_arm ? 'arm' : 'disarm'} in Alarmo)</button>`
+                        Allow it (${need.can_arm ? 'arm' : 'disarm'} the alarm)</button>`
                     : nothing}
                 </div>`;
               })}

@@ -133,7 +133,7 @@ export class AlarmViewPanel extends LitElement {
     return html`
       <ha-card>${sectionHead('Panel keypad on dashboards', 'settings')}
         <div class="card-content desc">
-          <p>The House Modes &amp; Alarm Center Card can show your panel's keypad. Its keys go through Alarmo, which checks
+          <p>The House Modes &amp; Alarm Center Card can show your panel's keypad. Its keys go through the integration, which checks
             who is logged in before passing them to the panel. Refused presses are shown on the card and in the Activity log.</p>
           <ul>
             <li>Automations calling <code>alarmo.panel_keypress</code> are not checked.</li>
@@ -174,18 +174,18 @@ export class AlarmViewPanel extends LitElement {
     return html`
       <ha-card>${sectionHead('Physical panel link', 'settings')}
         <div class="card-content desc">
-          <p>Keeps an Alarmo alarm (a partition, or All partitions) and your physical alarm panel in step:</p>
+          <p>Keeps the alarm (a partition, or All partitions) and your physical alarm panel in step:</p>
           <ul>
-            <li>Alarmo arming or disarming is sent to the physical panel and checked (with retries).</li>
-            <li>Arming or disarming at the physical panel's keypad is followed by Alarmo.</li>
+            <li>Arming or disarming the alarm is sent to the physical panel and checked (with retries).</li>
+            <li>Arming or disarming at the physical panel's keypad is followed by the alarm.</li>
           </ul>
           <p><strong>Shadow</strong> sends nothing and changes nothing — it only logs what would have happened, so you
             can compare it with your current automations. Switch to <strong>Live</strong> when the log matches.</p>
         </div>
         ${free.length && this.info!.panels.length
           ? html`<div class="toolbar">
-              <select aria-label="Alarmo alarm" @change=${(e: any) => (this.newTarget = e.target.value)}>
-                <option value="">Link Alarmo…</option>
+              <select aria-label="Alarm" @change=${(e: any) => (this.newTarget = e.target.value)}>
+                <option value="">Link a partition…</option>
                 ${free.map(t => html`<option value=${t.key}>${t.name} (${t.entity_id})</option>`)}
               </select>
               to
@@ -209,12 +209,12 @@ export class AlarmViewPanel extends LitElement {
     const learned = Object.keys(link.learned_exit_delay || {});
     if (!learned.length)
       return html`<div class="secondary" style="padding:0 6px 6px">Once the panel has armed a few times, its exit delays are learned here and
-        Alarmo's exit times can be matched to them.</div>`;
+        the alarm's exit times can be matched to them.</div>`;
     const plan = this.exitPlan[key];
     const rows = plan ? Object.values(plan) : [];
     return html`<div class="field-row">
         <span>Panel exit delays: ${learned.map(s => `${STATE_LABEL[s] || s} ${link.learned_exit_delay[s]} s`).join(' · ')}</span>
-        <ha-button appearance="plain" ?disabled=${this.dirty} @click=${() => this.checkExit(key)}>Match Alarmo's exit times…</ha-button>
+        <ha-button appearance="plain" ?disabled=${this.dirty} @click=${() => this.checkExit(key)}>Match the alarm's exit times…</ha-button>
         ${this.dirty ? html`<span class="secondary" style="display:inline">Save first.</span>` : nothing}
       </div>
       ${plan
@@ -222,7 +222,7 @@ export class AlarmViewPanel extends LitElement {
           ? html`<div class="notice" style="margin:0 0 8px">${rows.map(r => html`<div><strong>${r.name}</strong>: ${Object.keys(r.changes).map(m => `${STATE_LABEL[m]} ${r.before[m]} → ${r.changes[m]} s`).join(', ')}</div>`)}
               <div class="toolbar" style="padding:6px 0 0"><ha-button @click=${() => this.applyExit(key)}>Apply (backup first)</ha-button>
                 <button class="link" @click=${() => (this.exitPlan = { ...this.exitPlan, [key]: null })}>Cancel</button></div></div>`
-          : html`<div class="secondary" style="padding:0 6px 6px">Alarmo's exit times already match the panel.</div>`
+          : html`<div class="secondary" style="padding:0 6px 6px">The alarm's exit times already match the panel.</div>`
         : nothing}`;
   }
 
@@ -238,7 +238,7 @@ export class AlarmViewPanel extends LitElement {
   private async applyExit(key: string) {
     try {
       const res = await matchExitTimes(this.hass, key);
-      toast(this, `Alarmo exit times updated. Backup: ${res.backup ? res.backup.name : '-'}`);
+      toast(this, `Alarm exit times updated. Backup: ${res.backup ? res.backup.name : '-'}`);
       this.exitPlan = { ...this.exitPlan, [key]: null };
     } catch (err) {
       this.error = wsErrorMessage(err);
@@ -279,16 +279,16 @@ export class AlarmViewPanel extends LitElement {
         </div>
         <h4 class="subhead" style="margin:8px 0 4px">Arming</h4>
         <div class="field-row">
-          <label for=${`order-${key}`}>When Alarmo arms</label>
+          <label for=${`order-${key}`}>When the alarm arms</label>
           <select id=${`order-${key}`} @change=${(e: any) => upd(l => (l.arm_order = e.target.value))}>
-            <option value="panel_leads" ?selected=${(link.arm_order || 'panel_leads') === 'panel_leads'}>send to the panel at once; Alarmo is armed when the panel is (one exit delay)</option>
-            <option value="after_alarmo" ?selected=${link.arm_order === 'after_alarmo'}>send to the panel after Alarmo's exit delay (two exit delays)</option>
+            <option value="panel_leads" ?selected=${(link.arm_order || 'panel_leads') === 'panel_leads'}>send to the panel at once; the alarm is armed when the panel is (one exit delay)</option>
+            <option value="after_alarmo" ?selected=${link.arm_order === 'after_alarmo'}>send to the panel after the alarm's exit delay (two exit delays)</option>
           </select>
         </div>
         ${(link.arm_order || 'panel_leads') === 'panel_leads'
-          ? html`<div class="secondary" style="padding:0 6px 6px">Alarmo checks every zone first (panel zones through their mirrors, and the
+          ? html`<div class="secondary" style="padding:0 6px 6px">The alarm checks every zone first (panel zones through their mirrors, and the
               zones only Home Assistant watches); nothing is sent if one blocks. If the panel has not finished arming
-              ${link.confirm_margin ?? 10} s after the longer of its exit delay and Alarmo's, arming counts as failed.</div>
+              ${link.confirm_margin ?? 10} s after the longer of its exit delay and the alarm's, arming counts as failed.</div>
             <alarmo-ext-slider .label=${'Extra time for the panel to confirm'} .min=${0} .max=${60} unit="s" .value=${link.confirm_margin ?? 10}
               @value-changed=${(e: CustomEvent) => upd(l => (l.confirm_margin = e.detail.value))}></alarmo-ext-slider>
             ${this.renderExitMatch(key, link)}`
@@ -296,21 +296,21 @@ export class AlarmViewPanel extends LitElement {
         <h4 class="subhead" style="margin:10px 0 4px">Arming at the panel (keypad, app)</h4>
         <div class="field-row">
           <label><input type="checkbox" .checked=${link.follow_panel} @change=${(e: any) => upd(l => (l.follow_panel = e.target.checked))} />
-            Alarmo follows the panel</label>
-          <span class="secondary" style="display:inline">Alarmo starts arming when the panel does. Open zones the panel does not watch
-            are bypassed in Alarmo and you are told.</span>
+            The alarm follows the panel</label>
+          <span class="secondary" style="display:inline">The alarm starts arming when the panel does. Open zones the panel does not watch
+            are bypassed in the alarm and you are told.</span>
         </div>
         ${link.follow_panel
           ? html`<div class="field-row">${(['armed_away', 'armed_home', 'armed_night'] as string[]).map(ps => html`
               <label>Panel ${STATE_LABEL[ps]} →
-                <select aria-label=${`Alarmo mode when the panel arms ${STATE_LABEL[ps]}`}
+                <select aria-label=${`Alarm mode when the panel arms ${STATE_LABEL[ps]}`}
                   @change=${(e: any) => upd(l => {
                     const m = { ...(l.follow_map || {}) };
                     if (e.target.value === ps) delete m[ps];
                     else m[ps] = e.target.value;
                     l.follow_map = m;
                   })}>
-                  ${Object.keys(STATE_LABEL).filter(m => m !== 'disarmed').map(m => html`<option value=${m} ?selected=${((link.follow_map || {})[ps] || ps) === m}>Alarmo ${STATE_LABEL[m]}</option>`)}
+                  ${Object.keys(STATE_LABEL).filter(m => m !== 'disarmed').map(m => html`<option value=${m} ?selected=${((link.follow_map || {})[ps] || ps) === m}>${STATE_LABEL[m]}</option>`)}
                 </select></label>`)}</div>`
           : nothing}
         <h4 class="subhead" style="margin:10px 0 4px">Commands</h4>
@@ -318,8 +318,8 @@ export class AlarmViewPanel extends LitElement {
           ${num('retries', 'Retries', 0, 10)} ${num('retry_delay', 'Seconds between tries', 1, 120)}
           <label>If the panel does not follow
             <select @change=${(e: any) => upd(l => (l.failure_policy = e.target.value))}>
-              <option value="disarm" ?selected=${link.failure_policy === 'disarm'}>disarm Alarmo again + notify</option>
-              <option value="keep" ?selected=${link.failure_policy === 'keep'}>keep Alarmo armed + notify</option>
+              <option value="disarm" ?selected=${link.failure_policy === 'disarm'}>disarm the alarm again + notify</option>
+              <option value="keep" ?selected=${link.failure_policy === 'keep'}>keep the alarm armed + notify</option>
             </select>
           </label>
           <label>Panel type
@@ -337,7 +337,7 @@ export class AlarmViewPanel extends LitElement {
           : nothing}
         <div class="table-wrap">
           <table>
-            <thead><tr><th>When Alarmo becomes</th><th>Send</th><th>Keys</th><th title="Panel states that count as success">Panel must become</th><th>Wait (s)</th><th>Panel delays (entry / exit s)</th><th>Learned exit</th></tr></thead>
+            <thead><tr><th>When the alarm becomes</th><th>Send</th><th>Keys</th><th title="Panel states that count as success">Panel must become</th><th>Wait (s)</th><th>Panel delays (entry / exit s)</th><th>Learned exit</th></tr></thead>
             <tbody>
               ${PANEL_STATES.map(st => {
                 const c = link.commands[st];

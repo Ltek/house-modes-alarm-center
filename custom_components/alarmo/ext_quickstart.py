@@ -197,7 +197,7 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912
             steps.append(
                 _step(
                     "panel_zones",
-                    "The panel's zones as Alarmo zones",
+                    "The panel's zones as zones",
                     "todo" if new else "done",
                     f"adds {len(new)} zone(s)" if new else f"{len(p['zones'])} zone(s)",
                     "/alarmo/zones",

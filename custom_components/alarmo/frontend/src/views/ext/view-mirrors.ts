@@ -128,22 +128,22 @@ export class AlarmViewMirrors extends LitElement {
       ${this.error ? html`<div class="notice error" style="white-space:pre-line;margin:0 0 12px">${this.error}</div>` : nothing}
       <ha-card>${sectionHead('Panel zones', 'settings')}
         <div class="card-content desc">
-          <p>Every zone your physical panel reports to Home Assistant: its live state, its mirror, and which entity Alarmo uses.</p>
+          <p>Every zone your physical panel reports to Home Assistant: its live state, its mirror, and which entity the alarm uses.</p>
           <p><strong>Why mirrors exist — a Vista limitation.</strong> A Honeywell/Ademco Vista panel stops reporting a zone
             while it is bypassed, so the zone falsely shows "closed". A mirror (<code>binary_sensor.&lt;zone&gt;_mirror</code>)
             follows the zone live and keeps its last known state while bypassed (or shows unknown). DSC panels keep
             reporting bypassed zones, so they do not need mirrors.</p>
           <ul>
             <li>Unlock to edit, then tick <em>Mirror</em> to create a mirror, untick to remove it, and Save.</li>
-            <li>Select rows to add them to Alarmo as zones or as their mirrors (a backup is made first), or to ignore them.</li>
+            <li>Select rows to add them as zones or as their mirrors (a backup is made first), or to ignore them.</li>
             <li><em>Ignore</em> hides a zone that is not a real sensor (keyfob button, RF supervision, unused number) from
-              "not in Alarmo".</li>
+              the "not zones yet" list.</li>
             <li>A window opened <em>after</em> it was bypassed can't be seen by any software.</li>
           </ul>
         </div>
         ${notIn.length
           ? html`<div class="notice warn" style="margin:0 16px 12px">
-              <strong>${notIn.length} panel zone(s) are not in Alarmo:</strong> ${notIn.map(r => r.name).join(', ')}.
+              <strong>${notIn.length} panel zone(s) are not zones yet:</strong> ${notIn.map(r => r.name).join(', ')}.
               <div class="toolbar" style="padding:6px 0 0">
                 ${Object.keys(this.areas).length > 1
                   ? html`<label>Partition
@@ -165,7 +165,7 @@ export class AlarmViewMirrors extends LitElement {
             Show ignored (${this.ignored.length})</label>
           ${repointable.length
             ? html`<ha-button appearance="plain" ?disabled=${this.busy || this.dirty} @click=${() => this.repoint(repointable.map(r => r.source))}>
-                Use mirrors in Alarmo for ${repointable.length} zone(s)</ha-button>`
+                Use mirrors as zones for ${repointable.length} zone(s)</ha-button>`
             : nothing}
         </div>
         ${this.renderBypassHelper()}
@@ -223,7 +223,7 @@ export class AlarmViewMirrors extends LitElement {
                     <option value="unknown" ?selected=${m.hold === 'unknown'}>unknown</option>
                   </select>`
                 : '—'}</td>
-              <td>${used === 'mirror' ? html`<code>${mid}</code>` : used === 'zone' ? 'same' : html`<span class="secondary" style="display:inline">not in Alarmo</span>`}</td>
+              <td>${used === 'mirror' ? html`<code>${mid}</code>` : used === 'zone' ? 'same' : html`<span class="secondary" style="display:inline">not a zone</span>`}</td>
             </tr>`;
           })}</tbody>
         </table></div>
@@ -300,7 +300,7 @@ export class AlarmViewMirrors extends LitElement {
           </select>
         </label>
         <label><input type="checkbox" ?disabled=${this.locked} .checked=${this.useMirrors} @change=${(e: any) => (this.useMirrors = e.target.checked)} />
-          Use the mirrors in Alarmo, remove the panel's real zones</label>
+          Use the mirrors as zones, remove the panel's real zones</label>
         ${Object.keys(this.areas).length > 1
           ? html`<label>Partition
               <select ?disabled=${this.locked} @change=${(e: any) => (this.addTo = e.target.value)}>
@@ -312,7 +312,7 @@ export class AlarmViewMirrors extends LitElement {
         ? html`<div class="toolbar" style="padding-top:0">
             <ha-button ?disabled=${this.locked || this.busy || !n} @click=${() => this.applyMirrors(typed.map(r => r.source))}>
               <ha-icon slot="start" icon="mdi:content-duplicate"></ha-icon>${this.useMirrors
-                ? `Save ${n} mirror(s), use them in ${area ? area.name : 'Alarmo'} instead of the real zones`
+                ? `Save ${n} mirror(s), use them in ${area ? area.name : 'the alarm'} instead of the real zones`
                 : `Save ${n} mirror(s)`}
             </ha-button>
             <button class="link" @click=${() => { this.mirrorType = ''; this.mirrors = clone(this.info!.settings.mirrors); }}>Cancel</button>
@@ -336,7 +336,7 @@ export class AlarmViewMirrors extends LitElement {
       this.useMirrors &&
       !window.confirm(
         `Create ${sources.length} mirror(s)` +
-          (inAlarmo.length ? `, switch ${inAlarmo.length} Alarmo zone(s) to their mirror (settings kept, the real zone is removed from Alarmo)` : '') +
+          (inAlarmo.length ? `, switch ${inAlarmo.length} zone(s) to their mirror (settings kept, the real zone is removed)` : '') +
           (notIn.length ? `, add ${notIn.length} mirror(s) to ${this.areas[this.addTo]?.name} with suggested settings` : '') +
           '? A backup is made first.'
       )
@@ -389,7 +389,7 @@ export class AlarmViewMirrors extends LitElement {
 
   private async save() {
     const removedInUse = Object.keys(this.info!.settings.mirrors).filter(s => !this.mirrors[s] && this.sensors[mirrorId(s)]);
-    if (removedInUse.length && !window.confirm(`These mirrors are Alarmo zones; removing them makes those zones unavailable:\n${removedInUse.map(mirrorId).join('\n')}\n\nContinue?`))
+    if (removedInUse.length && !window.confirm(`These mirrors are zones; removing them makes those zones unavailable:\n${removedInUse.map(mirrorId).join('\n')}\n\nContinue?`))
       return;
     this.busy = true;
     this.error = '';
@@ -456,7 +456,7 @@ export class AlarmViewMirrors extends LitElement {
   }
 
   private async repoint(sources: string[]) {
-    if (!window.confirm(`Point ${sources.length} Alarmo zone(s) at their mirror? Their settings are kept. A backup is made first.`)) return;
+    if (!window.confirm(`Point ${sources.length} zone(s) at their mirror? Their settings are kept. A backup is made first.`)) return;
     this.busy = true;
     try {
       const res = await repointZones(this.hass, sources.map(s => ({ from: s, to: mirrorId(s) })));

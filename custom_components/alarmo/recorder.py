@@ -50,7 +50,7 @@ SETTINGS_SCHEMA = vol.Schema(
 
 KIND_LABELS = {
     "house": "House Mode",
-    "alarmo": "Alarmo",
+    "alarmo": "Alarm",
     "panel": "Physical panel",
     "keypad": "Panel keypad",
     "lock": "Lock",
@@ -418,10 +418,10 @@ class ActivityRecorder:
         if et == "alarmo_failed_to_arm":
             if d.get("reason") == "not_allowed":
                 # e.g. a second disarm while already disarmed: Alarmo ignores it
-                self.add("alarmo", "Alarmo ignored a command (not allowed in its current state)")
+                self.add("alarmo", "Alarm ignored a command (not allowed in its current state)")
             else:
                 why = f"{d.get('reason')} {list(d.get('sensors') or [])}"
-                self.add("alarmo", f"Alarmo failed to arm: {why}", starter=True)
+                self.add("alarmo", f"Alarm failed to arm: {why}", starter=True)
             return
         if et == "alarmo_ext_panel":
             self.add("link", f"panel link: {d.get('type')} {d.get('zones') or ''}".strip())

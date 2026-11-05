@@ -440,7 +440,7 @@ export class AlarmViewSensorTable extends SubscribeMixin(LitElement) {
       <ha-card>
         ${sectionHead('Zones', 'settings')}
         <div class="card-content desc">
-          <p><strong>The main place for zones.</strong> Every zone Alarmo watches, with its partition, the Arm Modes it
+          <p><strong>The main place for zones.</strong> Every zone the alarm watches, with its partition, the Arm Modes it
             is active in, its zone type and its options. Hover a column title for help; click a zone's icon for its details.</p>
           <p><strong>Unlock to edit</strong> (button above the table). Changes stay drafts until you click Save — a
             backup is made first. Edited zones get a yellow icon, new ones green, removed ones red.</p>
@@ -628,7 +628,7 @@ export class AlarmViewSensorTable extends SubscribeMixin(LitElement) {
           Disable
         </ha-button>
         <ha-button appearance="plain" variant="danger" @click=${() => this.edit(() => this.draft.removeMany(sel))}>
-          Delete from Alarmo
+          Delete zone
         </ha-button>
         <button class="link" @click=${() => (this.selection = [])}>Clear selection</button>
       </div>

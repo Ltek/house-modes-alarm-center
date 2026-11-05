@@ -81,7 +81,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
   setConfig(config: CardConfig) {
     if (!config) throw new Error('Invalid configuration');
     if (config.entity && !config.entity.startsWith('alarm_control_panel.'))
-      throw new Error('entity must be an Alarmo alarm_control_panel');
+      throw new Error('entity must be an alarm_control_panel of this integration');
     const first = !this.config;
     this.config = { ...DEFAULTS, ...migrateConfig(config) };
     if (first) {
@@ -1077,7 +1077,7 @@ if (!(window as any).customCards.some((c: any) => c.type === TAG))
   (window as any).customCards.push({
     type: TAG,
     name: 'House Modes & Alarm Center Card',
-    description: 'House Mode, Alarmo alarm and physical panel keypad in one card.',
+    description: 'House Mode, alarm and physical panel keypad in one card.',
     preview: true,
   });
 

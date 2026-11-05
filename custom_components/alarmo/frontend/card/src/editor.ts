@@ -628,9 +628,9 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
         <span class="ed-header-title">House Modes &amp; Alarm Center Card</span>
         <span class="ed-header-build">v${VERSION}</span>
       </div>
-      ${this.panel('card', 'mdi:card-outline', 'Card', 'Which Alarmo alarm the card controls, and the frame around it.', html`
+      ${this.panel('card', 'mdi:card-outline', 'Card', 'Which alarm the card controls, and the frame around it.', html`
         ${this.group('Alarm')}
-        ${this.select('Alarmo alarm', c.entity || '', [['', 'First linked alarm'], ...alarms.map(a => [a.entity_id, `${a.name} (${a.entity_id})`] as [string, string])],
+        ${this.select('Alarm', c.entity || '', [['', 'First linked alarm'], ...alarms.map(a => [a.entity_id, `${a.name} (${a.entity_id})`] as [string, string])],
           v => this.set('entity', v || undefined))}
         <div class="row"><span class="lab">Name</span>
           <input class="ctl" type="text" placeholder="Shown when House Modes are off" .value=${c.name || ''}
@@ -704,7 +704,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           ${c.show_mode_labels ? this.textStyle('mode_label') : nothing}`
         : html`<p class="hint">Turned off under Sections.</p>`)}
 
-      ${this.panel('alarm', 'mdi:shield-lock-outline', 'Alarm Panel buttons', 'Arm and disarm Alarmo, enter the code, see why it will not arm.', c.show_alarm
+      ${this.panel('alarm', 'mdi:shield-lock-outline', 'Alarm Panel buttons', 'Arm and disarm the alarm, enter the code, see why it will not arm.', c.show_alarm
         ? html`
           ${this.group('Show')}
           ${this.toggle('Arm button icons', c.show_arm_icons, v => this.set('show_arm_icons', v))}
@@ -740,9 +740,9 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
 
       ${this.panel('effects', 'mdi:shimmer', 'Effects', 'Make parts of the card glow or pulse while something is under way: arming, an entry delay, a House Mode change, an alarm.', this.effectsBody())}
 
-      ${this.panel('keypad', 'mdi:dialpad', 'Physical panel keypad', "The panel's 12 keys with their functions, sent through Alarmo.", c.show_panel_keypad
+      ${this.panel('keypad', 'mdi:dialpad', 'Physical panel keypad', "The panel's 12 keys with their functions, sent through the integration.", c.show_panel_keypad
         ? html`
-          <p class="hint">Who may use the keys is set in the integration: Alarmo panel → Physical Panel → <em>Panel keypad on
+          <p class="hint">Who may use the keys is set in the integration: Alarm panel → Physical Panel → <em>Panel keypad on
             dashboards</em>. Other users see the keys disabled.</p>
           ${this.group('Show')}
           ${this.toggle('Key functions (OFF, AWAY, STAY, …)', c.show_key_labels, v => this.set('show_key_labels', v))}

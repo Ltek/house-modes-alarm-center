@@ -172,13 +172,13 @@ export class AlarmoExtImportDialog extends LitElement {
         : nothing}
       ${p.extras_included
         ? html`<div class="notice" style="margin:8px 0">
-            <strong>Also restores Alarmo ext settings:</strong>
+            <strong>Also restores the extra settings:</strong>
             ${p.extras_changes && p.extras_changes.length
               ? html`<ul style="margin:4px 0">${p.extras_changes.map(c => html`<li>${c.label}</li>`)}</ul>`
               : html` unchanged.`}
             <span class="secondary" style="display:block">The current House Mode and its history stay as they are.</span>
           </div>`
-        : html`<div class="notice" style="margin:8px 0">This file has no Alarmo ext settings (House Modes, physical panel,
+        : html`<div class="notice" style="margin:8px 0">This file has no extra settings (House Modes, physical panel,
             zone rules, mirrors); those stay as they are.</div>`}
       ${!p.total_changes
         ? html`<div class="notice" style="margin:8px 0">No changes — the file matches the current configuration.</div>`
@@ -224,7 +224,7 @@ export class AlarmoExtImportDialog extends LitElement {
         </tbody>
       </table>
       <p class="secondary" style="display:block;margin-top:12px">
-        Applying makes a backup of the current configuration first, then reloads Alarmo (alarm entities are
+        Applying makes a backup of the current configuration first, then reloads the integration (alarm entities are
         unavailable for a few seconds).
       </p>
       ${this.error ? html`<div class="notice error" style="margin:8px 0;white-space:pre-line">${this.error}</div>` : nothing}
@@ -258,7 +258,7 @@ export class AlarmoExtImportDialog extends LitElement {
     this.reset();
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      this.error = 'File is too large (over 5 MB) to be an Alarmo configuration.';
+      this.error = 'File is too large (over 5 MB) to be a configuration file.';
       return;
     }
     this.fileName = file.name;
@@ -284,7 +284,7 @@ export class AlarmoExtImportDialog extends LitElement {
     const src = this.source();
     const p = this.preview;
     if (!src || !p || !p.token) return;
-    const what = p.mode === 'replace' ? 'REPLACE the whole Alarmo configuration' : 'merge these changes into Alarmo';
+    const what = p.mode === 'replace' ? 'REPLACE the whole configuration' : 'merge these changes into the configuration';
     if (!window.confirm(`This will ${what} (${p.total_changes} change(s)). A backup is made first. Continue?`)) return;
     this.busy = true;
     this.error = '';

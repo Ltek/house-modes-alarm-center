@@ -245,7 +245,7 @@ class HouseShadow:
             opened = ", ".join(w["failed"]) or "zones not ready"
             self.add(
                 "request",
-                f"{w['msg']}: Alarmo could not arm (open: {opened}); live House Modes would fail the same way "
+                f"{w['msg']}: the alarm could not arm (open: {opened}); live House Modes would fail the same way "
                 f"(on failure {w['target']['on_failure']})",
                 True,
             )

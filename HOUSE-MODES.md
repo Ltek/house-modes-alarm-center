@@ -1,7 +1,7 @@
 # House Modes — setup and migrating your automations
 
 House Modes live on the **House Modes** tab and in `select.alarmo_house_mode`.
-Automations change the mode with `alarmo.set_house_mode` (`mode`, `source`); Alarmo decides
+Automations change the mode with `alarmo.set_house_mode` (`mode`, `source`); the integration decides
 whether that is allowed, arms/disarms the partitions, handles failures and timers. Lights,
 locks, curtains, cameras and the water main stay in your own automations.
 
@@ -10,7 +10,7 @@ locks, curtains, cameras and the water main stay in your own automations.
 **Quickest: detect them.** House Modes tab → *Modes* → **Detect from your input_selects**:
 
 - it finds your selector (manual choice), current-mode and previous-mode input_selects (change them in the drop-downs);
-- one House Mode per option; the partitions come from the Activity log (what Alarmo was set to each time your
+- one House Mode per option; the partitions come from the Activity log (what the partitions were set to each time your
   current-mode entity changed), or from the mode's name when it never appears there (Away → Away, Sleep → Night, …);
 - *also seen* shows other states the partitions were in for that mode (for example Custom when Stay ran with bypasses);
 - tick the ones you want → **Use**: they go into the draft with the three entities, and House Modes switch to Shadow if
@@ -51,7 +51,7 @@ automations and change nothing:
   handle it: who may change the mode, readiness, which partitions it would set, which scenes and scripts would run;
 - then it is compared with what your automations really did to the partitions within 3 minutes: **✓** they ended
   where House Modes would have, **✗** they differ (blocked or not ready but changed anyway, or never got there);
-- partitions changed outside House Modes (keypad, Alarmo card) show which House Mode that would be;
+- partitions changed outside House Modes (keypad, alarm card) show which House Mode that would be;
 - *Compare with* (shown in Shadow): your own House Mode entity, e.g. `input_select.house_mode`, is checked too;
 - nothing is armed or disarmed, no scene or script runs, no notification or House Mode event is sent, and the
   input_select is never written. Timers and delayed requests are only logged (in memory).
@@ -66,7 +66,7 @@ explained, switch to **Live** (the current mode is kept) and disable the automat
 and dashboards that use them keep working; in Shadow they are compared with what House Modes would have set.
 
 **House Modes** tab → *House Mode settings* → **House Mode input_select entity** = `input_select.house_mode_selector`, Save. Changing the
-input_select now goes through Alarmo, and Alarmo writes its mode back to it.
+input_select now goes through the integration, and it writes the mode back to it.
 
 ## 3. Replace automations (disable, don't delete, until you are happy)
 
@@ -112,18 +112,18 @@ Blueprints are in `blueprints/automation/alarmo/` in the ZIP: copy them to
 Everything is on one tab, **Users, Codes, Keypads**. From top to bottom: the code settings, the Users table, and one
 collapsible card per Z-Wave lock with one row per code slot.
 
-- **A code slot belongs to an Alarmo User.** When the code is used at the lock, that user's keypad actions run.
-- **Keypad actions:** *when this code unlocks* and *when this code locks*. Each one sets a House Mode, Alarmo
+- **A code slot belongs to a User.** When the code is used at the lock, that user's keypad actions run.
+- **Keypad actions:** *when this code unlocks* and *when this code locks*. Each one sets a House Mode, alarm
   partition targets (Away / Home / Night / … / Disarm), or both. Partition targets win over the House Mode for those
   partitions.
   - A House Mode only needs the user to be enabled. Whether a lock keypad may change the House Mode is decided per
     House Mode, in its "Who may change it" table (source *Lock keypad*).
   - Partition targets need *Can arm* / *Can disarm* and the user's partition limit.
-- **Lock-only users.** Codes imported from a lock become lock-only users: they cannot arm or disarm Alarmo itself
+- **Lock-only users.** Codes imported from a lock become lock-only users: they cannot arm or disarm the alarm itself
   until you turn on Can arm / Can disarm. They still switch House Modes from the lock.
 - **Codes without a user** are flagged on each lock card: "Import N code(s) as lock-only users". A code that is
-  already an Alarmo User's code is linked to that user instead of creating a duplicate.
-- **Code** compares the slot's code with the user's code (*Slot = User Code*, *Slot Empty*, …). Alarmo stores codes only bcrypt-hashed. The eye
+  already a User's code is linked to that user instead of creating a duplicate.
+- **Code** compares the slot's code with the user's code (*Slot = User Code*, *Slot Empty*, …). Codes are stored only bcrypt-hashed. The eye
   button shows one slot's code for 30 seconds, read from the lock at that moment (admin only, never stored).
 - **The user editor** (Add user, or click a user) opens in place under the Users header.
   - *Lock codes and keypad actions*: add lock slots, set the keypad actions, and choose whether the user's code is
@@ -133,8 +133,8 @@ collapsible card per Z-Wave lock with one row per code slot.
 - **Keypad lock without a code** (the Schlage outside button): one action per lock, on its card.
 - **The old "code slot → House Mode" settings** still work until you click **Move them to users** on the Keypads card.
   Each slot then gets a lock-only user (or the user with the same code) with that House Mode as its unlock action.
-  A slot whose code can't be read gets a stand-in code that never works in Alarmo, until you set the real one.
+  A slot whose code can't be read gets a stand-in code that never works for the alarm, until you set the real one.
 - Every keypad use fires `alarmo_keypad_used` (entity_id, operation, slot, user_id, user_name, house_mode, targets,
   denied).
 - **Adding a slot to an existing user:** on Save (or with *Write the user code*), the code is copied from a linked slot
-  that already holds it, since Alarmo only keeps a hash. If no slot holds it, set it with *Change code*.
+  that already holds it, since only a hash is kept. If no slot holds it, set it with *Change code*.

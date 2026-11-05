@@ -350,7 +350,7 @@ export class AlarmViewHouse extends LitElement {
       <div class="editor" style="margin:0 16px 12px;padding:8px 12px;border-left:3px solid var(--primary-color)">
         <div class="subhead">Detected House Modes</div>
         <p class="secondary">One House Mode per option of your input_selects. Partitions come from the Activity log (what
-          Alarmo was set to each time your current-mode entity changed: ${r.changes} changes over ${days} days), or from the
+          the partitions were set to each time your current-mode entity changed: ${r.changes} changes over ${days} days), or from the
           name when a mode never appears there. Nothing is saved until you press Save.</p>
         <div class="detail-grid">
           ${ent('selector', 'Selector (manual choice)')} ${ent('current', 'Current House Mode')} ${ent('previous', 'Previous House Mode')}

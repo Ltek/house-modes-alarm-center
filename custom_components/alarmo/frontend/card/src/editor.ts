@@ -5,6 +5,7 @@
 import { LitElement, html, css, nothing, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './alarm/lib/types';
+import { VERSION } from '../../src/const';
 import {
   CardConfig,
   CardData,
@@ -607,6 +608,11 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     const modes = this.data?.house.modes || [];
     const frame = this.styleOf('card');
     return html`<div class="ed">
+      <div class="ed-header">
+        <ha-icon icon="mdi:shield-home"></ha-icon>
+        <span class="ed-header-title">House Modes &amp; Alarm Center Card</span>
+        <span class="ed-header-build">v${VERSION}</span>
+      </div>
       ${this.panel('card', 'mdi:card-outline', 'Card', 'Which Alarmo alarm the card controls, and the frame around it.', html`
         ${this.group('Alarm')}
         ${this.select('Alarmo alarm', c.entity || '', [['', 'First linked alarm'], ...alarms.map(a => [a.entity_id, `${a.name} (${a.entity_id})`] as [string, string])],
@@ -811,6 +817,30 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
       gap: 8px;
       color: var(--ltek-c-text);
       font-size: var(--ltek-fs-body);
+    }
+    /* editor header: icon + name + build, as on the other Ltek cards */
+    .ed-header {
+      display: flex;
+      align-items: center;
+      gap: var(--ltek-sp-3);
+      padding: 2px 2px 10px;
+      border-bottom: 1px solid var(--ltek-c-border-soft);
+      margin-bottom: 4px;
+    }
+    .ed-header ha-icon {
+      --mdc-icon-size: 22px;
+      color: var(--ltek-c-accent);
+    }
+    .ed-header-title {
+      font-size: var(--ltek-fs-header);
+      font-weight: var(--ltek-fw-bold);
+      color: var(--ltek-c-text);
+    }
+    .ed-header-build {
+      margin-left: auto;
+      font-size: var(--ltek-fs-small);
+      color: var(--ltek-c-muted);
+      font-family: var(--code-font-family, monospace);
     }
     /* top-level panels: bordered box, accent border when open */
     .panel {

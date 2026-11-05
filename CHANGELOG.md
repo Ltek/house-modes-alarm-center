@@ -3,6 +3,12 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.55 — 2026-11-05
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- The card editor shows the card's name and build at the top, as the other Ltek cards do.
+
 ## v2026.11.05.54 — 2026-11-05
 
 Card only; no Home Assistant restart needed (reload the browser).

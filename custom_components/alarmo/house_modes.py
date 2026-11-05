@@ -68,6 +68,7 @@ class HouseModeManager:
         self.overrides: dict[str, str] = {}
         self.shadow_log = HouseShadow(self)
         self.last_result: dict[str, Any] | None = None
+        self._changing: str | None = None  # mode id while a change is being applied
 
     @property
     def shadow(self) -> bool:
@@ -223,9 +224,30 @@ class HouseModeManager:
                 await self._notify(f"{target['name']}: not ready", f"Open: {names}")
 
         async with self._lock:
-            prev = find_mode(settings, settings["current"])
-            await self._run_steps(prev, target, "before", source)
-            return await self._apply(target, source)
+            self._changing = target["id"]
+            async_dispatcher_send(self.hass, SIGNAL_HOUSE)
+            try:
+                prev = find_mode(settings, settings["current"])
+                await self._run_steps(prev, target, "before", source)
+                return await self._apply(target, source)
+            finally:
+                self._changing = None
+                async_dispatcher_send(self.hass, SIGNAL_HOUSE)
+
+    @property
+    def changing_to(self) -> str | None:
+        """Name of the House Mode a change is under way to, else None.
+
+        Under way = being applied, waiting (delayed request), or, in Shadow, the request being watched.
+        """
+        s = self.settings
+        ref = self._changing
+        if ref is None and self.shadow and self.shadow_log.watching:
+            ref = self.shadow_log._watch["target"]["id"]
+        if ref is None:
+            ref = next((p.get("target") for p in s["pending"] if p.get("kind") == "delayed"), None)
+        mode = find_mode(s, ref)
+        return mode["name"] if mode else None
 
     def _name(self, entity_id: str) -> str:
         st = self.hass.states.get(entity_id)

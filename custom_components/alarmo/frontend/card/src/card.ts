@@ -13,6 +13,11 @@ import {
   fromPairs,
   buttonVars,
   migrateConfig,
+  fxClasses,
+  fxTriggers,
+  fxVars,
+  FX_PREVIEW,
+  FX_TRIGGERS,
   resolveColor,
   keypadKeys,
   lcdLines,
@@ -92,12 +97,33 @@ export class HouseModesAlarmCenterCard extends LitElement {
     if (!this.config.collapsible) this.collapsed = false;
   }
 
+  /**
+   * Which saved view belongs to this card: its alarm and its section layout (which sections exist and which can
+   * collapse). Style edits keep the key, so the edit preview keeps its state; two different cards for the same alarm
+   * get their own.
+   */
   private get viewKey() {
-    return this.config?.entity || '(first alarm)';
+    const c: any = this.config || {};
+    const layout = ['show_header', 'show_house_modes', 'show_alarm', 'show_panel_keypad', 'collapsible', 'modes_collapsible', 'alarm_collapsible', 'keypad_collapsible']
+      .map(k => (c[k] ? 1 : 0))
+      .join('');
+    return `${c.entity || '(first alarm)'}|${layout}`;
   }
 
   private saveView() {
     VIEW_STATE.set(this.viewKey, { collapsed: this.collapsed, closed: { ...this.closed } });
+  }
+
+  private onFxPreview = () => this.requestUpdate();
+
+  connectedCallback() {
+    super.connectedCallback();
+    FX_PREVIEW.listeners.add(this.onFxPreview);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    FX_PREVIEW.listeners.delete(this.onFxPreview);
   }
 
   getCardSize() {
@@ -210,8 +236,10 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const panelState = link ? this.hass.states[link.panel_entity]?.state : undefined;
     const ready = link?.ready_entity ? this.hass.states[link.ready_entity]?.state : undefined;
     const border = borderColor(alarmState, panelState, ready, mode?.color);
+    const active = FX_PREVIEW.on ? [...FX_TRIGGERS] : fxTriggers(alarmState, panelState, h.changing_to);
+    const fx = fxClasses(c.effects, active);
     return html`
-      <ha-card style=${`--hmac-border:${border};${styleVars(c.styles)}`}>
+      <ha-card class=${fx.join(' ')} style=${`--hmac-border:${border};${styleVars(c.styles)};${fxVars(c.effects)}`}>
         ${c.show_header || this.collapsed ? this.renderHeader(mode, alarmState, link) : nothing}
         ${this.message ? html`<div class="message" role="status">${this.message}</div>` : nothing}
         ${this.collapsed
@@ -259,6 +287,10 @@ export class HouseModesAlarmCenterCard extends LitElement {
 
   /** A section, optionally behind a bar that opens and closes it. */
   private section(id: string, collapsible: boolean, icon: string, color: string | undefined, label: string, body: () => unknown) {
+    return html`<div class="sec sec-${id}">${this.sectionInner(id, collapsible, icon, color, label, body)}</div>`;
+  }
+
+  private sectionInner(id: string, collapsible: boolean, icon: string, color: string | undefined, label: string, body: () => unknown) {
     if (!collapsible) return body();
     const closed = collapsible && !!this.closed[id];
     return html`
@@ -288,7 +320,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
   private renderHeader(mode: CardData['house']['modes'][0] | undefined, alarmState: string | undefined, link: ReturnType<typeof linkFor>) {
     const h = this.data!.house;
     const kp = link?.keypad_entity ? this.hass!.states[link.keypad_entity] : undefined;
-    const [l1, l2] = lcdLines((kp?.attributes as any)?.alpha ?? kp?.state);
+    const [l1, l2] = lcdLines((kp?.attributes as any)?.alpha ?? kp?.state, this.config!.display_strip, this.config!.display_replace);
     const title = h.enabled ? (mode ? mode.name : 'unknown') : this.config!.name || (alarmState ? alarmState.replace(/_/g, ' ') : '');
     return html`
       <div class="head ${this.config!.collapsible ? 'clickable' : ''} ${this.config!.collapsible && this.config!.show_chevron ? 'chevron' : ''}" @click=${this.toggle}
@@ -322,7 +354,8 @@ export class HouseModesAlarmCenterCard extends LitElement {
         ${modes.map(m => {
           const on = m.id === h.current;
           const st = this.config!.styles || {};
-          return html`<button class="mode ${on ? 'on' : ''}" aria-pressed=${on ? 'true' : 'false'} title=${m.name}
+          const target = !!h.changing_to && h.changing_to === m.name || (FX_PREVIEW.on && on);
+          return html`<button class="mode ${on ? 'on' : ''} ${target ? 'fx-target' : ''}" aria-pressed=${on ? 'true' : 'false'} title=${m.name}
               style=${`--mode-color:${m.color};${buttonVars(st.mode_button, st.mode_icon, m.color)}`}
               @click=${() => this.chooseMode(m.name)}>
               ${this.config!.show_mode_icons ? html`<ha-icon icon=${m.icon}></ha-icon>` : nothing}
@@ -341,7 +374,7 @@ export class HouseModesAlarmCenterCard extends LitElement {
         ${!this.config!.show_header && link.keypad_entity
           ? (() => {
               const st = this.hass!.states[link.keypad_entity!];
-              const [l1, l2] = lcdLines((st?.attributes as any)?.alpha ?? st?.state);
+              const [l1, l2] = lcdLines((st?.attributes as any)?.alpha ?? st?.state, this.config!.display_strip, this.config!.display_replace);
               return html`<div class="lcd big"><div>${l1 || ' '}</div><div>${l2 || ' '}</div></div>`;
             })()
           : nothing}
@@ -358,10 +391,70 @@ export class HouseModesAlarmCenterCard extends LitElement {
   }
 
   static styles = css`
+    /* Effects (from the Easy Thermostat Styler Card, without the moving backgrounds): fx-on while something is under
+       way, fx-<part>-glow / -pulse per part. --fx-c is the effect color (default: the border's state color). */
+    ha-card {
+      --fx-size: 16px;
+      --fx-speed: 1.6s;
+      --fx-c: var(--fx-color, var(--hmac-border, var(--primary-color)));
+    }
+    ha-card.fx-border-glow {
+      box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 6) color-mix(in srgb, var(--fx-c) 55%, transparent);
+    }
+    ha-card.fx-border-pulse {
+      animation: hmac-fx-border var(--fx-speed) ease-in-out infinite;
+    }
+    ha-card.fx-border-glow.fx-border-pulse {
+      animation-name: hmac-fx-border-strong;
+    }
+    ha-card.fx-status_icon-glow .mode-icon {
+      filter: drop-shadow(0 0 calc(var(--fx-size) / 3) var(--fx-c)) drop-shadow(0 0 calc(var(--fx-size) / 6) var(--fx-c));
+    }
+    ha-card.fx-status_icon-pulse .mode-icon {
+      animation: hmac-fx-icon var(--fx-speed) ease-in-out infinite;
+    }
+    ha-card.fx-mode_button-glow .mode.fx-target {
+      box-shadow: 0 0 var(--fx-size) calc(var(--fx-size) / 8) color-mix(in srgb, var(--mode-color, var(--fx-c)) 55%, transparent);
+    }
+    ha-card.fx-mode_button-pulse .mode.fx-target ha-icon {
+      animation: hmac-fx-icon var(--fx-speed) ease-in-out infinite;
+    }
+    @keyframes hmac-fx-border {
+      0%, 100% { box-shadow: 0 0 0 0 transparent; }
+      50% { box-shadow: 0 0 calc(var(--fx-size) * 1.2) 0 color-mix(in srgb, var(--fx-c) 60%, transparent); }
+    }
+    @keyframes hmac-fx-border-strong {
+      0%, 100% { box-shadow: 0 0 calc(var(--fx-size) * 0.6) 0 color-mix(in srgb, var(--fx-c) 45%, transparent); }
+      50% { box-shadow: 0 0 calc(var(--fx-size) * 1.8) calc(var(--fx-size) / 6) color-mix(in srgb, var(--fx-c) 80%, transparent); }
+    }
+    @keyframes hmac-fx-icon {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.15); opacity: 0.75; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      ha-card,
+      ha-card * {
+        animation: none !important;
+      }
+    }
     ha-card {
       overflow: hidden;
       border: var(--hmac-border-width, 2px) solid var(--hmac-border, var(--divider-color));
       border-radius: var(--hmac-radius, var(--ha-card-border-radius, 12px));
+      background: var(--hmac-card-bg, var(--ha-card-background, var(--card-background-color, #1c1c1c)));
+    }
+    /* section backgrounds (unset: the card background shows through) */
+    .head {
+      background: var(--hmac-header-bg, transparent);
+    }
+    .sec-modes {
+      background: var(--hmac-modes-bg, transparent);
+    }
+    .sec-alarm {
+      background: var(--hmac-alarm-bg, transparent);
+    }
+    .sec-keypad {
+      background: var(--hmac-keypad-bg, transparent);
     }
     /* icon + text centered together, as in a button-card header: 48 px icon, 12 px gap, the pair nudged 10 px left
        so the text (not the icon) sits near the middle */

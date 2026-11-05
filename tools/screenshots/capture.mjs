@@ -178,7 +178,8 @@ const CARD_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${THE
   const mk = (cfg) => { const c = document.createElement('house-modes-alarm-center-card'); c.setConfig({ type: 'custom:house-modes-alarm-center-card', ...cfg }); c.hass = window.demoHass; return c; };
   const cols = [document.createElement('div'), document.createElement('div'), document.createElement('div')];
   cols.forEach(c => { c.className = 'col'; document.body.appendChild(c); });
-  cols[0].appendChild(mk({ entity: 'alarm_control_panel.ground_floor' }));
+  cols[0].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', display_strip: '*',
+    styles: { header_section: { background: '#162430' } }, effects: { border: 'glow', status_icon: 'glow' } }));
   cols[1].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_house_modes: false, show_alarm: false, show_panel_keypad: true }));
   cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', collapsible: true, start_collapsed: true, show_chevron: true }));
   cols[2].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_alarm: false, columns: 4, modes_align: 'center',
@@ -188,6 +189,10 @@ const CARD_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${THE
   cols[1].appendChild(mk({ entity: 'alarm_control_panel.ground_floor', show_header: false, show_alarm: false, columns: 5,
     styles: { mode_button: { background: 'transparent', border: 'mode', active_background: 'mode', text_follows_icon: true },
               mode_icon: { color: 'mode', active_color: '#ffffff' } } }));
+  // show the effects (a still frame of the glow)
+  await new Promise(r => setTimeout(r, 600));
+  window.__hmacFxPreview.set(true);
+  await new Promise(r => setTimeout(r, 300));
   window.cardsReady = true;
 </script></body></html>`;
 
@@ -199,14 +204,15 @@ const EDITOR_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>${T
   const ed = document.createElement('house-modes-alarm-center-card-editor');
   ed.hass = window.demoHass;
   ed.setConfig({ type: 'custom:house-modes-alarm-center-card', entity: 'alarm_control_panel.ground_floor', collapsible: true, alarm_collapsible: true,
-    show_panel_keypad: true, styles: { mode_button: { background: 'transparent', border: 'mode' }, mode_icon: { active_color: '#ffffff' } } });
+    show_panel_keypad: true, display_strip: '*', display_replace: [{ from: 'DISARMED', to: 'Disarmed' }],
+    effects: { border: 'both', status_icon: 'glow' } });
   const box = document.createElement('div'); box.className = 'ed'; box.appendChild(ed); document.body.appendChild(box);
   await new Promise(r => setTimeout(r, 400));
   const root = ed.shadowRoot;
   root.querySelector('details[data-id="card"]').open = false;
   root.querySelector('details[data-id="sections"]').open = true;
-  root.querySelector('details[data-id="modes"]').open = true;
-  root.querySelector('details[data-id="modes"] details.sub').open = true;
+  root.querySelector('details[data-id="header"]').open = true;
+  root.querySelector('details[data-id="effects"]').open = true;
   window.editorReady = true;
 </script></body></html>`;
 

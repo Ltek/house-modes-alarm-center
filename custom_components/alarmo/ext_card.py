@@ -69,6 +69,7 @@ def card_data(hass, user_id: str | None, is_admin: bool) -> dict:
             "changed_at": s["changed_at"],
             "source": s["source"],
             "last_result": ext.house.last_result,
+            "changing_to": ext.house.changing_to,
             "modes": [
                 {"id": m["id"], "name": m["name"], "icon": m["icon"], "color": mode_color(m), "targets": m["targets"]}
                 for m in s["modes"]

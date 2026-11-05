@@ -96,3 +96,30 @@ test('button style presets are recognised, the icon size does not matter', () =>
   assert.equal(presetOf(undefined, undefined), 'filled');
   assert.equal(presetOf({ background: 'red' }, undefined), '');
 });
+
+import { cleanLine, lcdLines as lcd2, fxClasses, fxTriggers, fxVars } from '../card/src/data.ts';
+
+test('panel display: strip, then replace', () => {
+  assert.equal(cleanLine('****DISARMED****', '*'), 'DISARMED');
+  assert.equal(cleanLine('  Ready to Arm  ', '*'), 'Ready to Arm');
+  assert.equal(cleanLine('FAULT 02 MAIN ROOM', '', [{ from: 'FAULT', to: 'Open:' }]), 'Open: 02 MAIN ROOM');
+  assert.equal(cleanLine('****DISARMED****', '*', [{ from: 'DISARMED', to: 'Disarmed' }, { from: 'x' }]), 'Disarmed');
+  assert.deepEqual(lcd2('****DISARMED****  Ready to Arm  ', '*'), ['DISARMED', 'Ready to Arm']);
+  assert.equal(cleanLine('**', '*'), '');
+});
+
+test('effects: only while a chosen trigger is true', () => {
+  assert.deepEqual(fxTriggers('arming', 'disarmed', null), ['arming']);
+  assert.deepEqual(fxTriggers('disarmed', 'pending', 'Away'), ['entry', 'changing']);
+  assert.deepEqual(fxClasses({ border: 'both', status_icon: 'pulse' }, ['arming']),
+    ['fx-on', 'fx-border-glow', 'fx-border-pulse', 'fx-status_icon-pulse']);
+  assert.deepEqual(fxClasses({ border: 'glow', when: ['triggered'] }, ['arming']), []);
+  assert.deepEqual(fxClasses({ when: ['arming'] }, ['arming']), []); // no parts chosen
+  assert.deepEqual(fxClasses(undefined, ['arming']), []);
+  assert.equal(fxVars({ size: 20, speed: 1.2, color: 'var(--warning-color)' }), '--fx-size:20px;--fx-speed:1.2s;--fx-color:var(--warning-color)');
+});
+
+test('card and section backgrounds', () => {
+  assert.equal(styleVars({ card: { background: 'transparent' }, header_section: { background: '#222222' } }),
+    '--hmac-card-bg:transparent;--hmac-header-bg:#222222');
+});

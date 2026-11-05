@@ -15,7 +15,7 @@ from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntityFeature,
 )
 
-VERSION = "2026.11.05.45"
+VERSION = "2026.11.05.46"
 NAME = "Alarmo"
 MANUFACTURER = "@nielsfaber"
 

@@ -51,6 +51,9 @@ panel keypad*). Only options you change are written to the YAML.
 | `hidden_modes` | | House Modes (id or name) without a button |
 | `alarm_colors` | `modes` | Arm mode colors (arm buttons, alarm bar, the `mode` keyword): `modes` = the House Mode that sets each arm mode, `standard` = green disarmed / red away / orange home / …, `theme` = Home Assistant's alarm state colors |
 | `keypad_labels` | Vista | e.g. `{"6": "BYP"}` |
+| `display_strip` | | Characters stripped from both ends of each panel display line, e.g. `"*"` (****DISARMED**** → DISARMED) |
+| `display_replace` | | Text replaced in the display lines, in order, after stripping: `[{from: "DISARMED", to: "Disarmed"}]` (`to` empty = remove) |
+| `effects` | | Glow / pulse while something is under way, see below |
 | `alarm` | | alarmo-card options: `keep_keypad_visible`, `use_code_dialog`, `hide_keypad`, `show_messages`, `show_ready_indicator`, `show_bypassed_sensors`, `button_scale_actions`, `button_scale_keypad`, `states` |
 | `styles` | | Per element, see below |
 
@@ -73,8 +76,27 @@ styles:
 - Color keywords: `mode` (each button's own House Mode / arm mode color), `transparent`, `none` (borders).
 - The editor's **Style** choice sets a whole look at once: *Filled*, *Outline when selected*, *Outline, all in color*,
   *Colored icon when selected*; then fine-tune.
-- **Frame**: `card.border_width`, `card.radius`.
+- **Frame and backgrounds**: `card.border_width`, `card.radius`, `card.background` (the default for every
+  section); `header_section`, `modes_section`, `alarm_section`, `keypad_section` each take a `background`.
 - Colors: `#rrggbb`, a theme color `var(--…)`, or any CSS color. Unset keys keep the card's defaults.
+
+### Effects
+
+```yaml
+effects:
+  border: both          # none / glow / pulse / both
+  status_icon: glow     # the House Mode icon in the header
+  mode_button: pulse    # the House Mode button being changed to
+  when: [arming, entry, changing, triggered]   # default: all four
+  size: 16              # glow size, px
+  speed: 1.6            # pulse period, s
+  color: var(--warning-color)   # default: the border's state color
+```
+
+- *arming*: Alarmo or the physical panel counts down the exit delay; *entry*: the entry delay; *changing*: a House
+  Mode change is being applied, waits (delayed request) or, in Shadow, is being watched; *triggered*: an alarm.
+- The editor's *Preview the effects now* shows them without waiting for the real thing (not saved).
+- Respects the system's reduced-motion setting.
 
 ## Who may use the panel keypad
 

@@ -109,3 +109,25 @@ async def test_card_is_served(hass: Any, hass_storage: Any, hass_client_no_auth:
     client = await hass_client_no_auth()
     res = await client.get(url)
     assert res.status == 200 and "export const x" in await res.text()
+
+
+async def test_changing_to_while_a_change_runs(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """changing_to names the target while the partitions are being set, then clears."""
+    await _setup(hass, hass_storage, tmp_path)
+    house = hass.data["alarmo_ext"].house
+    await house.async_save_settings({"enabled": True, "modes": [
+        {"id": "d", "name": "Disarmed", "targets": {GF: "disarmed"}},
+        {"id": "s", "name": "Stay", "targets": {GF: "armed_home"}},
+    ]})
+    await advance_time(hass, 5)
+    seen = []
+    orig = house._apply
+
+    async def spy(target, source):
+        seen.append(house.changing_to)
+        return await orig(target, source)
+
+    house._apply = spy
+    await house.async_set_mode("Stay", "manual")
+    assert seen == ["Stay"] and house.changing_to is None
+    assert "changing_to" in hass.states.get("select.alarmo_house_mode").attributes

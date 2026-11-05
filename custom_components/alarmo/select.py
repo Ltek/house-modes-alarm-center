@@ -80,6 +80,7 @@ class HouseModeSelect(SelectEntity):
             "source": s["source"],
             "changed_at": s["changed_at"],
             "last_result": self.ext.house.last_result,
+            "changing_to": self.ext.house.changing_to,
             "pending": [
                 {"target": p.get("target"), "kind": p.get("kind"), "due": p.get("due")}
                 for p in s["pending"]

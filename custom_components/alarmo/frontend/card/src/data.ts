@@ -31,6 +31,8 @@ export type CardData = {
     changed_at: string | null;
     source: string | null;
     last_result: LastResult | null;
+    /** name of the House Mode a change is under way to (being applied, delayed, or watched in Shadow) */
+    changing_to?: string | null;
     modes: CardMode[];
   };
   alarms: { key: string; entity_id: string; name: string }[];
@@ -113,7 +115,17 @@ export type IconElement = keyof typeof ICON_ELEMENTS;
 
 export type CardStyles = Partial<Record<TextElement, TextStyle>> &
   Partial<Record<IconElement, IconStyle>> &
-  Partial<Record<ButtonSet, ButtonStyle>> & { card?: { border_width?: number; radius?: number } };
+  Partial<Record<ButtonSet, ButtonStyle>> &
+  Partial<Record<SectionKey, { background?: string }>> & { card?: { border_width?: number; radius?: number; background?: string } };
+
+/** Sections with their own background (unset = the card background shows through). */
+export const SECTIONS = {
+  header_section: 'Header',
+  modes_section: 'House Mode buttons',
+  alarm_section: 'Alarm',
+  keypad_section: 'Physical panel keypad',
+} as const;
+export type SectionKey = keyof typeof SECTIONS;
 
 export type CardConfig = {
   type: string;
@@ -158,6 +170,11 @@ export type CardConfig = {
   /** @deprecated v2026.11.04.42–.44; false → alarm_colors: standard */
   alarm_colors_from_modes?: boolean;
   styles?: CardStyles;
+  /** characters stripped from both ends of each panel display line, e.g. "*" */
+  display_strip?: string;
+  /** text replaced in the panel display lines, in order (after stripping) */
+  display_replace?: { from: string; to?: string }[];
+  effects?: EffectsConfig;
   keypad_labels?: Record<string, string>;
   alarm?: Record<string, any>;
 };
@@ -241,6 +258,8 @@ export const styleVars = (styles: CardStyles | undefined): string => {
   const c = (styles || {}).card;
   if (c?.border_width !== undefined) set('border-width', `${Number(c.border_width)}px`);
   if (c?.radius !== undefined) set('radius', `${Number(c.radius)}px`);
+  set('card-bg', c?.background);
+  for (const k of Object.keys(SECTIONS) as SectionKey[]) set(`${k.replace('_section', '')}-bg`, (styles || {})[k]?.background);
   return out.join(';');
 };
 
@@ -296,11 +315,96 @@ export const VISTA_KEYS: [string, string][] = [
 export const keypadKeys = (labels?: Record<string, string>): [string, string][] =>
   VISTA_KEYS.map(([k, l]) => [k, labels && k in labels ? labels[k] : l]);
 
-/** The panel's 2×16 keypad text as two lines. */
-export const lcdLines = (alpha: string | null | undefined): [string, string] => {
-  const a = String(alpha || '');
-  return [a.slice(0, 16).trim(), a.slice(16, 32).trim()];
+/** One panel display line: strip the given characters from both ends, then the replacements, in order. */
+export const cleanLine = (line: string, strip?: string, replace?: { from: string; to?: string }[]): string => {
+  let out = line.trim();
+  if (strip) {
+    const set = new Set([...strip, ' ']);
+    let a = 0;
+    let b = out.length;
+    while (a < b && set.has(out[a])) a++;
+    while (b > a && set.has(out[b - 1])) b--;
+    out = out.slice(a, b);
+  }
+  for (const r of replace || []) if (r && r.from) out = out.split(r.from).join(r.to ?? '');
+  return out.trim();
 };
+
+/** The panel's 2×16 keypad text as two lines (optionally stripped / replaced). */
+export const lcdLines = (alpha: string | null | undefined, strip?: string, replace?: { from: string; to?: string }[]): [string, string] => {
+  const a = String(alpha || '');
+  return [cleanLine(a.slice(0, 16), strip, replace), cleanLine(a.slice(16, 32), strip, replace)];
+};
+
+// ------------------------------------------------------------ effects (glow / pulse while something is under way)
+
+export type FxValue = 'none' | 'glow' | 'pulse' | 'both';
+export const FX_TARGETS = ['border', 'status_icon', 'mode_button'] as const;
+export type FxTarget = (typeof FX_TARGETS)[number];
+export const FX_LABELS: Record<FxTarget, string> = {
+  border: 'Card border',
+  status_icon: 'Status icon (House Mode icon in the header)',
+  mode_button: 'House Mode button (the mode being changed to)',
+};
+export const FX_TRIGGERS = ['arming', 'entry', 'changing', 'triggered'] as const;
+export type FxTrigger = (typeof FX_TRIGGERS)[number];
+export const FX_TRIGGER_LABELS: Record<FxTrigger, string> = {
+  arming: 'Arming (exit delay: Alarmo or the physical panel)',
+  entry: 'Entry delay (pending)',
+  changing: 'House Mode changing (being applied, delayed or, in Shadow, watched)',
+  triggered: 'Alarm triggered',
+};
+export type EffectsConfig = Partial<Record<FxTarget, FxValue>> & {
+  when?: FxTrigger[];
+  size?: number; // glow size px
+  speed?: number; // pulse period s
+  color?: string; // default: the border's state color
+};
+export const FX_DEFAULTS = { size: 16, speed: 1.6, when: [...FX_TRIGGERS] as FxTrigger[] };
+
+/** Which triggers are true right now. */
+export const fxTriggers = (alarm: string | undefined, panel: string | undefined, changingTo: string | null | undefined): FxTrigger[] => {
+  const out: FxTrigger[] = [];
+  if (alarm === 'arming' || panel === 'arming') out.push('arming');
+  if (alarm === 'pending' || panel === 'pending') out.push('entry');
+  if (changingTo) out.push('changing');
+  if (alarm === 'triggered' || panel === 'triggered') out.push('triggered');
+  return out;
+};
+
+/** Classes for <ha-card>: fx-on and fx-<target>-glow / -pulse while one of the chosen triggers is true. */
+export const fxClasses = (fx: EffectsConfig | undefined, active: FxTrigger[]): string[] => {
+  if (!fx) return [];
+  const when = fx.when || FX_DEFAULTS.when;
+  if (!active.some(t => when.includes(t))) return [];
+  const out = ['fx-on'];
+  for (const t of FX_TARGETS) {
+    const m = fx[t];
+    if (m === 'glow' || m === 'both') out.push(`fx-${t}-glow`);
+    if (m === 'pulse' || m === 'both') out.push(`fx-${t}-pulse`);
+  }
+  return out.length > 1 ? out : [];
+};
+
+export const fxVars = (fx: EffectsConfig | undefined): string => {
+  const out: string[] = [];
+  if (fx?.size) out.push(`--fx-size:${Number(fx.size)}px`);
+  if (fx?.speed) out.push(`--fx-speed:${Number(fx.speed)}s`);
+  if (fx?.color) out.push(`--fx-color:${String(fx.color).replace(/[;{}<>]/g, '')}`);
+  return out.join(';');
+};
+
+/** Editor-only "preview the effects" switch (never saved). Card instances listen and repaint. */
+export const FX_PREVIEW = {
+  on: false,
+  listeners: new Set<() => void>(),
+  set(v: boolean) {
+    this.on = v;
+    this.listeners.forEach(f => f());
+  },
+};
+// for the screenshot tooling and debugging in the browser console
+(globalThis as any).__hmacFxPreview = FX_PREVIEW;
 
 /** The link that belongs to the card's Alarmo entity (or the first one). */
 export const linkFor = (data: CardData, entity?: string): CardLink | undefined =>

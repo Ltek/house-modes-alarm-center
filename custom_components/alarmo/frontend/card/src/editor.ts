@@ -18,6 +18,13 @@ import {
   migrateConfig,
   BUTTON_PRESETS,
   presetOf,
+  FX_DEFAULTS,
+  FX_LABELS,
+  FX_PREVIEW,
+  FX_TARGETS,
+  FX_TRIGGERS,
+  FX_TRIGGER_LABELS,
+  EffectsConfig,
 } from './data';
 
 const THEME_COLORS: [string, string][] = [
@@ -76,6 +83,74 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
 
   setConfig(config: CardConfig) {
     this.config = migrateConfig(config);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (FX_PREVIEW.on) FX_PREVIEW.set(false); // the preview never outlives the editor
+  }
+
+  private setFx(key: string, value: unknown) {
+    const fx: any = { ...((this.config || ({} as any)).effects || {}) };
+    if (value === undefined || value === '' || value === 'none') delete fx[key];
+    else fx[key] = value;
+    this.emit({ ...(this.config as CardConfig), effects: fx });
+  }
+
+  /** §5 two levels: the card background, and the same property per section ("Card background" = inherit). */
+  private sectionBg(key: 'header_section' | 'modes_section' | 'alarm_section' | 'keypad_section') {
+    return html`${this.group('Background')}
+      ${this.color('Section background', this.styleOf(key).background, 'Card background', '#262626',
+        v => this.setStyle(key, 'background', v))}`;
+  }
+
+  private effectsBody() {
+    const fx: EffectsConfig = this.config?.effects || {};
+    const when = fx.when || FX_DEFAULTS.when;
+    const opts: [string, string][] = [['none', 'Off'], ['glow', 'Glow'], ['pulse', 'Pulse'], ['both', 'Glow + pulse']];
+    return html`
+      ${this.group('Parts')}
+      ${FX_TARGETS.map(t => this.select(FX_LABELS[t], fx[t] || 'none', opts, v => this.setFx(t, v)))}
+      ${this.group('When')}
+      ${FX_TRIGGERS.map(t => this.toggle(FX_TRIGGER_LABELS[t], when.includes(t), v => {
+        const next = v ? [...new Set([...when, t])] : when.filter(x => x !== t);
+        this.setFx('when', FX_TRIGGERS.every(x => next.includes(x)) ? undefined : next);
+      }))}
+      ${this.group('Look')}
+      ${this.slider('Glow size', fx.size || 0, 2, 60, 1, ' px', FX_DEFAULTS.size, v => this.setFx('size', v || undefined))}
+      ${this.slider('Pulse speed', fx.speed || 0, 0.4, 6, 0.1, ' s', FX_DEFAULTS.speed, v => this.setFx('speed', v ? Math.round(v * 10) / 10 : undefined))}
+      ${this.color('Effect color', fx.color, 'State color (the border color)', '#ff9800', v => this.setFx('color', v))}
+      ${this.group('Try it')}
+      ${this.toggle('Preview the effects now', FX_PREVIEW.on, v => {
+        FX_PREVIEW.set(v);
+        this.requestUpdate();
+      }, 'not saved; off when you close the editor')}
+    `;
+  }
+
+  private displayBody() {
+    const c = this.cfg;
+    const rep = c.display_replace || [];
+    const setRep = (next: { from: string; to?: string }[]) => this.set('display_replace', next.length ? next : undefined);
+    return html`
+      ${this.group('Panel display text')}
+      <div class="row"><span class="lab">Strip from both ends</span>
+        <input class="ctl" type="text" placeholder="e.g. *" .value=${c.display_strip || ''}
+          @change=${(e: any) => this.set('display_strip', e.target.value || undefined)} /></div>
+      <p class="hint">Characters removed from the start and end of each line: "*" turns ****DISARMED**** into DISARMED.</p>
+      <div class="row"><span class="lab">Replace</span>
+        <button class="add" @click=${() => setRep([...rep, { from: '', to: '' }])}>+ Replacement</button></div>
+      ${rep.map((x, i) => html`<div class="row rep">
+        <input type="text" aria-label="Find" placeholder="find" .value=${x.from || ''}
+          @change=${(e: any) => setRep(rep.map((y, j) => (j === i ? { ...y, from: e.target.value } : y)))} />
+        <span class="lab">→</span>
+        <input type="text" aria-label="Replace with" placeholder="replace with (empty = remove)" .value=${x.to || ''}
+          @change=${(e: any) => setRep(rep.map((y, j) => (j === i ? { ...y, to: e.target.value || undefined } : y)))} />
+        <button class="icon-btn del" title="Remove" aria-label="Remove" @click=${() => setRep(rep.filter((_, j) => j !== i))}>
+          <ha-icon icon="mdi:trash-can-outline"></ha-icon></button>
+      </div>`)}
+      ${rep.length ? html`<p class="hint">Applied in order, after stripping; exact text, case sensitive.</p>` : nothing}
+    `;
   }
 
   protected firstUpdated() {
@@ -338,6 +413,9 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
         ${this.group('Frame')}
         ${this.slider('Border width', frame.border_width ?? 2, 0, 8, 1, ' px', 2, v => this.setStyle('card', 'border_width', v === 2 ? undefined : v), false)}
         ${this.slider('Corner radius', frame.radius ?? 12, 0, 32, 1, ' px', 12, v => this.setStyle('card', 'radius', v === 12 ? undefined : v), false)}
+        ${this.color('Card background', frame.background, 'Theme card background', '#1c1c1c', v => this.setStyle('card', 'background', v), [['transparent', 'Transparent']])}
+        <p class="hint">The card background is the default for every section; a section can set its own below (Header,
+          House Mode buttons, Alarm, Physical panel keypad).</p>
         <p class="hint">The border shows the state: red alarm, orange arming or not ready, the House Mode's color while
           armed, green ready.</p>
       `, true)}
@@ -361,6 +439,8 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           ${this.toggle('House Mode name', c.show_mode_name, v => this.set('show_mode_name', v))}
           ${this.toggle('Panel display, line 1', c.show_line1, v => this.set('show_line1', v))}
           ${this.toggle('Panel display, line 2', c.show_line2, v => this.set('show_line2', v))}
+          ${c.show_line1 || c.show_line2 ? this.displayBody() : nothing}
+          ${this.sectionBg('header_section')}
           ${this.group('Styles')}
           ${c.show_header_icon ? this.iconStyle('header_icon', { defaultLabel: 'House Mode color', presets: [] }) : nothing}
           ${c.show_mode_name ? this.textStyle('mode_name') : nothing}
@@ -385,6 +465,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
                     <ha-icon icon=${m.icon} style=${`color:${m.color}`}></ha-icon>${m.name}</button>`;
                 })}</div>`
             : nothing}
+          ${this.sectionBg('modes_section')}
           ${this.group('Styles')}
           ${this.buttonColors('mode_button', 'mode_icon', 'House Mode color', {
             bg: 'Card default (transparent)', abg: 'Card default (faint gray)', ic: 'Card default (secondary text)', aic: 'House Mode color' })}
@@ -411,6 +492,7 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           ${this.group('Code entry and messages')}
           ${ALARM_KEYS.map(k => this.toggle(ALARM_LABELS[k], !!alarm[k], v => this.setAlarm(k, v)))}
           ${this.slider('Code keypad scale', Math.round(alarm.button_scale_keypad * 10) / 10, 1, 2.5, 0.1, '×', 1, v => this.setAlarm('button_scale_keypad', v), false)}
+          ${this.sectionBg('alarm_section')}
           ${this.group('Styles')}
           ${this.buttonColors('arm_button', 'alarm_icon', 'Arm mode color', {
             bg: 'Card default (transparent)', abg: 'Arm mode color', ic: 'Arm mode color', aic: 'Card default (white)' })}
@@ -421,12 +503,15 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
           ${c.show_arm_options ? this.textStyle('chip') : nothing}`
         : html`<p class="hint">Turned off under Sections.</p>`)}
 
+      ${this.panel('effects', 'mdi:shimmer', 'Effects', 'Make parts of the card glow or pulse while something is under way: arming, an entry delay, a House Mode change, an alarm.', this.effectsBody())}
+
       ${this.panel('keypad', 'mdi:dialpad', 'Physical panel keypad', "The panel's 12 keys with their functions, sent through Alarmo.", c.show_panel_keypad
         ? html`
           <p class="hint">Who may use the keys is set in the integration: Alarmo panel → Physical Panel → <em>Panel keypad on
             dashboards</em>. Other users see the keys disabled.</p>
           ${this.group('Show')}
           ${this.toggle('Key functions (OFF, AWAY, STAY, …)', c.show_key_labels, v => this.set('show_key_labels', v))}
+          ${this.sectionBg('keypad_section')}
           ${this.group('Styles')}
           ${this.textStyle('key_digit')}
           ${c.show_key_labels ? this.textStyle('key_label') : nothing}`
@@ -681,6 +766,34 @@ export class HouseModesAlarmCenterCardEditor extends LitElement {
     .sec-row input {
       accent-color: var(--ltek-c-accent);
       margin: 0;
+    }
+    .row.rep input[type='text'] {
+      flex: 1 1 120px;
+      min-width: 0;
+    }
+    .add {
+      font: inherit;
+      font-size: var(--ltek-fs-body);
+      padding: var(--ltek-ctrl-pad);
+      border: 1px dashed var(--ltek-c-accent);
+      border-radius: var(--ltek-r-ctrl);
+      background: none;
+      color: var(--ltek-c-accent);
+      cursor: pointer;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: var(--ltek-c-icon);
+      --mdc-icon-size: var(--ltek-icon-sm);
+    }
+    .icon-btn:hover {
+      color: var(--ltek-c-icon-hover);
+    }
+    .icon-btn.del:hover {
+      color: var(--ltek-c-error);
     }
     .chips {
       display: flex;

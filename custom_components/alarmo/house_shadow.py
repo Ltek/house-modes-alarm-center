@@ -17,7 +17,7 @@ from collections import deque
 from homeassistant.core import Event, callback
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.dispatcher import async_dispatcher_send, async_dispatcher_connect
 
 from . import const
 from .house_config import (
@@ -190,6 +190,7 @@ class HouseShadow:
             async_dispatcher_connect(self.hass, "alarmo_event", self._on_alarmo_event),
         ]
         self._watch = w
+        async_dispatcher_send(self.hass, "alarmo_ext_house_updated")
 
     @callback
     def _on_alarmo_event(self, event: str, area_id: str | None, args: dict | None = None) -> None:
@@ -206,6 +207,8 @@ class HouseShadow:
         w, self._watch = self._watch, None
         for unsub in (w or {}).get("unsubs", []):
             unsub()
+        if w:
+            async_dispatcher_send(self.hass, "alarmo_ext_house_updated")
 
     @callback
     def _on_state(self, event: Event) -> None:
@@ -232,6 +235,7 @@ class HouseShadow:
         if w is None:
             return
         self._watch = None
+        async_dispatcher_send(self.hass, "alarmo_ext_house_updated")
         for i, unsub in enumerate(w["unsubs"]):
             if i != 1:  # the timer has fired
                 unsub()

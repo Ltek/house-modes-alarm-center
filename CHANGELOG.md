@@ -3,6 +3,25 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.46 — 2026-11-05
+
+Restart Home Assistant after the update (the integration now reports House Mode changes in progress).
+
+Dashboard card:
+- **Effects** (new editor panel): the card border, the status icon and the House Mode button being changed to can
+  glow, pulse or both while the alarm or the panel is arming, during the entry delay, while a House Mode change is
+  under way, or when the alarm is triggered (each can be chosen). Glow size, pulse speed and color (default: the
+  border's state color); *Preview the effects now* in the editor. Like the Easy Thermostat Styler Card, without the
+  moving backgrounds.
+- **Panel display text**: strip characters from both ends of each line (e.g. `*`), and optional find / replace pairs.
+- **Card background** (default for every section) and a **background per section** (Header, House Mode buttons,
+  Alarm, Physical panel keypad).
+- Two cards for the same alarm with different sections keep their own open / closed state.
+
+Integration:
+- `select.alarmo_house_mode` has a `changing_to` attribute: the House Mode a change is under way to (being applied,
+  a delayed request, or a request Shadow is watching).
+
 ## v2026.11.05.45 — 2026-11-05
 
 Card only; no Home Assistant restart needed (reload the browser).

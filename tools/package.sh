@@ -52,6 +52,8 @@ grep -q "$VER" "$CARD"
 node --check "$CARD"
 node /shared/user/code/_tests/probe.mjs "$CARD" house-modes-alarm-center-card house-modes-alarm-center-card-editor hmac-alarm | grep "PROBE OK"
 (cd "$FE" && npm test 2>&1 | grep -E "^ℹ (pass|fail)")
+# the card must never fully refresh or collapse when the dashboard editor recreates it
+if [ -n "${PLAYWRIGHT_CORE:-}" ]; then node "$ROOT/tools/screenshots/preview-stability.mjs"; fi
 (cd "$ROOT" && uv run ruff check custom_components/alarmo tests tools scripts | tail -1)
 # failures get one rerun: upstream's test_ready_to_arm_modes_changed_event_on_sensor_state_change is flaky
 (cd "$ROOT" && { uv run pytest -q 2>&1 | tail -1 | grep -v failed || uv run pytest -q --lf 2>&1 | tail -1 | grep -v failed; })

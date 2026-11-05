@@ -27,6 +27,15 @@ export const CARD_VERSION = VERSION;
 
 const TAG = 'house-modes-alarm-center-card';
 
+/*
+ * Rule (see CARD_DESIGN_SYSTEM.md §5 "Never fully refresh"): the dashboard editor creates a NEW card element for many
+ * config edits. Anything the user opened or closed, and the data shown, therefore lives here, outside the element, so a
+ * new instance renders the same view at once: no "loading" flash, nothing collapses. Keyed by the card's alarm entity.
+ */
+type ViewState = { collapsed: boolean; closed: Record<string, boolean> };
+const VIEW_STATE = new Map<string, ViewState>();
+let DATA_CACHE: CardData | undefined;
+
 @customElement(TAG)
 export class HouseModesAlarmCenterCard extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
@@ -61,13 +70,33 @@ export class HouseModesAlarmCenterCard extends LitElement {
     const first = !this.config;
     this.config = { ...DEFAULTS, ...config };
     if (first) {
-      this.collapsed = !!(this.config.collapsible && this.config.start_collapsed);
-      this.closed = {
-        modes: !!(this.config.modes_collapsible && this.config.modes_start_collapsed),
-        alarm: !!(this.config.alarm_collapsible && this.config.alarm_start_collapsed),
-        keypad: !!(this.config.keypad_collapsible && this.config.keypad_start_collapsed),
-      };
+      if (DATA_CACHE && !this.data) this.data = DATA_CACHE;
+      const kept = VIEW_STATE.get(this.viewKey);
+      if (kept) {
+        // a new element for the same card (dashboard editor): keep what the user opened or closed
+        this.collapsed = kept.collapsed;
+        this.closed = { ...kept.closed };
+      } else {
+        this.collapsed = !!(this.config.collapsible && this.config.start_collapsed);
+        this.closed = {
+          modes: !!(this.config.modes_collapsible && this.config.modes_start_collapsed),
+          alarm: !!(this.config.alarm_collapsible && this.config.alarm_start_collapsed),
+          keypad: !!(this.config.keypad_collapsible && this.config.keypad_start_collapsed),
+        };
+        this.saveView();
+      }
     }
+    // a "start closed" change in the editor must not fold anything that is open now; only a section that can no
+    // longer collapse is shown again
+    if (!this.config.collapsible) this.collapsed = false;
+  }
+
+  private get viewKey() {
+    return this.config?.entity || '(first alarm)';
+  }
+
+  private saveView() {
+    VIEW_STATE.set(this.viewKey, { collapsed: this.collapsed, closed: { ...this.closed } });
   }
 
   getCardSize() {
@@ -96,9 +125,12 @@ export class HouseModesAlarmCenterCard extends LitElement {
 
   private async fetch() {
     try {
-      this.data = await this.hass!.callWS<CardData>({ type: 'alarmo/ext/card/get' });
+      const data = await this.hass!.callWS<CardData>({ type: 'alarmo/ext/card/get' });
+      // patch, don't flash: only replace the data when it changed
+      if (JSON.stringify(data) !== JSON.stringify(this.data)) this.data = data;
+      DATA_CACHE = data;
       this.error = '';
-      const r = this.data.house.last_result;
+      const r = data.house.last_result;
       if (this.requestedAt && r?.at && Date.parse(r.at) >= this.requestedAt - 2000) {
         this.requestedAt = 0;
         const m = resultMessage(r, e => this.name(e));
@@ -151,7 +183,10 @@ export class HouseModesAlarmCenterCard extends LitElement {
   }
 
   private toggle() {
-    if (this.config?.collapsible) this.collapsed = !this.collapsed;
+    if (this.config?.collapsible) {
+      this.collapsed = !this.collapsed;
+      this.saveView();
+    }
   }
 
   private moreInfo(entityId?: string | null) {
@@ -224,9 +259,12 @@ export class HouseModesAlarmCenterCard extends LitElement {
   /** A section, optionally behind a bar that opens and closes it. */
   private section(id: string, collapsible: boolean, icon: string, color: string | undefined, label: string, body: () => unknown) {
     if (!collapsible) return body();
-    const closed = !!this.closed[id];
+    const closed = collapsible && !!this.closed[id];
     return html`
-      <button class="bar" aria-expanded=${String(!closed)} @click=${() => (this.closed = { ...this.closed, [id]: !closed })}>
+      <button class="bar" aria-expanded=${String(!closed)} @click=${() => {
+        this.closed = { ...this.closed, [id]: !closed };
+        this.saveView();
+      }}>
         <ha-icon icon=${icon} style=${color ? `color:${color}` : ''}></ha-icon>
         <span class="bar-text">${label}</span>
         ${this.config!.show_chevron ? html`<ha-icon class="bar-chev" icon=${closed ? 'mdi:chevron-down' : 'mdi:chevron-up'}></ha-icon>` : nothing}

@@ -3,6 +3,17 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.05.44 — 2026-11-05
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **The edit preview no longer refreshes or collapses** when a setting changes. The dashboard editor creates a new
+  card element for many edits; open and closed sections and the card's data are now kept outside the element, so
+  the new one shows the same view at once (no loading flash), and the data is refreshed in the background. Start
+  collapsed / start closed only apply the first time the card is shown.
+- New build check `tools/screenshots/preview-stability.mjs` (run by `tools/package.sh`): opens sections, edits the
+  config, mounts a new element and checks nothing reloads or collapses.
+
 ## v2026.11.05.43 — 2026-11-05
 
 Dashboard card:

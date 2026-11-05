@@ -41,6 +41,10 @@ import { fireEvent } from './lib/fire-event';
 
 const BUTTONS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'clear'];
 
+// ext: backend data per alarm entity, kept across elements, so a new element (dashboard editor) renders at once
+type Backend = { area_id: string | number | null | undefined; alarmoConfig?: AlarmoConfig; ready: AlarmStates[] | null };
+const BACKEND = new Map<string, Backend>();
+
 @customElement('hmac-alarm')
 export class AlarmoCard extends SubscribeMixin(LitElement) {
   @property({ attribute: false })
@@ -108,6 +112,7 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
 
     validateConfig(config);
     this._config = { ...defaultCardConfig, ...config };
+    this.restoreBackend();
   }
 
   public hassSubscribe(): Promise<UnsubscribeFunc>[] {
@@ -116,7 +121,17 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
     ];
   }
 
+  private restoreBackend() {
+    const b = this._config ? BACKEND.get(this._config.entity) : undefined;
+    if (!b || this.backendConnection) return;
+    this.area_id = b.area_id;
+    this._alarmoConfig = b.alarmoConfig;
+    this.readyForArmModes = b.ready;
+    this.backendConnection = true;
+  }
+
   async firstUpdated() {
+    this.restoreBackend();
     //load the checkbox element
     const ch = await (window as any).loadCardHelpers();
     const c = await ch.createCardElement({ type: 'entities', entities: [] });
@@ -125,7 +140,7 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
   }
 
   async loadBackendConfig() {
-    if (this.backendConnection) return;
+    if (this.backendConnection && !BACKEND.has(this._config!.entity)) return;
     fetchEntities(this.hass!)
       .then(res => {
         const match = res.find(e => e.entity_id == this._config!.entity);
@@ -139,6 +154,7 @@ export class AlarmoCard extends SubscribeMixin(LitElement) {
       .then(() => fetchReadyToArmModes(this.hass!, this._config!.entity))
       .then(res => {
         this.readyForArmModes = res.modes;
+        BACKEND.set(this._config!.entity, { area_id: this.area_id, alarmoConfig: this._alarmoConfig, ready: res.modes });
       })
       .catch(_e => {
         this.backendConnection = false;

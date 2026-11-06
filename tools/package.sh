@@ -46,7 +46,7 @@ grep -q "$VER" "$FE/dist/alarm-panel.js"
 node --check "$FE/dist/alarm-panel.js"
 node /shared/user/code/_tests/probe.mjs "$FE/dist/alarm-panel.js" alarm-panel alarm-view-general \
   alarm-view-actions alarm-view-sensors alarm-view-sensor-table alarm-view-backup alarm-view-codes \
-  alarm-view-panel alarm-view-house alarm-view-house-actions alarm-view-mirrors alarm-view-connections alarm-view-ha-zones | head -1
+  alarm-view-panel alarm-view-house alarm-view-mirrors alarm-view-connections alarm-view-ha-zones | head -1
 # the dashboard card (served by the integration)
 CARD="$FE/dist/house-modes-alarm-center-card.js"
 grep -q "$VER" "$CARD"

@@ -1,9 +1,7 @@
-// ext: Alarm Events run native scenes and scripts (one method, like House Mode steps).
-// Upstream Alarmo events hold their own list of service calls; `planMigration` turns each such event into
-// a native scene (fixed on/off-style states) or a native script (anything else), and `nativeActions`
-// is what the event runs afterwards.
+// ext: Alarm Events run native scripts (one method, like House Mode actions). Events that run a scene (made by
+// earlier builds) keep working. Upstream Alarmo events hold their own list of service calls; `planMigration` turns
+// each such event into a native script, and `nativeActions` is what the event runs afterwards.
 import type { AlarmoAutomation, AutomationAction, HomeAssistant } from '../types';
-import type { SceneConfig } from './scenes';
 
 const ACTION = 'action';
 
@@ -34,19 +32,6 @@ export const isLegacyEvent = (a: AlarmoAutomation) =>
 export const eventTargets = (a: AlarmoAutomation) =>
   (a.actions || []).filter(isNativeAction).map(x => x.entity_id as string);
 
-// state a scene stores for "<domain>.<service>" with no extra data
-const SCENE_STATE: Record<string, Record<string, string>> = {
-  light: { turn_on: 'on', turn_off: 'off' },
-  switch: { turn_on: 'on', turn_off: 'off' },
-  input_boolean: { turn_on: 'on', turn_off: 'off' },
-  fan: { turn_on: 'on', turn_off: 'off' },
-  humidifier: { turn_on: 'on', turn_off: 'off' },
-  media_player: { turn_off: 'off' },
-  climate: { turn_off: 'off' },
-  lock: { lock: 'locked', unlock: 'unlocked' },
-  cover: { open_cover: 'open', close_cover: 'closed' },
-};
-
 const entityList = (e: any): string[] =>
   (Array.isArray(e) ? e : String(e || '').split(',')).map((x: string) => String(x).trim()).filter(Boolean);
 
@@ -59,29 +44,8 @@ export type ScriptConfig = {
 };
 
 export type MigrationPlan =
-  | { kind: 'scene'; event: AlarmoAutomation; scene: SceneConfig; summary: string[] }
   | { kind: 'script'; event: AlarmoAutomation; scriptId: string; script: ScriptConfig; summary: string[]; reason: string }
   | { kind: 'skip'; event: AlarmoAutomation; reason: string };
-
-/** The scene's entity states when every action is a plain state change, else the reason it isn't. */
-export const sceneEntities = (actions: AutomationAction[]): { entities?: Record<string, any>; reason?: string } => {
-  const out: Record<string, any> = {};
-  for (const a of actions) {
-    if (!a || !Object.keys(a).length) continue;
-    const [domain, service] = String(a.service || '').split('.');
-    const ids = entityList(a.entity_id);
-    if (!ids.length) return { reason: `${a.service || 'an action'} has no entity` };
-    if (!isEmpty(a.data)) return { reason: `${a.service} has extra data` };
-    for (const id of ids) {
-      const state = SCENE_STATE[domainOf(id)]?.[service];
-      if (domainOf(id) != domain || !state) return { reason: `${a.service} on ${id} is not a fixed state` };
-      if (id in out) return { reason: `${id} is changed twice` };
-      out[id] = state;
-    }
-  }
-  if (!Object.keys(out).length) return { reason: 'no actions' };
-  return { entities: out };
-};
 
 export const scriptSequence = (actions: AutomationAction[]) =>
   actions
@@ -118,31 +82,17 @@ const describe = (actions: AutomationAction[]) =>
       `${a.service} ${entityList(a.entity_id).join(', ')}${isEmpty(a.data) ? '' : ' ' + JSON.stringify(a.data)}`.trim()
     );
 
-/** What "Migrate" will do for each Alarm Event. `newId` makes scene config ids. */
-export const planMigration = (
-  events: AlarmoAutomation[],
-  takenScripts: Set<string>,
-  newId: () => string
-): MigrationPlan[] =>
+/** What "Migrate" will do for each Alarm Event: each old-style event becomes one script. */
+export const planMigration = (events: AlarmoAutomation[], takenScripts: Set<string>): MigrationPlan[] =>
   events
     .filter(e => e.type == ACTION)
     .map(event => {
       const name = event.name || 'Alarm Event';
-      if (!isLegacyEvent(event)) return { kind: 'skip', event, reason: 'already runs scenes or scripts' } as MigrationPlan;
-      const legacy = event.actions.filter(a => a && Object.keys(a).length && !isNativeAction(a));
-      const keep = event.actions.filter(a => a && isNativeAction(a));
-      const scene = keep.length ? { reason: 'mixes scenes or scripts with other actions' } : sceneEntities(legacy);
-      if (scene.entities)
-        return {
-          kind: 'scene',
-          event,
-          scene: { id: newId(), name, icon: 'mdi:shield-home-outline', entities: scene.entities },
-          summary: Object.entries(scene.entities).map(([k, v]) => `${k}: ${v}`),
-        } as MigrationPlan;
+      if (!isLegacyEvent(event)) return { kind: 'skip', event, reason: 'already runs scripts' } as MigrationPlan;
       return {
         kind: 'script',
         event,
-        reason: scene.reason || '',
+        reason: '',
         scriptId: freeScriptId(name, takenScripts),
         script: {
           alias: name,

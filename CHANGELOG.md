@@ -3,6 +3,29 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.65 — 2026-11-06
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- The **Actions tab is now the Alarm Events tab**. *What runs on each mode* is gone from it: everything it showed is in
+  each mode's editor on the House Modes tab.
+- **House Modes, a mode's editor:** one accent outline instead of the indented grey box. Name, icon, color and *If
+  arming fails* sit on top; then collapsible sections, each with a one-line summary when closed: *Partitions*, *Who
+  may change it*, *Readiness*, *Timers*, *House Mode Actions* and *Automations this mode triggers*. Open sections stay
+  open while you edit and save.
+  - *Timers* and *House Mode Actions* add from a button at the top; each row has its own delete (trash) button.
+    Each action has an open-in-Home-Assistant and a run button.
+  - *Automations this mode triggers* (was "Automations that react") shows each automation with an Enabled chip and a
+    run button, the same as the old Actions view.
+  - Automations that run on every House Mode change are listed under the modes, in *Automations every change
+    triggers*.
+- **Alarm Events:** one list grouped by event, like Notifications: each row shows the partition, the Arm Modes and the
+  scripts it runs, with an Enabled chip, edit and delete. *+ New Alarm Event* sits at the top. The editor is one
+  compact panel like the notification editor, with *To YAML* in its header and Save, Cancel and delete at the bottom.
+- **Alarm Events run scripts only.** The editor offers only scripts; events that already run a scene keep working.
+  *Migrate to scripts* now turns every old-style event into a script (it used to make scenes for simple ones).
+- No more mentions of scenes in the Alarm Events tab and editor.
+
 ## v2026.11.06.64 — 2026-11-06
 
 Restart Home Assistant after the update.

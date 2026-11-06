@@ -22,6 +22,7 @@ import { css } from 'lit';
 import { extStyles } from '../ext/ext-styles';
 import { exportPath, Path } from '../../common/navigation';
 import { roleChip, sectionHead } from '../ext/page-intro';
+import { isLegacyEvent, eventTargets } from '../../data/alarm-events';
 import '../ext/event-migrate';
 
 const noArea = 'no_area';
@@ -51,10 +52,6 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
 
   @property()
   selectedArea?: string;
-
-  /** ext: embedded in the Actions tab (no own title) */
-  @property()
-  only?: 'other';
 
   /** ext: show one list only (undefined = upstream: both) */
   @property()
@@ -106,53 +103,6 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
       return null;
     })();
     {
-      const warningTooltip = () => html`
-        <paper-tooltip animation-delay="0">
-          ${localize('panels.actions.cards.notifications.table.no_area_warning', this.hass!.language)}
-        </paper-tooltip>
-      `;
-
-      const columns: Dictionary<TableColumn> = {
-        type: {
-          width: '40px',
-          renderer: (item: AlarmoAutomation & { area: string }) =>
-            item.area == noArea && !this.config.master.enabled
-              ? html`
-                  ${warningTooltip()}
-                  <ha-icon icon="mdi:alert" style="color: var(--error-color)"></ha-icon>
-                `
-              : item.type == EAutomationTypes.Notification
-                ? html`
-                  <ha-icon icon="hass:message-text-outline"  class="${!item.enabled ? 'disabled' : ''}"></ha-icon>
-                `
-                : html`
-                  <ha-icon icon="hass:flash"  class="${!item.enabled ? 'disabled' : ''}"></ha-icon>
-                `,
-        },
-        name: {
-          title: this.hass.localize('ui.common.name'),
-          renderer: (item: AlarmoAutomation & { area: string }) => html`
-            ${item.area == noArea && !this.config.master.enabled ? warningTooltip() : ''}
-            <span class="${!item.enabled ? 'disabled' : ''}">${item.name}</span>
-          `,
-          width: '40%',
-          grow: true,
-          text: true,
-        },
-        enabled: {
-          title: localize('common.enabled', this.hass.language),
-          width: '68px',
-          align: 'center',
-          renderer: (item: AlarmoAutomation) => html`
-            <ha-switch
-              ?checked=${item.enabled}
-              @click=${(ev: Event) => ev.stopPropagation()}
-              @change=${(ev: Event) => this.toggleEnable(ev, item.automation_id!)}
-            ></ha-switch>
-          `,
-        },
-      };
-
       const notificationData = this.automations
         .filter(e => e.type == EAutomationTypes.Notification)
         .map(e =>
@@ -180,43 +130,83 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
       return html`
         ${showNotifications ? this.renderNotifications(editor, notificationData) : ''}
 
-        ${showActions ? html`
-        <ha-card>${this.only === 'other' ? nothing : sectionHead(localize('panels.actions.title', this.hass.language), 'settings')}
-          <div class="card-content" style=${this.only === 'other' ? 'padding:12px 16px 4px' : ''}>${this.only === 'other'
-            ? html`Scenes and scripts that run when the alarm arms, disarms or triggers. Events that still use the old
-                built-in list of actions can be migrated to scenes and scripts.`
-            : localize('panels.actions.cards.actions.description', this.hass.language)}</div>
-          <div class="card-actions" style="border-top:none;border-bottom:1px solid var(--divider-color)">
-            <ha-button appearance="plain" ?disabled=${!!editor} @click=${this.addActionClick}>
-              ${localize('panels.actions.cards.actions.actions.new_action', this.hass.language)}
-            </ha-button>
-          </div>
-          ${editor
-          ? ''
-          : html`<alarmo-ext-event-migrate
-                .hass=${this.hass}
-                .events=${this.automations.filter(e => e.type == EAutomationTypes.Action)}
-                @events-migrated=${() => this._fetchData()}
-              ></alarmo-ext-event-migrate>`}
-          ${editor ? html`<div style="padding:0 8px 8px">${editor}</div>` : ''}
-
-          <alarmo-table
-            style=${editor ? 'display:none' : ''}
-            .hass=${this.hass}
-            ?selectable=${true}
-            .columns=${columns}
-            .data=${automationData}
-            .filters=${this.getTableFilterOptions()}
-            @row-click=${(ev: CustomEvent) =>
-          navigate(this, exportPath('actions', { params: { edit_action: ev.detail.id } }), true)}
-          >
-            ${localize('panels.actions.cards.actions.table.no_items', this.hass.language)}
-          </alarmo-table>
-
-        </ha-card>
-        ` : ''}
+        ${showActions ? this.renderAlarmEvents(editor, automationData) : ''}
       `;
     }
+  }
+
+  // ext: the Alarm Events tab as rows (CARD_DESIGN_SYSTEM), like Notifications: grouped by event; icon, name,
+  // where and what it runs, on/off chip, edit and delete. Old-style events get a "migrate" hint and the Migrate box.
+  private renderAlarmEvents(editor: unknown, data: (AlarmoAutomation & { area: string | number; warning: boolean })[]) {
+    const hass = this.hass!;
+    const lang = hass.language;
+    const events = Object.values(EAlarmEvent) as string[];
+    const groups = events
+      .map(ev => ({ ev, items: data.filter(n => n.triggers[0].event === ev).sort((a, b) => (a.name || '').localeCompare(b.name || '')) }))
+      .filter(g => g.items.length);
+    const other = data.filter(n => !events.includes(n.triggers[0].event as string));
+    const areaName = (n: { area: string | number }) =>
+      n.area === noArea ? (this.config.master.enabled ? this.config.master.name : '—') : computeAreaDisplay(n.area, this.areas, this.config).name;
+    const runs = (n: AlarmoAutomation) => {
+      if (isLegacyEvent(n)) return 'old list of actions: migrate it to a script';
+      const t = eventTargets(n).map(e => hass.states[e]?.attributes.friendly_name || e);
+      return t.length ? t.join(', ') : 'runs nothing yet';
+    };
+    const edit = (n: AlarmoAutomation) => navigate(this, exportPath('actions', { params: { edit_action: n.automation_id! } }), true);
+    const row = (n: AlarmoAutomation & { area: string | number; warning: boolean }) => {
+      const t = n.triggers[0];
+      const ev = computeEventDisplay(t.event as EAlarmEvent, hass);
+      const modes = (t.modes || []).map(m => computeArmModeDisplay(m, hass)?.name || m).join(', ');
+      const legacy = isLegacyEvent(n);
+      return html`<div class="nt-row ${n.enabled ? '' : 'off'}">
+        <ha-icon class="nt-icon" icon=${n.warning ? 'mdi:alert' : ev?.icon || 'mdi:flash'}
+          style=${n.warning ? 'color:var(--error-color)' : ''}
+          title=${n.warning ? localize('panels.actions.cards.notifications.table.no_area_warning', lang) : ''}></ha-icon>
+        <div class="nt-name">
+          <button class="link" @click=${() => edit(n)}>${n.name}</button>
+          <span class="secondary" style=${legacy ? 'color:var(--warning-color,#ff9800)' : ''}>${areaName(n)}${modes ? ` · ${modes}` : ''} → ${runs(n)}</span>
+        </div>
+        <button class="nt-chip ${n.enabled ? 'on' : ''}" title=${n.enabled ? 'Enabled: click to disable' : 'Disabled: click to enable'}
+          @click=${() => this.setEnabled(n.automation_id!, !n.enabled)}>${n.enabled ? 'Enabled' : 'Disabled'}</button>
+        <ha-icon-button .label=${'Edit'} title="Edit" @click=${() => edit(n)}><ha-icon icon="mdi:pencil"></ha-icon></ha-icon-button>
+        <ha-icon-button .label=${'Delete'} title="Delete" @click=${() => this.deleteEvent(n)}><ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>
+      </div>`;
+    };
+    return html`
+      <ha-card>${sectionHead('Alarm Events', 'settings')}
+        <div class="card-content desc">
+          <p>Scripts that run when the alarm arms, disarms, triggers, fails to arm and more, per partition. Scripts get the
+            variables <code>event</code>, <code>area</code> and <code>arm_mode</code>. What runs when the House Mode changes
+            is set on the <a href="/alarmo/house">House Modes</a> tab.</p>
+        </div>
+        <div class="toolbar">
+          <ha-button ?disabled=${!!editor} @click=${this.addActionClick}>
+            <ha-icon slot="start" icon="mdi:plus"></ha-icon>${localize('panels.actions.cards.actions.actions.new_action', lang)}</ha-button>
+          <span class="secondary" style="display:inline">${data.length} Alarm Event${data.length === 1 ? '' : 's'} ·
+            ${data.filter(n => n.enabled).length} enabled</span>
+        </div>
+        ${editor
+          ? html`<div class="nt-editor">${editor}</div>`
+          : html`<alarmo-ext-event-migrate
+                .hass=${this.hass}
+                .events=${(this.automations || []).filter(e => e.type == EAutomationTypes.Action)}
+                @events-migrated=${() => this._fetchData()}
+              ></alarmo-ext-event-migrate>
+              ${data.length
+                ? html`<div class="nt-list">
+                    ${groups.map(g => html`<div class="nt-group">${computeEventDisplay(g.ev as EAlarmEvent, hass)?.name || g.ev}</div>${g.items.map(row)}`)}
+                    ${other.length ? html`<div class="nt-group">Other</div>${other.map(row)}` : nothing}
+                  </div>`
+                : html`<div class="empty">${localize('panels.actions.cards.actions.table.no_items', lang)}</div>`}`}
+      </ha-card>
+    `;
+  }
+
+  private deleteEvent(n: AlarmoAutomation) {
+    if (!window.confirm(`Delete the Alarm Event "${n.name}"?`)) return;
+    deleteAutomation(this.hass!, n.automation_id!)
+      .then(() => this._fetchData())
+      .catch(e => handleError(e, this));
   }
 
   // ext: the Notifications tab as rows (CARD_DESIGN_SYSTEM): icon, name, what it does, on/off chip, edit and delete

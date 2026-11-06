@@ -21,12 +21,18 @@ SKIP_PREFIXES = ("panels.sensors.cards.editor.fields.device_type.choose.",)
 # Exact values for keys where a word swap reads badly.
 EXACT = {
     "panels.actions.cards.actions.actions.new_action": "New Alarm Event",
+    "panels.actions.cards.actions.table.no_items": "There are no Alarm Events yet.",
+    "panels.actions.cards.new_action.title": "Alarm Event",
+    "panels.actions.cards.new_action.fields.event.description": "When the Alarm Event runs",
+    "panels.actions.cards.new_action.fields.mode.description": "Only for these Arm Modes (optional)",
+    "panels.actions.cards.new_action.fields.name.description": "A name for this Alarm Event",
+    "panels.actions.cards.new_notification.fields.mode.description": "Only for these Arm Modes (optional)",
     "panels.actions.cards.actions.description": (
-        "Run native Home Assistant scenes or scripts when the alarm state changes: armed, disarmed, triggered, "
+        "Run Home Assistant scripts when the alarm state changes: armed, disarmed, triggered, "
         "failed to arm and more."
     ),
     "panels.actions.cards.new_action.description": (
-        "Choose an alarm event, then the scenes or scripts it runs (for example lights on and a siren when triggered)."
+        "Choose an alarm event, then the scripts it runs (for example lights on and a siren when triggered)."
     ),
     "panels.general.cards.general.fields.enable_master.heading": "Enable 'All partitions' panel",
     "panels.general.cards.general.fields.enable_master.description": (
@@ -112,8 +118,8 @@ EXT_KEYS = {
     ("panels", "why", "title"): "Arm Check",
     ("panels", "activity", "title"): "Activity",
     ("panels", "house_actions", "title"): "House Mode Actions",
-    # 2026-10-29: the Actions tab runs actions on alarm events (armed, triggered, failed)
-    ("panels", "actions", "title"): "Actions",
+    # 2026-10-29: the Actions tab runs actions on alarm events (armed, triggered, failed); 2026-11-06: Alarm Events
+    ("panels", "actions", "title"): "Alarm Events",
     ("panels", "users_codes", "title"): "Users, Codes, Keypads",
     ("panels", "mirrors", "title"): "Zone Mirrors",
     ("panels", "ha_zones", "title"): "Zone Actions",

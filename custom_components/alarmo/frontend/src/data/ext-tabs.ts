@@ -43,8 +43,9 @@ const ALIASES: Record<string, TabId> = {
   sensors: 'zones',
   zones_legacy: 'zones',
   why: 'activity',
-  // v2026.11.05.57: House Mode Actions and Alarm Events are one Actions tab
-  house_actions: 'actions',
+  // v2026.11.05.57: House Mode Actions and Alarm Events were one Actions tab; v2026.11.06.65: what runs on each
+  // House Mode is on the House Modes tab, and the Actions tab is the Alarm Events tab
+  house_actions: 'house',
   sensor_table: 'zones',
   // ext.14: Zone Mirrors merged into the Physical Panel page
   mirrors: 'panel',

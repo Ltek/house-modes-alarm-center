@@ -32,14 +32,11 @@ if (!chromium) {
 // page path, file name, optional action before the shot
 const SHOTS = [
   ['/alarmo/house', '01-house-modes'],
-  ['/alarmo/actions', '02-actions', async (p) => {
-    await p.evaluate(async () => {
-      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab').shadowRoot.querySelector('alarm-view-house-actions');
-      v.shadowRoot.querySelector('details.collapse').open = true;
-      await new Promise(r => setTimeout(r, 100));
-      const subs = v.shadowRoot.querySelectorAll('details.collapse.sub');
-      if (subs[2]) subs[2].open = true;
-      await new Promise(r => setTimeout(r, 100));
+  ['/alarmo/actions', '02-alarm-events'],
+  ['/alarmo/actions', '19-alarm-event-editor', async (p) => {
+    await p.evaluate(() => {
+      const t = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions');
+      t.shadowRoot.querySelector('.toolbar ha-button').click();
     });
   }],
   ['/alarmo/zones', '04-zone-assignments'],
@@ -104,7 +101,11 @@ const SHOTS = [
       v.draft = JSON.parse(JSON.stringify(v.draft));
       v.open = [sleep.id];
       await v.updateComplete;
-      v.shadowRoot.querySelector('table.full thead').scrollIntoView();
+      const secs = v.shadowRoot.querySelectorAll('.hm-ed details.hm-sec');
+      [0, 3, 4, 5].forEach(i => secs[i] && (secs[i].open = true));
+      await new Promise(r => setTimeout(r, 150));
+      v.shadowRoot.querySelector('.hm-ed').scrollIntoView();
+      window.scrollBy(0, -60);
     });
   }],
   ['/alarmo/house', '13-house-modes-detect', async (p) => {
@@ -133,9 +134,7 @@ const SHOTS = [
   }],
   ['/alarmo/actions', '11-alarm-events-migrate', async (p) => {
     await p.evaluate(async () => {
-      const t = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab');
-      t.shadowRoot.querySelector('details.collapse').open = true;
-      const v = t.shadowRoot.querySelector('alarm-view-actions');
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions');
       const m = v.shadowRoot.querySelector('alarmo-ext-event-migrate');
       m.events = [...m.events, { automation_id: 'x', type: 'action', name: 'Siren and hall light on trigger',
         triggers: [{ event: 'triggered' }],
@@ -144,8 +143,6 @@ const SHOTS = [
       await m.updateComplete;
       m.shadowRoot.querySelector('ha-button').click();
       await new Promise(r => setTimeout(r, 200));
-      t.shadowRoot.querySelector('ha-card').scrollIntoView();
-      t.shadowRoot.querySelector('alarm-view-house-actions').style.display = 'none';
     });
   }],
   ['/alarmo/general', '00-quick-start', async (p) => {

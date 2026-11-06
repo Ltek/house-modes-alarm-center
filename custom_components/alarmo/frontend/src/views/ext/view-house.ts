@@ -30,9 +30,10 @@ import {
   saveHouse,
   setHouseMode,
   actionChoices,
+  describeTimer,
 } from '../../data/house';
 import { extStyles } from './ext-styles';
-import { HouseActionsInfo, editorPath, fetchHouseActions, reactingTo } from '../../data/house-actions';
+import { HouseActionItem, HouseActionsInfo, editorPath, fetchHouseActions, reactingTo, reactingToAny } from '../../data/house-actions';
 
 /** HA editor path for a scene/script entity (scenes need their config id). */
 const editorPathFor = (entityId: string, hass: HomeAssistant): string | null => {
@@ -48,6 +49,8 @@ import './multi-picker';
 import './icon-field';
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
+/** Which editor sections are open, per mode (module-level: kept across re-renders, saves and tab changes). */
+const SEC_OPEN: Record<string, boolean> = {};
 const STATE_LABEL: Record<string, string> = {
   armed_away: 'Away',
   armed_home: 'Home (Stay)',
@@ -83,9 +86,7 @@ export class AlarmViewHouse extends LitElement {
 
   firstUpdated() {
     this.refresh();
-    fetchHouseActions(this.hass)
-      .then(a => (this.actions = a))
-      .catch(() => (this.actions = { modes: [], modes_source: 'none', label_prefix: '', items: [] }));
+    this.loadActions();
   }
 
   private async refresh(resetDraft = false) {
@@ -281,7 +282,8 @@ export class AlarmViewHouse extends LitElement {
         <div class="card-content desc" style="padding-top:4px">
           <p><ha-icon icon="mdi:play-circle-outline" style="--mdc-icon-size:18px"></ha-icon> switches to a mode now.
             The pencil edits it: which partitions it arms, who may switch into or out of it, readiness checks, what happens
-            if arming fails, and timers. Save at the bottom of the page.</p>
+            if arming fails, timers, the scripts it runs (House Mode Actions) and the automations it triggers. Save at the
+            bottom of the page.</p>
         </div>
         <div class="toolbar">
           <ha-button appearance="plain" ?disabled=${this.detecting} @click=${() => this.runDetect()}><ha-icon slot="start" icon="mdi:magnify-scan"></ha-icon>Detect from your input_selects</ha-button>
@@ -315,12 +317,13 @@ export class AlarmViewHouse extends LitElement {
                           <ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>
                       </td>
                     </tr>
-                    ${open ? html`<tr class="detail"><td colspan="4">${this.renderEditor(m)}</td></tr>` : nothing}
+                    ${open ? html`<tr class="detail hm-detail"><td colspan="4">${this.renderEditor(m)}</td></tr>` : nothing}
                   `;
                 })}
               </tbody>
             </table></div>`
           : nothing}
+        ${this.renderEveryChange()}
     `;
   }
 
@@ -430,20 +433,43 @@ export class AlarmViewHouse extends LitElement {
     });
   }
 
+  /** One collapsible section of a mode's editor (CARD_DESIGN_SYSTEM: UPPERCASE primary title, accent border when open). */
+  private sec(m: HouseMode, key: string, title: string, summary: unknown, body: unknown) {
+    const k = `${m.id}:${key}`;
+    return html`<details class="collapse sub hm-sec" ?open=${!!SEC_OPEN[k]}
+        @toggle=${(e: Event) => (SEC_OPEN[k] = (e.target as HTMLDetailsElement).open)}>
+      <summary>
+        <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+        <span class="collapse-title">${title}</span>
+        <span class="secondary" style="display:inline">${summary}</span>
+      </summary>
+      <div class="collapse-body">${body}</div>
+    </details>`;
+  }
+
   private renderEditor(m: HouseMode) {
     const upd = (fn: (x: HouseMode) => void) => this.setMode(m.id, fn);
     const other = this.draft!.modes.filter(x => x.id !== m.id);
+    const names: Record<string, string> = {};
+    this.info!.targets.forEach(t => (names[t.key] = t.name));
+    const parts = describeTargets(m, names, s => STATE_LABEL[s] || s);
+    const nIn = m.enter_sources.length;
+    const nOut = m.leave_sources.length;
+    const nReady = m.readiness.entities.length + m.readiness.labels.length;
+    const r = this.actions ? reactingTo(this.actions.items, m.name) : { enter: [], leave: [] };
+    const nAuto = r.enter.length + r.leave.length;
+    const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
     return html`
-      <div class="notice" style="margin:0 16px 12px">
-        <div class="detail-grid">
-          <label>Name <input type="text" .value=${m.name} @change=${(e: any) => upd(x => (x.name = e.target.value))} /></label>
-          <alarmo-ext-icon-field .hass=${this.hass} .value=${m.icon} .placeholder=${'home'}
-            @value-changed=${(e: CustomEvent) => upd(x => (x.icon = e.detail.value || 'mdi:home'))}></alarmo-ext-icon-field>
-          <label>Color
+      <div class="hm-ed">
+        <div class="hm-fields">
+          <label class="hm-f">Name <input type="text" .value=${m.name} @change=${(e: any) => upd(x => (x.name = e.target.value))} /></label>
+          <div class="hm-f"><alarmo-ext-icon-field .hass=${this.hass} .value=${m.icon} .placeholder=${'home'}
+            @value-changed=${(e: CustomEvent) => upd(x => (x.icon = e.detail.value || 'mdi:home'))}></alarmo-ext-icon-field></div>
+          <label class="hm-f">Color
             <input type="color" .value=${toHex(m.color || defaultModeColor(m.name))} @input=${(e: any) => upd(x => (x.color = e.target.value))} />
             ${m.color ? html`<button class="link" @click=${() => upd(x => (x.color = ''))}>automatic</button>` : html`<span class="secondary" style="display:inline">automatic</span>`}
           </label>
-          <label title="What happens when a partition does not arm">If arming fails
+          <label class="hm-f" title="What happens when a partition does not arm">If arming fails
             <select @change=${(e: any) => upd(x => (x.on_failure = e.target.value))}>
               <option value="undo" ?selected=${m.on_failure === 'undo'}>undo (back to how it was)</option>
               <option value="keep" ?selected=${m.on_failure === 'keep'}>keep what armed (mode unknown)</option>
@@ -451,58 +477,70 @@ export class AlarmViewHouse extends LitElement {
             </select>
           </label>
         </div>
-        <h4 style="margin:8px 0 4px">Partitions</h4>
-        <div class="detail-grid">
-          ${this.info!.targets.map(t => html`<label>${t.name}
-            <select @change=${(e: any) => upd(x => {
-              if (e.target.value === '') delete x.targets[t.key];
-              else x.targets[t.key] = e.target.value;
-            })}>
-              <option value="" ?selected=${!m.targets[t.key]}>leave unchanged</option>
-              ${TARGET_STATES.map(s => html`<option value=${s} ?selected=${m.targets[t.key] === s}>${STATE_LABEL[s]}</option>`)}
-            </select></label>`)}
-        </div>
-        <span class="secondary" style="display:block">Leave everything unchanged for a mode that only tells your automations what is going on.</span>
-        <h4 class="subhead" style="margin:8px 0 4px">Who may change it</h4>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Source</th><th class="c" title="May switch INTO this mode">Into this mode</th><th class="c" title="May change the mode while this mode is active">Out of this mode</th><th title="Instead of blocking, wait this many minutes">Delay out (min)</th></tr></thead>
-          <tbody>${SOURCES.map(src => html`<tr>
-            <td>${SOURCE_LABELS[src]}</td>
-            <td class="c"><input type="checkbox" .checked=${m.enter_sources.includes(src)} @change=${(e: any) => upd(x => (x.enter_sources = e.target.checked ? [...x.enter_sources, src] : x.enter_sources.filter(s => s !== src)))} /></td>
-            <td class="c"><input type="checkbox" .checked=${m.leave_sources.includes(src)} @change=${(e: any) => upd(x => (x.leave_sources = e.target.checked ? [...x.leave_sources, src] : x.leave_sources.filter(s => s !== src)))} /></td>
-            <td><alarmo-ext-slider compact optional .label=${`${SOURCE_LABELS[src]}: delay out`} .min=${1} .max=${120} .onValue=${10}
-              unit="min" offText="no delay" .value=${m.delay_sources[src] || null}
-              @value-changed=${(e: CustomEvent) => upd(x => {
-                if (e.detail.value) x.delay_sources[src] = e.detail.value;
-                else delete x.delay_sources[src];
-              })}></alarmo-ext-slider></td>
-          </tr>`)}</tbody>
-        </table></div>
-        <h4 style="margin:8px 0 4px">Readiness</h4>
-        <div class="detail-grid">
-          <label>Entities that should be closed <input type="text" style="width:320px" placeholder="binary_sensor.patio_door, …" .value=${m.readiness.entities.join(', ')}
-            @change=${(e: any) => upd(x => (x.readiness.entities = list(e.target.value)))} /></label>
-          <label>…or with label (ids) <input type="text" placeholder="windows" .value=${m.readiness.labels.join(', ')}
-            @change=${(e: any) => upd(x => (x.readiness.labels = list(e.target.value)))} /></label>
-          <label>If open
-            <select @change=${(e: any) => upd(x => (x.readiness.action = e.target.value))}>
-              <option value="warn" ?selected=${m.readiness.action === 'warn'}>warn and continue</option>
-              <option value="block" ?selected=${m.readiness.action === 'block'}>do not change the mode</option>
-            </select></label>
-        </div>
-        <h4 class="subhead" style="margin:8px 0 4px">Timers</h4>
-        <button class="link" @click=${() => upd(x => x.timers.push({ after_minutes: 10, then: 'previous', from_modes: [], window_start: null, window_end: null, notify: true }))}>+ Add timer</button>
-        ${m.timers.map((t, i) => html`<div class="detail-grid">
-          <label>
-            <select aria-label="When" @change=${(e: any) => upd(x => {
+        ${this.sec(m, 'partitions', 'Partitions', parts || 'leaves the partitions alone', html`
+          <div class="hm-fields">
+            ${this.info!.targets.map(t => html`<label class="hm-f">${t.name}
+              <select @change=${(e: any) => upd(x => {
+                if (e.target.value === '') delete x.targets[t.key];
+                else x.targets[t.key] = e.target.value;
+              })}>
+                <option value="" ?selected=${!m.targets[t.key]}>leave unchanged</option>
+                ${TARGET_STATES.map(s => html`<option value=${s} ?selected=${m.targets[t.key] === s}>${STATE_LABEL[s]}</option>`)}
+              </select></label>`)}
+          </div>
+          <div class="secondary hm-hint">Leave everything unchanged for a mode that only tells your automations what is going on.</div>`)}
+        ${this.sec(m, 'sources', 'Who may change it', `${nIn} of ${SOURCES.length} may switch in · ${nOut} may switch out`, html`
+          <div class="table-wrap"><table>
+            <thead><tr><th>Source</th><th class="c" title="May switch INTO this mode">Into this mode</th><th class="c" title="May change the mode while this mode is active">Out of this mode</th><th title="Instead of blocking, wait this many minutes">Delay out (min)</th></tr></thead>
+            <tbody>${SOURCES.map(src => html`<tr>
+              <td>${SOURCE_LABELS[src]}</td>
+              <td class="c"><input type="checkbox" .checked=${m.enter_sources.includes(src)} @change=${(e: any) => upd(x => (x.enter_sources = e.target.checked ? [...x.enter_sources, src] : x.enter_sources.filter(s => s !== src)))} /></td>
+              <td class="c"><input type="checkbox" .checked=${m.leave_sources.includes(src)} @change=${(e: any) => upd(x => (x.leave_sources = e.target.checked ? [...x.leave_sources, src] : x.leave_sources.filter(s => s !== src)))} /></td>
+              <td><alarmo-ext-slider compact optional .label=${`${SOURCE_LABELS[src]}: delay out`} .min=${1} .max=${120} .onValue=${10}
+                unit="min" offText="no delay" .value=${m.delay_sources[src] || null}
+                @value-changed=${(e: CustomEvent) => upd(x => {
+                  if (e.detail.value) x.delay_sources[src] = e.detail.value;
+                  else delete x.delay_sources[src];
+                })}></alarmo-ext-slider></td>
+            </tr>`)}</tbody>
+          </table></div>`)}
+        ${this.sec(m, 'readiness', 'Readiness', nReady ? `${plural(nReady, 'check')} · ${m.readiness.action === 'block' ? 'blocks' : 'warns'} if open` : 'no checks', html`
+          <div class="hm-fields">
+            <label class="hm-f">Entities that should be closed <input type="text" placeholder="binary_sensor.patio_door, …" .value=${m.readiness.entities.join(', ')}
+              @change=${(e: any) => upd(x => (x.readiness.entities = list(e.target.value)))} /></label>
+            <label class="hm-f">…or with label (ids) <input type="text" placeholder="windows" .value=${m.readiness.labels.join(', ')}
+              @change=${(e: any) => upd(x => (x.readiness.labels = list(e.target.value)))} /></label>
+            <label class="hm-f">If open
+              <select @change=${(e: any) => upd(x => (x.readiness.action = e.target.value))}>
+                <option value="warn" ?selected=${m.readiness.action === 'warn'}>warn and continue</option>
+                <option value="block" ?selected=${m.readiness.action === 'block'}>do not change the mode</option>
+              </select></label>
+          </div>`)}
+        ${this.sec(m, 'timers', 'Timers', m.timers.length ? m.timers.map(t => describeTimer(t, this.nameOf)).join(' · ') : 'none', this.renderTimers(m, other))}
+        ${this.sec(m, 'actions', 'House Mode Actions', plural((m.steps || []).length, 'script'), this.renderSteps(m, other))}
+        ${this.sec(m, 'automations', 'Automations this mode triggers', this.actions ? plural(nAuto, 'automation') : 'loading…', this.renderRelated(m))}
+      </div>
+    `;
+  }
+
+  private nameOf = (id: string) => this.draft?.modes.find(m => m.id === id)?.name || id;
+
+  private renderTimers(m: HouseMode, other: HouseMode[]) {
+    const upd = (fn: (x: HouseMode) => void) => this.setMode(m.id, fn);
+    return html`
+      <button class="hm-add" @click=${() => upd(x => x.timers.push({ after_minutes: 10, then: 'previous', from_modes: [], window_start: null, window_end: null, notify: true }))}>
+        <ha-icon icon="mdi:plus"></ha-icon>Timer</button>
+      ${m.timers.map((t, i) => html`<div class="hm-item">
+        <ha-icon class="hm-item-icon" icon="mdi:timer-outline"></ha-icon>
+        <div class="hm-item-body">
+          <label><select aria-label="When" @change=${(e: any) => upd(x => {
               const tm = x.timers[i];
               if (e.target.value === 'at') { tm.at = tm.at || '01:00'; tm.after_minutes = null; }
               else { tm.after_minutes = tm.after_minutes || 10; tm.at = null; }
             })}>
               <option value="after" ?selected=${!t.at}>after</option>
               <option value="at" ?selected=${!!t.at}>at</option>
-            </select>
-          </label>
+            </select></label>
           ${t.at
             ? html`<label><input type="time" aria-label="At" .value=${t.at} @change=${(e: any) => upd(x => (x.timers[i].at = e.target.value || '01:00'))} /></label>`
             : html`<alarmo-ext-slider .label=${''} .min=${1} .max=${720} unit="min" .value=${t.after_minutes || 10}
@@ -511,16 +549,22 @@ export class AlarmViewHouse extends LitElement {
             <option value="previous" ?selected=${t.then === 'previous'}>the previous mode</option>
             ${other.map(o => html`<option value=${o.id} ?selected=${t.then === o.id}>${o.name}</option>`)}
           </select></label>
-          <label>only when coming from <input type="text" placeholder="any mode (ids)" .value=${t.from_modes.join(', ')} @change=${(e: any) => upd(x => (x.timers[i].from_modes = list(e.target.value)))} /></label>
+          <alarmo-ext-multi-picker .label=${'only when coming from'} .placeholder=${'any mode'}
+            .options=${other.map(o => ({ value: o.id, label: o.name }))} .value=${t.from_modes}
+            @value-changed=${(e: CustomEvent) => upd(x => (x.timers[i].from_modes = e.detail.value))}></alarmo-ext-multi-picker>
           <label>between <input type="time" .value=${t.window_start || ''} @change=${(e: any) => upd(x => (x.timers[i].window_start = e.target.value || null))} />
             and <input type="time" .value=${t.window_end || ''} @change=${(e: any) => upd(x => (x.timers[i].window_end = e.target.value || null))} /></label>
           <label><input type="checkbox" .checked=${t.notify} @change=${(e: any) => upd(x => (x.timers[i].notify = e.target.checked))} /> notify</label>
-          <button class="link" @click=${() => upd(x => x.timers.splice(i, 1))}>Remove</button>
-        </div>`)}
-        <span class="secondary" style="display:block">"At" is the next time that clock time comes round after the mode began (e.g. Late Night → Sleep at 01:00). Timers start when this mode begins, survive restarts, and are cancelled when the mode changes. A timer only switches if the target mode allows the "House Mode timers" source.</span>
-        ${this.renderSteps(m, other)}
-        ${this.renderRelated(m)}
-      </div>
+        </div>
+        <span class="hm-item-actions">
+          <ha-icon-button class="hm-del" .label=${'Delete timer'} title="Delete timer" @click=${() => upd(x => x.timers.splice(i, 1))}>
+            <ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>
+        </span>
+      </div>`)}
+      ${!m.timers.length ? html`<div class="secondary hm-hint">None.</div>` : nothing}
+      <div class="secondary hm-hint">"At" is the next time that clock time comes round after the mode began (e.g. Late Night → Sleep at 01:00).
+        Timers start when this mode begins, survive restarts, and are cancelled when the mode changes. The time window is
+        checked when the mode begins. A timer only switches if the target mode allows the "House Mode timers" source.</div>
     `;
   }
 
@@ -531,73 +575,131 @@ export class AlarmViewHouse extends LitElement {
     const choices = actionChoices(this.hass);
     const name = (e: string) => (this.hass.states[e]?.attributes.friendly_name as string) || e;
     return html`
-      <h4 class="subhead" style="margin:10px 0 4px">Actions (scripts)</h4>
-      <button class="link" ?disabled=${!choices.length}
+      <button class="hm-add" ?disabled=${!choices.length}
         @click=${() => upd(x => (x.steps = [...(x.steps || []), { entity_id: choices[0], when: 'enter', phase: 'after', modes: [], wait: false }]))}>
-        + Add action</button>
-      ${steps.map((st, i) => html`<div class="detail-grid step-row">
-        <label>Run
-          <select @change=${(e: any) => upd(x => (x.steps![i].entity_id = e.target.value))}>
-            ${choices.includes(st.entity_id) ? nothing : html`<option value=${st.entity_id} selected>${st.entity_id} (${st.entity_id.startsWith('scene.') ? 'a scene: replace it with a script' : 'missing'})</option>`}
-            ${choices.map(c => html`<option value=${c} ?selected=${c === st.entity_id}>${name(c)}</option>`)}
-          </select></label>
-        <label>when
-          <select @change=${(e: any) => upd(x => (x.steps![i].when = e.target.value))}>
-            <option value="enter" ?selected=${st.when === 'enter'}>entering ${m.name}</option>
-            <option value="leave" ?selected=${st.when === 'leave'}>leaving ${m.name}</option>
-          </select></label>
-        <label>
-          <select aria-label="Phase" @change=${(e: any) => upd(x => (x.steps![i].phase = e.target.value))}>
-            <option value="before" ?selected=${st.phase === 'before'}>before arming</option>
-            <option value="after" ?selected=${st.phase === 'after'}>after the change</option>
-          </select></label>
-        <alarmo-ext-multi-picker
-          .label=${st.when === 'enter' ? 'only when coming from' : 'only when going to'}
-          .placeholder=${'any mode'}
-          .options=${other.map(o => ({ value: o.id, label: o.name }))}
-          .value=${st.modes}
-          @value-changed=${(e: CustomEvent) => upd(x => (x.steps![i].modes = e.detail.value))}
-        ></alarmo-ext-multi-picker>
-        ${st.entity_id.startsWith('script.')
-          ? html`<label title="Wait until the script has finished before the next action (at most 5 minutes)"><input type="checkbox" .checked=${st.wait}
-              @change=${(e: any) => upd(x => (x.steps![i].wait = e.target.checked))} /> wait for it</label>`
-          : nothing}
-        ${editorPathFor(st.entity_id, this.hass)
-          ? html`<button class="link" @click=${() => navigate(this, editorPathFor(st.entity_id, this.hass)!)}>open</button>`
-          : nothing}
-        <button class="link" @click=${() => upd(x => x.steps!.splice(i, 1))}>Remove</button>
+        <ha-icon icon="mdi:plus"></ha-icon>Script</button>
+      ${steps.map((st, i) => html`<div class="hm-item">
+        ${entityBadge(this.hass, st.entity_id)}
+        <div class="hm-item-body">
+          <label>Run
+            <select @change=${(e: any) => upd(x => (x.steps![i].entity_id = e.target.value))}>
+              ${choices.includes(st.entity_id) ? nothing : html`<option value=${st.entity_id} selected>${st.entity_id} (${st.entity_id.startsWith('scene.') ? 'a scene: replace it with a script' : 'missing'})</option>`}
+              ${choices.map(c => html`<option value=${c} ?selected=${c === st.entity_id}>${name(c)}</option>`)}
+            </select></label>
+          <label>when
+            <select @change=${(e: any) => upd(x => (x.steps![i].when = e.target.value))}>
+              <option value="enter" ?selected=${st.when === 'enter'}>entering ${m.name}</option>
+              <option value="leave" ?selected=${st.when === 'leave'}>leaving ${m.name}</option>
+            </select></label>
+          <label>
+            <select aria-label="Phase" @change=${(e: any) => upd(x => (x.steps![i].phase = e.target.value))}>
+              <option value="before" ?selected=${st.phase === 'before'}>before arming</option>
+              <option value="after" ?selected=${st.phase === 'after'}>after the change</option>
+            </select></label>
+          <alarmo-ext-multi-picker
+            .label=${st.when === 'enter' ? 'only when coming from' : 'only when going to'}
+            .placeholder=${'any mode'}
+            .options=${other.map(o => ({ value: o.id, label: o.name }))}
+            .value=${st.modes}
+            @value-changed=${(e: CustomEvent) => upd(x => (x.steps![i].modes = e.detail.value))}
+          ></alarmo-ext-multi-picker>
+          ${st.entity_id.startsWith('script.')
+            ? html`<label title="Wait until the script has finished before the next action (at most 5 minutes)"><input type="checkbox" .checked=${st.wait}
+                @change=${(e: any) => upd(x => (x.steps![i].wait = e.target.checked))} /> wait for it</label>`
+            : nothing}
+        </div>
+        <span class="hm-item-actions">
+          ${editorPathFor(st.entity_id, this.hass)
+            ? html`<ha-icon-button .label=${'Open in Home Assistant'} title="Open in Home Assistant's editor"
+                @click=${() => navigate(this, editorPathFor(st.entity_id, this.hass)!)}><ha-icon icon="mdi:open-in-new"></ha-icon></ha-icon-button>`
+            : nothing}
+          <ha-icon-button .label=${'Run now'} title="Run now" @click=${() => this.runEntity(st.entity_id)}><ha-icon icon="mdi:play"></ha-icon></ha-icon-button>
+          <ha-icon-button class="hm-del" .label=${'Delete action'} title="Delete action" @click=${() => upd(x => x.steps!.splice(i, 1))}>
+            <ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>
+        </span>
       </div>`)}
-      ${!steps.length ? html`<span class="secondary" style="display:block">None. Actions are native Home Assistant scripts; build them in
-        Home Assistant (Settings → Automations &amp; scenes → Scripts). A script can turn on a scene if you want one.</span>` : nothing}
-      <span class="secondary" style="display:block">Order: the old mode's "leaving" actions, then the new mode's "entering" actions.
+      ${!steps.length ? html`<div class="secondary hm-hint">None. Actions are Home Assistant scripts; build them in Home Assistant
+        (Settings → Automations &amp; scenes → Scripts). A script can turn on a scene if you want one.</div>` : nothing}
+      <div class="secondary hm-hint">Order: the old mode's "leaving" actions, then the new mode's "entering" actions.
         <em>Before arming</em> runs before the partitions change (e.g. lock up); <em>after the change</em> once it succeeded.
-        Scripts get <code>from_mode</code>, <code>to_mode</code> and <code>source</code>. A failing action is logged on the Activity
-        tab and does not stop the change. Scripts named <code>hm_…</code> are listed first. When you save, each script gets a
-        "House Mode: &lt;mode&gt;" label, and each script in <code>scripts.yaml</code> also gets a first description
-        line such as "House Mode action: Sleep · entering, before arming"; both are written from this list, never read back.</span>
+        Scripts get <code>from_mode</code>, <code>to_mode</code> and <code>source</code>. Actions run only in Live; a failing
+        action is logged on the Activity tab and does not stop the change. Scripts named <code>hm_…</code> are listed first.
+        When you save, each script gets a "House Mode: &lt;mode&gt;" label, and each script in <code>scripts.yaml</code> a first
+        description line such as "House Mode action: Sleep · entering, before arming"; both are written from this list,
+        never read back.</div>
     `;
   }
 
-  /** Home Assistant automations whose triggers react when this mode starts or ends, linking to HA's editor. */
+  private item(eid: string): HouseActionItem | undefined {
+    return this.actions?.items.find(i => i.entity_id === eid);
+  }
+
+  private async runEntity(eid: string) {
+    const [domain] = eid.split('.');
+    try {
+      if (domain === 'automation') await this.hass.callService('automation', 'trigger', { entity_id: eid });
+      else if (domain === 'script') await this.hass.callService('script', 'turn_on', { entity_id: eid });
+      else await this.hass.callService('scene', 'turn_on', { entity_id: eid });
+      toast(this, `Ran ${this.item(eid)?.name || this.hass.states[eid]?.attributes.friendly_name || eid}.`);
+    } catch (err) {
+      this.error = wsErrorMessage(err);
+    }
+  }
+
+  private async enableAutomation(i: HouseActionItem, on: boolean) {
+    await this.hass.callService('automation', on ? 'turn_on' : 'turn_off', { entity_id: i.entity_id });
+    window.setTimeout(() => this.loadActions(), 800);
+  }
+
+  private loadActions() {
+    fetchHouseActions(this.hass)
+      .then(a => (this.actions = a))
+      .catch(() => (this.actions = { modes: [], modes_source: 'none', label_prefix: '', items: [] }));
+  }
+
+  /** One automation: badge, name (opens HA's editor), when it runs, the Enabled chip and a run button. */
+  private autoLine(i: HouseActionItem, hint: string) {
+    const p = editorPath(i);
+    return html`<div class="hm-line">
+      ${entityBadge(this.hass, i.entity_id)}
+      <div class="hm-line-name">
+        ${p ? html`<button class="link" title="Open in Home Assistant's editor" @click=${() => navigate(this, p)}>${i.name}</button>` : html`<span>${i.name}</span>`}
+        <span class="secondary">${hint}</span>
+      </div>
+      <button class="hm-chip ${i.state === 'on' ? 'en' : ''}" title=${i.state === 'on' ? 'Enabled: click to disable' : 'Disabled: click to enable'}
+        @click=${() => this.enableAutomation(i, i.state !== 'on')}>${i.state === 'on' ? 'Enabled' : 'Disabled'}</button>
+      <ha-icon-button .label=${'Run now'} title="Run now" @click=${() => this.runEntity(i.entity_id)}><ha-icon icon="mdi:play"></ha-icon></ha-icon-button>
+    </div>`;
+  }
+
+  /** Home Assistant automations whose triggers react when this mode starts or ends. */
   private renderRelated(m: HouseMode) {
-    const r = this.actions ? reactingTo(this.actions.items, m.name) : { enter: [], leave: [] };
-    const rows = [...r.enter.map(i => [i, 'when it starts'] as const), ...r.leave.map(i => [i, 'when it ends'] as const)];
+    if (!this.actions) return html`<div class="secondary hm-hint">Loading…</div>`;
+    const r = reactingTo(this.actions.items, m.name);
+    const rows = [
+      ...r.enter.map(i => this.autoLine(i, i.reacts!.from.includes(m.name) ? `when ${m.name} starts or ends` : `when ${m.name} starts`)),
+      ...r.leave.map(i => this.autoLine(i, `when ${m.name} ends`)),
+    ];
     return html`
-      <h4 class="subhead" style="margin:10px 0 4px">Automations that react</h4>
-      ${!this.actions
-        ? html`<span class="secondary" style="display:block">Loading…</span>`
-        : rows.length
-          ? html`<div class="related-list">${rows.map(([i, when]) => {
-              const p = editorPath(i);
-              return html`<div class="field-row">
-                ${entityBadge(this.hass, i.entity_id)}
-                ${p ? html`<button class="link" title="Open in Home Assistant's editor" @click=${() => navigate(this, p)}>${i.name}</button>` : html`<span>${i.name}</span>`}
-                <span class="secondary" style="display:inline">${when}${i.state === 'off' ? ' · disabled' : ''}</span>
-              </div>`;
-            })}</div>`
-          : html`<span class="secondary" style="display:block">None: no automation has a trigger on this mode.</span>`}
-      <span class="secondary" style="display:block">Read from the automations' triggers. The Actions tab shows this for every mode.</span>
+      ${rows.length ? rows : html`<div class="secondary hm-hint">None: no automation has a trigger on this mode.</div>`}
+      <div class="secondary hm-hint">Read from the automations' triggers; automations that only use the House Mode as a
+        condition are not listed. Change them in Home Assistant's editor (click a name).</div>
     `;
+  }
+
+  /** Automations that run on every House Mode change (any mode). */
+  private renderEveryChange() {
+    const any = this.actions ? reactingToAny(this.actions.items) : [];
+    if (!any.length) return nothing;
+    return html`<details class="collapse sub hm-sec hm-every" ?open=${!!SEC_OPEN['*:every']}
+        @toggle=${(e: Event) => (SEC_OPEN['*:every'] = (e.target as HTMLDetailsElement).open)}>
+      <summary>
+        <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+        <span class="collapse-title">Automations every change triggers</span>
+        <span class="secondary" style="display:inline">${any.length} automation${any.length === 1 ? '' : 's'}</span>
+      </summary>
+      <div class="collapse-body">${any.map(i => this.autoLine(i, 'on every House Mode change'))}</div>
+    </details>`;
   }
 
   // ------------------------------------------------------------------ settings & history
@@ -761,6 +863,116 @@ export class AlarmViewHouse extends LitElement {
       }
       .hm-noswitch {
         visibility: hidden;
+      }
+      /* the open mode: an accent outline, not an indent (CARD_DESIGN_SYSTEM) */
+      tr.hm-detail td {
+        background: none;
+        padding: 0 8px 12px;
+      }
+      .hm-ed {
+        border: 1px solid var(--accent-color);
+        border-radius: 10px;
+        padding: 8px 4px 4px;
+      }
+      .hm-ed details.collapse.sub {
+        margin: 0 8px 8px;
+      }
+      details.collapse.sub[open] {
+        border-color: var(--accent-color);
+      }
+      .hm-every {
+        margin: 4px 16px 12px !important;
+      }
+      .hm-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 0 8px 8px;
+      }
+      .hm-sec .hm-fields {
+        padding: 0 0 4px;
+      }
+      .hm-f {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 2px 0;
+      }
+      .hm-f input[type='text'] {
+        flex: 1 1 220px;
+        max-width: 420px;
+        min-width: 0;
+      }
+      .hm-hint {
+        display: block;
+        margin: 6px 0 2px;
+      }
+      .hm-add {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px dashed var(--primary-color);
+        border-radius: 6px;
+        background: none;
+        color: var(--primary-color);
+        font: inherit;
+        font-size: 13px;
+        padding: 3px 10px;
+        margin: 0 0 6px;
+        cursor: pointer;
+      }
+      .hm-add[disabled] {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .hm-add ha-icon {
+        --mdc-icon-size: 16px;
+      }
+      .hm-item,
+      .hm-line {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+        border-top: 1px solid var(--divider-color);
+      }
+      .hm-item-icon {
+        color: var(--primary-color);
+        margin: 0 8px;
+      }
+      .hm-item-body {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 16px;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .hm-item-body label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .hm-item-actions {
+        display: flex;
+        align-items: center;
+        flex: none;
+      }
+      .hm-del:hover {
+        color: var(--error-color);
+      }
+      .hm-line-name {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .hm-chip.en {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        text-decoration: none;
       }
       @media (max-width: 760px) {
         .hm-row {

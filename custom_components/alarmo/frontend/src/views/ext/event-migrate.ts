@@ -1,12 +1,10 @@
-// ext: "Migrate to scenes and scripts" for Alarm Events created by upstream Alarmo.
-// Preview first; on Migrate: integration backup, then per event a native scene (plain states) or
-// script (anything else), and the event is saved to run it.
+// ext: "Migrate to scripts" for Alarm Events created by upstream Alarmo.
+// Preview first; on Migrate: integration backup, then per event a native script, and the event is saved to run it.
 import { LitElement, html, css, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { AlarmoAutomation, HomeAssistant } from '../../types';
 import { saveAutomation } from '../../data/websockets';
 import { createBackup } from '../../data/ext-websockets';
-import { saveScene, sceneEntityFor, newSceneId } from '../../data/scenes';
 import {
   MigrationPlan,
   planMigration,
@@ -35,7 +33,7 @@ export class ExtEventMigrate extends LitElement {
 
   private preview() {
     this.results = null;
-    this.plan = planMigration(this.legacy(), existingScriptIds(this.hass), newSceneId);
+    this.plan = planMigration(this.legacy(), existingScriptIds(this.hass));
   }
 
   private async waitFor(find: () => string | null) {
@@ -62,15 +60,9 @@ export class ExtEventMigrate extends LitElement {
       if (p.kind == 'skip') continue;
       const name = p.event.name || 'Alarm Event';
       try {
-        let entity: string | null;
-        if (p.kind == 'scene') {
-          await saveScene(this.hass, p.scene);
-          entity = await this.waitFor(() => sceneEntityFor(this.hass, p.scene.id));
-        } else {
-          await saveScript(this.hass, p.scriptId, p.script);
-          entity = await this.waitFor(() => (this.hass.states[`script.${p.scriptId}`] ? `script.${p.scriptId}` : null));
-        }
-        if (!entity) throw new Error(`the new ${p.kind} did not appear in Home Assistant`);
+        await saveScript(this.hass, p.scriptId, p.script);
+        const entity = await this.waitFor(() => (this.hass.states[`script.${p.scriptId}`] ? `script.${p.scriptId}` : null));
+        if (!entity) throw new Error('the new script did not appear in Home Assistant');
         await saveAutomation(this.hass, { automation_id: p.event.automation_id, actions: nativeActions([entity]) });
         results.push({ name, ok: true, text: `now runs ${entity}` });
       } catch (e: any) {
@@ -103,12 +95,11 @@ export class ExtEventMigrate extends LitElement {
             : html`
                 <div class="title">${n} Alarm Event${n == 1 ? '' : 's'} still use the old built-in list of actions</div>
                 <p>
-                  Alarm Events now run native Home Assistant scenes and scripts, the same as House Modes. Migrating
-                  turns each event's actions into a scene (plain on/off, lock, open/close states) or a script
-                  (anything else). The event keeps its trigger and runs the new scene or script. A backup is made
+                  Alarm Events now run native Home Assistant scripts, the same as House Modes. Migrating turns each
+                  event's actions into a script. The event keeps its trigger and runs the new script. A backup is made
                   first, and you see the plan before anything changes.
                 </p>
-                <ha-button appearance="filled" @click=${this.preview}>Migrate to scenes and scripts…</ha-button>
+                <ha-button appearance="filled" @click=${this.preview}>Migrate to scripts…</ha-button>
               `}
       </div>
     `;
@@ -125,9 +116,7 @@ export class ExtEventMigrate extends LitElement {
             p => html`<tr>
               <td>${p.event.name}</td>
               <td>
-                ${p.kind == 'scene'
-                  ? html`scene <i>${p.scene.name}</i>`
-                  : html`script <code>script.${p.scriptId}</code><div class="why">${p.reason}</div>`}
+                script <code>script.${p.scriptId}</code>
               </td>
               <td>${p.summary.map(s => html`<div><code>${s}</code></div>`)}</td>
             </tr>`

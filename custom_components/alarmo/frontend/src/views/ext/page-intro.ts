@@ -42,7 +42,7 @@ export const PAGE_INTROS: Record<string, { role: IntroRole; text: string }> = {
   },
   actions: {
     role: 'settings',
-    text: 'Home Assistant actions run on alarm events, per partition.',
+    text: 'Scripts that run on alarm events, per partition.',
   },
 };
 

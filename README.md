@@ -27,7 +27,7 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
   </tr>
   <tr>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/02-actions.png"><img src="screenshots/02-actions.png" width="100%" alt="Actions"></a><br><sub>Actions</sub>
+      <a href="screenshots/02-alarm-events.png"><img src="screenshots/02-alarm-events.png" width="100%" alt="Alarm events"></a><br><sub>Alarm events</sub>
     </td>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/04-zone-assignments.png"><img src="screenshots/04-zone-assignments.png" width="100%" alt="Zone assignments"></a><br><sub>Zone assignments</sub>
@@ -89,6 +89,12 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
       <a href="screenshots/18-notification-editor.png"><img src="screenshots/18-notification-editor.png" width="100%" alt="Notification editor"></a><br><sub>Notification editor</sub>
     </td>
   </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/19-alarm-event-editor.png"><img src="screenshots/19-alarm-event-editor.png" width="100%" alt="Alarm event editor"></a><br><sub>Alarm event editor</sub>
+    </td>
+    <td></td>
+  </tr>
 </table>
 <!-- SCREENSHOTS:END -->
 
@@ -104,15 +110,13 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 | **Panel** | The physical alarm panel, e.g. a Honeywell Vista through Envisalink. |
 | **Panel link** | Keeps the alarm and the panel in step, in both directions. |
 | **Alarm system** | The alarm and the panel together. |
+| **House Mode Action** | A Home Assistant script a House Mode runs when it starts or ends. |
 | **Shadow / Live** | Shadow only logs what it would do, next to your own automations; Live does it. Used by House Modes and the panel link. |
 
 ## What it adds to Alarmo
 
 **Quick Start** — the first tab: what is configured, and three guided setups (House Modes only; an alarm without a
 physical panel; House Modes and a physical panel). Each shows its steps and makes a backup before it changes anything.
-
-**Actions** — one tab: *What runs on each mode* (per House Mode, its scripts, its timers, and the automations whose
-triggers react to it), and the Alarm Events (with Migrate for old ones).
 
 **House Modes** — Away, Stay, Sleep, Guest, Spa, … ([HOUSE-MODES.md](HOUSE-MODES.md))
 - Each mode sets partitions to an Arm Mode (or leaves them), decides **who may change it** (manual, automations,
@@ -121,9 +125,15 @@ triggers react to it), and the Alarm Events (with Migrate for old ones).
   (after N minutes or at a clock time, to a mode or back to the previous one). Each script it runs gets a
   "House Mode: <mode>" label and a "House Mode action: …" line in its description, so you can find them in Home
   Assistant. Name them `hm_…` to have them listed first. A script can turn on a scene if you want one.
+- Each mode's editor also lists the **automations this mode triggers** (read from their triggers), with an
+  Enabled chip and a run button, and the tab lists the automations every change triggers.
 - A notification on every change, if you want one, saying where it came from and why.
 - `select.alarmo_house_mode`, the `alarmo.set_house_mode` service, events, two blueprints, an optional `input_select`
   kept in step.
+
+**Alarm Events** — scripts that run when the alarm arms, disarms, triggers, fails to arm and more, per partition, in
+one list grouped by event. Old-style events (Alarmo's own list of actions) can be migrated to scripts, with a backup
+first. **Notifications** — messages on the same events, listed the same way.
 
 **Physical panel link** (Envisalink; other panels via HA services)
 - **Shadow mode** first: logs what it would do next to your own automations; **live** when the log matches.

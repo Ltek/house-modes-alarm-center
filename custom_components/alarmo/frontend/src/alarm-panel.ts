@@ -27,9 +27,7 @@ import { fetchExtInfo } from './data/ext-websockets';
 import './views/ext/status-strip';
 import './views/ext/view-why';
 import './views/ext/view-activity';
-import './views/ext/view-house-actions';
 import './views/ext/view-quick-start';
-import './views/ext/view-actions-tab';
 
 // ext: where the Notifications / Actions editors return to (upstream editors go to /alarmo/actions)
 const ACTIONS_RETURN_KEY = 'alarmo-ext-actions-tab';
@@ -134,10 +132,6 @@ export class MyAlarmPanel extends LitElement {
         return html`
           <alarm-view-sensor-table .hass=${this.hass} .narrow=${this.narrow} .path=${path}></alarm-view-sensor-table>
         `;
-      case 'house_actions':
-        return html`
-          <alarm-view-house-actions .hass=${this.hass} .narrow=${this.narrow} .path=${path}></alarm-view-house-actions>
-        `;
       case 'activity':
         return html`
           <alarm-view-activity .hass=${this.hass} .narrow=${this.narrow} .path=${path}></alarm-view-activity>
@@ -187,12 +181,10 @@ export class MyAlarmPanel extends LitElement {
           }
         } else if (editing && tab.id === 'actions') window.sessionStorage.removeItem(ACTIONS_RETURN_KEY);
         const p = path.page === 'notifications' ? { ...path, page: 'actions' } : path;
-        // ext: the Actions tab (scenes, House Mode Actions, other Alarm Events; their editors in place)
-        if (tab.id === 'actions')
-          return html`<alarm-view-actions-tab .hass=${this.hass} .narrow=${this.narrow} .path=${p}></alarm-view-actions-tab>`;
         // a notification editor shows only the Notifications card (not the Alarm Events list under it)
         const notifEditor = path.subpage === 'new_notification' || !!path.params.edit_notification;
-        const section = editing ? (notifEditor ? 'notifications' : undefined) : tab.section;
+        // ext: the Alarm Events tab and its editor show only the Alarm Events card
+        const section = editing ? (notifEditor ? 'notifications' : 'actions') : tab.section;
         return html`
           <alarm-view-actions
             .hass=${this.hass}

@@ -35,7 +35,7 @@ test('old addresses still work', () => {
 test('upstream editors highlight the right tab', () => {
   assert.equal(tabForPath('general', undefined, { edit_area: '123' }).id, 'partitions');
   assert.equal(tabForPath('general', 'mqtt_configuration').id, 'backup'); // MQTT lives on Integrations & Backup
-  assert.equal(tabForPath('house_actions').id, 'actions');
+  assert.equal(tabForPath('house_actions').id, 'house');
   assert.equal(tabForPath('actions', 'new_notification').id, 'notifications');
   assert.equal(tabForPath('actions', undefined, { edit_notification: '1' }).id, 'notifications');
   assert.equal(tabForPath('actions', 'new_action').id, 'actions');

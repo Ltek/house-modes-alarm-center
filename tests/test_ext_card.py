@@ -95,7 +95,7 @@ async def test_panel_keypress_checks_the_user(hass: Any, hass_storage: Any, tmp_
 
 
 async def test_card_is_served(hass: Any, hass_storage: Any, hass_client_no_auth: Any, tmp_path: Any) -> None:
-    """The card file is served without login and loaded on every dashboard as an extra module."""
+    """The card file is served without login and added as a Dashboard resource (or, without one, an extra module)."""
     await _setup(hass, hass_storage, tmp_path)
     dist = os.path.join(hass.config.path("custom_components"), "alarmo", "frontend", "dist")
     os.makedirs(dist, exist_ok=True)
@@ -104,9 +104,18 @@ async def test_card_is_served(hass: Any, hass_storage: Any, hass_client_no_auth:
             fh.write("export const x = 1;\n")
     hass.data.pop("alarmo_ext_card", None)
     await async_register_panel(hass)
-    url = hass.data["alarmo_ext_card"]["url"]
+    from homeassistant.components.lovelace.const import LOVELACE_DATA  # noqa: PLC0415
+
+    ll = hass.data.get(LOVELACE_DATA)
+    if ll is not None and hasattr(ll.resources, "async_create_item"):
+        urls = [i["url"] for i in ll.resources.async_items()]
+        assert len(urls) == 1
+        url = urls[0]
+        assert not hass.data["alarmo_ext_card"].get("url")
+    else:
+        url = hass.data["alarmo_ext_card"]["url"]
+        assert url in hass.data[DATA_EXTRA_MODULE_URL].urls
     assert url.startswith("/alarmo_ext/house-modes-alarm-center-card.js?v=")
-    assert url in hass.data[DATA_EXTRA_MODULE_URL].urls
     client = await hass_client_no_auth()
     res = await client.get(url)
     assert res.status == 200 and "export const x" in await res.text()

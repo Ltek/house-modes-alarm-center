@@ -3,6 +3,19 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.69 — 2026-11-06
+
+Restart Home Assistant after the update, then reload the browser (on phones, close and reopen the app).
+
+- **Dashboard card loading.** The integration now adds the card to **Settings → Dashboards → Resources** and updates
+  that entry's URL on every update, the way dashboard cards normally load. Before, it was only injected as an extra
+  frontend module, which is loaded after the page and could leave the card missing ("Custom element doesn't exist:
+  house-modes-alarm-center-card"), mostly in the phone apps. Dashboards in YAML mode keep the old way, because their
+  resources can't be changed.
+  - If you added the card as a resource by hand, the integration keeps one entry and removes the copies.
+  - The card no longer stops with an error when its file is loaded twice (an old and a new URL right after an
+    update, or two resource entries).
+
 ## v2026.11.06.68 — 2026-11-06
 
 Restart Home Assistant after the update.

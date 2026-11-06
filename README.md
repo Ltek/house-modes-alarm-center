@@ -179,7 +179,7 @@ a **walk test**.
 
 **Dashboard card** — *House Modes & Alarm Center Card*, included ([CARD.md](CARD.md)): the House Mode with its icon and
 color, the panel's display, House Mode buttons, the alarm's arm / disarm and code entry, and the panel keypad (who may
-use it is set in the integration). No separate download or resource.
+use it is set in the integration). No separate download; the integration adds and updates its Dashboard resource.
 
 **Activity** — a recorder of sequences: House Mode helpers, the alarm, the panel and its keypad text, locks, bypasses,
 mirrors, automations that ran (as the *cause*), commands and notifications, grouped from the trigger until things go

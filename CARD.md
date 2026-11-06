@@ -1,7 +1,10 @@
 # House Modes & Alarm Center Card
 
 A dashboard card for the House Mode, the alarm and the physical panel's keypad. It comes with the integration:
-no separate HACS download and no dashboard resource. After an update, reload the browser.
+no separate HACS download. The integration adds it to **Settings → Dashboards → ⋮ → Resources**
+(`/alarmo_ext/house-modes-alarm-center-card.js`) and updates that entry on every update; don't add it by hand.
+After an update, reload the browser. Dashboards in YAML mode can't have resources added: there it is loaded as a
+frontend module instead.
 
 ```yaml
 type: custom:house-modes-alarm-center-card

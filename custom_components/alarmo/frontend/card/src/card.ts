@@ -1,5 +1,6 @@
+import './guard';
 // House Modes & Alarm Center Card: House Mode, alarm and physical panel in one card.
-// Loaded on every dashboard by the integration (no resource entry). Card type: custom:house-modes-alarm-center-card
+// Added as a Dashboard resource by the integration (extra frontend module in YAML mode). Card type: custom:house-modes-alarm-center-card
 import { LitElement, html, css, nothing, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './alarm/lib/types';

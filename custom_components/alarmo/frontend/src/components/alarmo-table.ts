@@ -323,6 +323,12 @@ export class AlarmoTable extends LitElement {
       min-width: 160px; /* ext: never squeeze the name to "Na…" */
     }
 
+    div.table-cell > input[type='checkbox'] {
+      width: 18px;
+      accent-color: var(--primary-color);
+      cursor: pointer;
+      margin: 0 auto;
+    }
     div.table-cell > ha-switch {
       width: 68px;
       height: 48px;

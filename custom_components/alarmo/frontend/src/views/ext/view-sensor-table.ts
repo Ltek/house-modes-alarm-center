@@ -808,8 +808,8 @@ export class AlarmViewSensorTable extends SubscribeMixin(LitElement) {
                 ([field, label]) => html`
                   <label class="field ${changed(field)}" title=${helpText(field)}>
                     <span>${label}</span>
-                    <ha-switch .checked=${field === 'enabled' ? s.enabled !== false : !!s[field]} ?disabled=${removed}
-                      @change=${(e: any) => this.setField(id, field, e.target.checked)}></ha-switch>
+                    <input type="checkbox" class="cb" .checked=${field === 'enabled' ? s.enabled !== false : !!s[field]} ?disabled=${removed}
+                      @change=${(e: any) => this.setField(id, field, e.target.checked)} />
                   </label>
                 `
               )}

@@ -67,6 +67,14 @@ export const commonStyle = css`
     align-items: center;
   }
 
+  input[type='checkbox'].cb {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+  }
+
+  div.checkbox-row input.cb,
   div.checkbox-row ha-switch {
     margin-right: 20px;
   }

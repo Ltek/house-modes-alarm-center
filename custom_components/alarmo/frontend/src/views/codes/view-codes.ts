@@ -1,4 +1,8 @@
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html, nothing, css } from 'lit';
+import { extStyles } from '../ext/ext-styles';
+
+/** Which sections of the tab are open (module-level: kept across re-renders and tab changes). */
+const SEC_OPEN: Record<string, boolean> = {};
 import { property, customElement } from 'lit/decorators.js';
 
 import { prettyPrint, handleError, sortAlphabetically, pick, navigate } from '../../helpers';
@@ -12,7 +16,7 @@ import { commonStyle } from '../../styles';
 import { localize } from '../../../localize/localize';
 import { SubscribeMixin } from '../../subscribe-mixin';
 import { UnsubscribeFunc } from 'home-assistant-js-websocket';
-import { fetchConfig, fetchUsers, saveConfig, saveUser } from '../../data/websockets';
+import { fetchConfig, fetchUsers, saveConfig, saveUser, deleteUser } from '../../data/websockets';
 import { LockLink, UserActions, clearCodes, fetchLockSettings, isEmptyAction } from '../../data/locks';
 import '../ext/view-connections';
 import { TableData, TableColumn } from '../../components/alarmo-table';
@@ -65,98 +69,64 @@ export class AlarmViewCodes extends SubscribeMixin(LitElement) {
 
   render() {
     if (!this.hass || !this.data) return html``;
-
-    {
-      const codesInUse = this.data.code_arm_required || this.data.code_disarm_required || this.data.code_mode_change_required;
-
-      return html`
-        <ha-card>${sectionHead(localize('panels.codes.title', this.hass.language), 'settings')}
-          <div class="card-content">${localize('panels.codes.cards.codes.description', this.hass.language)}</div>
-
-          <alarmo-settings-row .narrow=${this.narrow}>
-            <span slot="heading">
-              ${localize('panels.codes.cards.codes.fields.code_arm_required.heading', this.hass.language)}
+    const lang = this.hass.language;
+    const d = this.data;
+    const codesInUse = d.code_arm_required || d.code_disarm_required || d.code_mode_change_required;
+    const req = [d.code_arm_required ? 'arming' : '', d.code_disarm_required ? 'disarming' : '', d.code_mode_change_required ? 'mode change' : '']
+      .filter(Boolean)
+      .join(', ');
+    const fmt = d.code_format === 'text'
+      ? localize('panels.codes.cards.codes.fields.code_format.code_format_text', lang)
+      : localize('panels.codes.cards.codes.fields.code_format.code_format_number', lang);
+    const check = (key: 'code_arm_required' | 'code_disarm_required' | 'code_mode_change_required') => html`
+      <label class="uc-check"><input type="checkbox" class="cb" .checked=${!!d[key]}
+          @change=${(ev: Event) => this.saveData({ [key]: (ev.target as HTMLInputElement).checked } as Partial<AlarmoConfig>)} />
+        <span><strong>${localize(`panels.codes.cards.codes.fields.${key}.heading`, lang)}</strong>
+          <span class="secondary">${localize(`panels.codes.cards.codes.fields.${key}.description`, lang)}</span></span></label>`;
+    return html`
+      <ha-card>${sectionHead(localize('panels.users_codes.title', lang), 'settings')}
+        <div class="card-content desc">
+          <p>The people who may use the alarm, their codes, and the Z-Wave lock keypads. A user's code can arm and disarm
+            the alarm, and, used at a lock, run that user's keypad actions (a House Mode, partition targets, or both).</p>
+        </div>
+        ${this.sec('codes', 'Codes', `${req ? `required for ${req}` : 'not required'} · ${fmt}`, false, html`
+          ${check('code_arm_required')} ${check('code_disarm_required')} ${check('code_mode_change_required')}
+          <div class="uc-row">
+            <span><strong>${localize('panels.codes.cards.codes.fields.code_format.heading', lang)}</strong>
+              <span class="secondary">${localize('panels.codes.cards.codes.fields.code_format.description', lang)}</span></span>
+            <span class="uc-chips">
+              ${(['number', 'text'] as const).map(f => html`<button class="uc-chip ${d.code_format === f ? 'on' : ''}" ?disabled=${!codesInUse}
+                aria-pressed=${d.code_format === f} @click=${() => this.saveData({ code_format: f })}>
+                ${localize(`panels.codes.cards.codes.fields.code_format.code_format_${f}`, lang)}</button>`)}
             </span>
-            <span slot="description">
-              ${localize('panels.codes.cards.codes.fields.code_arm_required.description', this.hass.language)}
-            </span>
-            <ha-switch
-              ?checked=${this.data.code_arm_required}
-              @change=${(ev: Event) => {
-          this.saveData({ code_arm_required: (ev.target as HTMLInputElement).checked });
-        }}
-            ></ha-switch>
-          </alarmo-settings-row>
-
-          <alarmo-settings-row .narrow=${this.narrow}>
-            <span slot="heading">
-              ${localize('panels.codes.cards.codes.fields.code_disarm_required.heading', this.hass.language)}
-            </span>
-            <span slot="description">
-              ${localize('panels.codes.cards.codes.fields.code_disarm_required.description', this.hass.language)}
-            </span>
-            <ha-switch
-              ?checked=${this.data.code_disarm_required}
-              @change=${(ev: Event) => {
-          this.saveData({ code_disarm_required: (ev.target as HTMLInputElement).checked });
-        }}
-            ></ha-switch>
-          </alarmo-settings-row>
-
-          <alarmo-settings-row .narrow=${this.narrow}>
-            <span slot="heading">
-              ${localize('panels.codes.cards.codes.fields.code_mode_change_required.heading', this.hass.language)}
-            </span>
-            <span slot="description">
-              ${localize('panels.codes.cards.codes.fields.code_mode_change_required.description', this.hass.language)}
-            </span>
-            <ha-switch
-              ?checked=${this.data.code_mode_change_required}
-              @change=${(ev: Event) => {
-          this.saveData({ code_mode_change_required: (ev.target as HTMLInputElement).checked });
-        }}
-            ></ha-switch>
-          </alarmo-settings-row>
-
-          <alarmo-settings-row .narrow=${this.narrow}>
-            <span slot="heading">
-              ${localize('panels.codes.cards.codes.fields.code_format.heading', this.hass.language)}
-            </span>
-            <span slot="description">
-              ${localize('panels.codes.cards.codes.fields.code_format.description', this.hass.language)}
-            </span>
-            <ha-button
-              appearance="${this.data.code_format == 'number' ? 'filled' : 'plain'}"
-              variant="${this.data.code_format == 'number' ? 'brand' : 'neutral'}"
-          : ''}"
-              @click=${() => {
-          this.saveData({ code_format: 'number' });
-        }}
-              ?disabled=${!codesInUse}
-            >
-              ${localize('panels.codes.cards.codes.fields.code_format.code_format_number', this.hass.language)}
-            </ha-button>
-            <ha-button
-              appearance="${this.data.code_format == 'text' ? 'filled' : 'plain'}"
-              variant="${this.data.code_format == 'text' ? 'brand' : 'neutral'}"
-          : ''
-        }"
-              @click=${() => {
-          this.saveData({ code_format: 'text' });
-        }}
-              ?disabled=${!codesInUse}
-            >
-              ${localize('panels.codes.cards.codes.fields.code_format.code_format_text', this.hass.language)}
-            </ha-button>
-          </alarmo-settings-row>
-        </ha-card>
-
-        ${this.usersPanel()}
+          </div>`)}
+        ${this.sec('users', 'Users', this.usersSummary(), true, this.usersPanel())}
         ${this.editing
           ? nothing
-          : html`<alarm-view-connections .hass=${this.hass} .narrow=${this.narrow} embedded></alarm-view-connections>`}
-      `;
-    }
+          : this.sec('keypads', 'Keypads', 'Z-Wave lock code slots and keypad actions', false,
+              html`<alarm-view-connections .hass=${this.hass} .narrow=${this.narrow} embedded></alarm-view-connections>`)}
+      </ha-card>
+    `;
+  }
+
+  /** A collapsible section of the tab (open state kept across re-renders). */
+  private sec(key: string, title: string, summary: string, defOpen: boolean, body: unknown) {
+    const open = key in SEC_OPEN ? SEC_OPEN[key] : defOpen || (key === 'users' && this.editing);
+    return html`<details class="collapse uc-sec" ?open=${open || (key === 'users' && this.editing)}
+        @toggle=${(e: Event) => (SEC_OPEN[key] = (e.target as HTMLDetailsElement).open)}>
+      <summary>
+        <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+        <span class="collapse-title">${title}</span>
+        <span class="secondary" style="display:inline">${summary}</span>
+      </summary>
+      <div class="collapse-body">${body}</div>
+    </details>`;
+  }
+
+  private usersSummary() {
+    const users = Object.values(this.users);
+    const on = users.filter(u => u.enabled).length;
+    return `${users.length} user${users.length === 1 ? '' : 's'} · ${on} enabled`;
   }
 
   /** ext: the user editor opens in place, under the Users header (not above the page) */
@@ -181,122 +151,61 @@ export class AlarmViewCodes extends SubscribeMixin(LitElement) {
 
   usersPanel() {
     if (!this.hass) return html``;
-
     const users = Object.values(this.users);
     users.sort(sortAlphabetically);
-
-    const columns: Dictionary<TableColumn> = {
-      icon: {
-        width: '40px',
-      },
-      name: {
-        title: this.hass.localize('ui.common.name'),
-        width: '40%',
-        grow: true,
-        text: true,
-      },
-      code_format: {
-        title: localize('panels.codes.cards.codes.fields.code_format.heading', this.hass.language),
-        width: '120px',
-        hide: this.narrow,
-        text: true,
-      },
-      locks: {
-        title: 'Lock slots',
-        width: '22%',
-        hide: this.narrow,
-        text: true,
-      },
-      keypad: {
-        title: 'At the lock',
-        width: '28%',
-        hide: this.narrow,
-        text: true,
-      },
-      enabled: {
-        title: localize('common.enabled', this.hass.language),
-        width: '68px',
-        align: 'center',
-      },
+    const lang = this.hass.language;
+    const fmt = (u: AlarmoUser) =>
+      u.code_format === 'number'
+        ? localize('panels.codes.cards.codes.fields.code_format.code_format_number', lang)
+        : u.code_format === 'text'
+          ? localize('panels.codes.cards.codes.fields.code_format.code_format_text', lang)
+          : '';
+    const access = (u: AlarmoUser) =>
+      u.can_arm && u.can_disarm ? 'arms and disarms' : u.can_arm ? 'arms only' : u.can_disarm ? 'disarms only' : 'lock-only';
+    const slots = (u: AlarmoUser) =>
+      this.lockLinks
+        .filter(l => l.user_id === u.user_id)
+        .map(l => `${(this.hass!.states[l.entity_id]?.attributes.friendly_name as string) || l.entity_id} ${l.slot}`)
+        .join(', ');
+    const keypad = (u: AlarmoUser) => {
+      const a = this.lockActions[u.user_id!] || {};
+      const brief = (x?: { house_mode: string | null; targets: Record<string, string> }) =>
+        [x && x.house_mode ? `House Mode ${x.house_mode}` : '', x && Object.keys(x.targets).length ? `${Object.keys(x.targets).length} partition target(s)` : '']
+          .filter(Boolean)
+          .join(' + ');
+      return [!isEmptyAction(a.unlock) ? `unlock → ${brief(a.unlock)}` : '', !isEmptyAction(a.lock) ? `lock → ${brief(a.lock)}` : ''].filter(Boolean).join(' · ');
     };
-
-    const data = users.map(item => {
-      const output: TableData = {
-        id: item.user_id!,
-        icon: html`
-          <ha-icon icon="mdi:account-outline" class="${item.enabled ? '' : 'disabled'}"></ha-icon>
-        `,
-        name: html`
-          <span class="${item.enabled ? '' : 'disabled'}">
-            ${prettyPrint(item.name)}
-          </span>
-        `,
-        code_format: html`
-          <span class="${item.enabled ? '' : 'disabled'}">
-          ${item.code_format == 'number'
-            ? prettyPrint(
-              localize('panels.codes.cards.codes.fields.code_format.code_format_number', this.hass!.language)
-            )
-            : item.code_format == 'text'
-              ? prettyPrint(localize('panels.codes.cards.codes.fields.code_format.code_format_text', this.hass!.language))
-              : this.hass!.localize('state.default.unknown')
-          }
-          </span>
-        `,
-        locks: html`${this.lockLinks
-          .filter(l => l.user_id === item.user_id)
-          .map(l => `${(this.hass!.states[l.entity_id]?.attributes.friendly_name as string) || l.entity_id} ${l.slot}`)
-          .join(', ')}`,
-        keypad: html`${(() => {
-          const a = this.lockActions[item.user_id!] || {};
-          const lockOnly = !item.can_arm && !item.can_disarm;
-          const brief = (x?: { house_mode: string | null; targets: Record<string, string> }) =>
-            [x && x.house_mode ? `House Mode ${x.house_mode}` : '', x && Object.keys(x.targets).length ? `${Object.keys(x.targets).length} partition target(s)` : '']
-              .filter(Boolean)
-              .join(' + ');
-          const parts = [
-            !isEmptyAction(a.unlock) ? `unlock → ${brief(a.unlock)}` : '',
-            !isEmptyAction(a.lock) ? `lock → ${brief(a.lock)}` : '',
-          ].filter(Boolean);
-          return `${lockOnly ? 'lock-only' : ''}${lockOnly && parts.length ? ' · ' : ''}${parts.join(' · ')}`;
-        })()}`,
-        enabled: html`
-          <ha-switch
-            @click=${(ev: Event) => ev.stopPropagation()}
-            ?checked=${item.enabled}
-            @change=${(ev: Event) => this.toggleEnabled(ev, item.user_id!)}
-          ></ha-switch>
-        `,
-      };
-      return output;
-    });
-
+    const edit = (u: AlarmoUser) => navigate(this, exportPath('codes', { params: { edit_user: u.user_id! } }), true);
     return html`
-      <ha-card>${sectionHead(localize('panels.codes.cards.user_management.title', this.hass.language), 'settings')}
-        <div class="card-content">
-          ${localize('panels.codes.cards.user_management.description', this.hass.language)}
-        </div>
-        <div class="card-actions" style="border-top:none;border-bottom:1px solid var(--divider-color)">
-          <ha-button appearance="plain" ?disabled=${this.editing} @click=${this.addUserClick}>
-            ${localize('panels.codes.cards.user_management.actions.new_user', this.hass.language)}
-          </ha-button>
-        </div>
-        ${this.editing ? html`<div style="padding:0 8px 8px">${this.renderEditor()}</div>` : nothing}
-
-        <alarmo-table
-          style=${this.editing ? 'display:none' : ''}
-          ?selectable=${true}
-          .columns=${columns}
-          .data=${data}
-          @row-click=${(ev: CustomEvent) => {
-        const id = String(ev.detail.id);
-        navigate(this, exportPath('codes', { params: { edit_user: id } }), true);
-      }}
-        >
-          ${localize('panels.codes.cards.user_management.no_items', this.hass.language)}
-        </alarmo-table>
-      </ha-card>
+      <div class="uc-intro secondary">${localize('panels.codes.cards.user_management.description', lang)}</div>
+      <ha-button ?disabled=${this.editing} @click=${this.addUserClick}>
+        <ha-icon slot="start" icon="mdi:plus"></ha-icon>${localize('panels.codes.cards.user_management.actions.new_user', lang)}</ha-button>
+      ${this.editing ? html`<div class="uc-editor">${this.renderEditor()}</div>` : nothing}
+      ${this.editing
+        ? nothing
+        : users.length
+          ? html`<div class="uc-list">${users.map(u => html`<div class="uc-user ${u.enabled ? '' : 'off'}">
+              <ha-icon class="uc-icon" icon=${u.can_arm || u.can_disarm ? 'mdi:account-key-outline' : 'mdi:account-lock-outline'}></ha-icon>
+              <div class="uc-name">
+                <button class="link" @click=${() => edit(u)}>${prettyPrint(u.name)}</button>
+                <span class="secondary">${[access(u), fmt(u), u.is_override_code ? 'override code' : '', slots(u) ? `lock slots ${slots(u)}` : '', keypad(u)]
+                  .filter(Boolean)
+                  .join(' · ')}</span>
+              </div>
+              <button class="uc-chip ${u.enabled ? 'on' : ''}" title=${u.enabled ? 'Enabled: click to disable' : 'Disabled: click to enable'}
+                @click=${() => this.setUserEnabled(u.user_id!, !u.enabled)}>${u.enabled ? 'Enabled' : 'Disabled'}</button>
+              <ha-icon-button .label=${'Edit'} title="Edit" @click=${() => edit(u)}><ha-icon icon="mdi:pencil"></ha-icon></ha-icon-button>
+              <ha-icon-button class="uc-del" .label=${'Delete'} title="Delete" @click=${() => this.removeUser(u)}><ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>
+            </div>`)}</div>`
+          : html`<div class="empty">${localize('panels.codes.cards.user_management.no_items', lang)}</div>`}
     `;
+  }
+
+  private removeUser(u: AlarmoUser) {
+    if (!window.confirm(`Delete the user "${u.name}"?`)) return;
+    deleteUser(this.hass!, u.user_id!)
+      .then(async () => (this.users = await fetchUsers(this.hass!)))
+      .catch(e => handleError(e, this.shadowRoot!.querySelector('ha-card') as HTMLElement));
   }
 
   addUserClick() {
@@ -316,8 +225,7 @@ export class AlarmViewCodes extends SubscribeMixin(LitElement) {
       .then();
   }
 
-  toggleEnabled(ev: Event, id: string) {
-    const enabled = (ev.target as HTMLInputElement).checked;
+  setUserEnabled(id: string, enabled: boolean) {
     const card = this.shadowRoot!.querySelector('ha-card') as HTMLElement;
     const linked = this.lockLinks.filter(l => l.user_id === id).length;
     saveUser(this.hass!, { user_id: id, enabled: enabled })
@@ -329,5 +237,93 @@ export class AlarmViewCodes extends SubscribeMixin(LitElement) {
       });
   }
 
-  static styles = commonStyle;
+  static styles = [
+    commonStyle,
+    extStyles,
+    css`
+      details.collapse.uc-sec {
+        margin: 0 16px 12px;
+      }
+      .uc-check,
+      .uc-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--divider-color);
+      }
+      .uc-row {
+        align-items: center;
+        flex-wrap: wrap;
+        border-bottom: none;
+      }
+      .uc-check input {
+        margin-top: 2px;
+        flex: none;
+      }
+      .uc-check > span,
+      .uc-row > span:first-child {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 260px;
+      }
+      .uc-chips {
+        display: flex;
+        gap: 6px;
+      }
+      .uc-chip {
+        border: 1px solid var(--divider-color);
+        border-radius: 14px;
+        padding: 2px 12px;
+        background: none;
+        color: var(--secondary-text-color);
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .uc-chip.on {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+      .uc-chip[disabled] {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .uc-intro {
+        display: block;
+        margin: 0 0 8px;
+      }
+      .uc-list {
+        margin-top: 8px;
+      }
+      .uc-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 0;
+        border-top: 1px solid var(--divider-color);
+      }
+      .uc-user.off .uc-name button,
+      .uc-user.off .uc-icon {
+        opacity: 0.55;
+      }
+      .uc-icon {
+        color: var(--primary-color);
+        margin: 0 4px;
+      }
+      .uc-name {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .uc-del:hover {
+        color: var(--error-color);
+      }
+      .uc-editor {
+        margin-top: 8px;
+      }
+    `,
+  ];
 }

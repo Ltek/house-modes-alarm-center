@@ -22,6 +22,7 @@ SKIP_PREFIXES = ("panels.sensors.cards.editor.fields.device_type.choose.",)
 EXACT = {
     "panels.actions.cards.actions.actions.new_action": "New Alarm Event",
     "panels.actions.cards.actions.table.no_items": "There are no Alarm Events yet.",
+    "panels.codes.cards.codes.fields.code_format.description": "How codes are typed on the alarm card: numbers or any text.",
     "panels.actions.cards.new_action.title": "Alarm Event",
     "panels.actions.cards.new_action.fields.event.description": "When the Alarm Event runs",
     "panels.actions.cards.new_action.fields.mode.description": "Only for these Arm Modes (optional)",

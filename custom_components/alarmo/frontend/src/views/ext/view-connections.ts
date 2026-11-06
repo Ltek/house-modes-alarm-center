@@ -1,6 +1,6 @@
 // Users, Codes, Keypads tab (lower part): one collapsible card per Z-Wave lock, one row per code slot
 // (Alarmo User, code check, what the code does). Unlinked codes are flagged with a one-click import.
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
 import { Path } from '../../common/navigation';
@@ -46,6 +46,8 @@ export class AlarmViewConnections extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
   @property({ type: Boolean }) narrow = false;
   @property({ attribute: false }) path?: Path;
+  /** inside the Users, Codes, Keypads tab's Keypads section: no card or title of its own */
+  @property({ type: Boolean }) embedded = false;
 
   @state() private saved?: HouseSettings;
   @state() private draft?: HouseSettings;
@@ -173,8 +175,9 @@ export class AlarmViewConnections extends LitElement {
     const partitions = (this.houseInfo?.targets || []).filter(t => t.key !== 'master');
     const modeName = (id: string) => (modes.find(m => m.id === id) || { name: id }).name;
     const areaName = (id: string) => (partitions.find(p => p.key === id) || { name: id }).name;
-    return html`
-      <ha-card>${sectionHead('Keypads', 'settings')}
+    const wrap = (body: unknown) =>
+      this.embedded ? html`<div class="kp-embedded">${body}</div>` : html`<ha-card>${sectionHead('Keypads', 'settings')}${body}</ha-card>`;
+    return wrap(html`
         <div class="card-content desc">
           <p>Each Z-Wave lock, with one row per code slot. A slot's code belongs to a User; that user's keypad
             actions (a House Mode, partition targets, or both) run when the code is used at the lock.</p>
@@ -184,7 +187,7 @@ export class AlarmViewConnections extends LitElement {
               already a User's code is linked to that user instead.</li>
             <li><em>Code</em> compares the slot's code with the user's code (<em>Slot = User Code</em>). Codes are stored only hashed. The eye
               shows a lock's code for 30 seconds, read from the lock right then; it is never stored.</li>
-            <li>Click a user (above) to change its name, code, permissions, lock slots and keypad actions.</li>
+            <li>Click a user (in Users) to change its name, code, permissions, lock slots and keypad actions.</li>
           </ul>
         </div>
         ${this.legacy.length
@@ -279,9 +282,25 @@ export class AlarmViewConnections extends LitElement {
             </details>
           `;
         })}
-      </ha-card>
-    `;
+    `);
   }
 
-  static styles = extStyles;
+  static styles = [
+    extStyles,
+    css`
+      .kp-embedded .card-content.desc {
+        padding: 0 0 8px;
+      }
+      .kp-embedded details.collapse {
+        margin: 0 0 8px;
+      }
+      .kp-embedded details.collapse[open] {
+        border-color: var(--accent-color);
+      }
+      .kp-embedded .notice {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+    `,
+  ];
 }

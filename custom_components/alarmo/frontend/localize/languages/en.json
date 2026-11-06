@@ -340,7 +340,7 @@
             },
             "code_format": {
               "heading": "Code format",
-              "description": "Sets the input type for Lovelace alarm card.",
+              "description": "How codes are typed on the alarm card: numbers or any text.",
               "code_format_number": "Pincode",
               "code_format_text": "Password"
             }

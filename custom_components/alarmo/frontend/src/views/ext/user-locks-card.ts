@@ -290,7 +290,12 @@ export class UserLocksCard extends LitElement {
         padding: 4px 0 4px;
       }
       :host([embedded]) .subhead {
-        margin: 10px 16px 4px;
+        margin: 10px 12px 4px;
+        color: var(--accent-color);
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 500;
+        font-size: 14px;
       }
       :host([embedded]) .card-content.desc {
         display: none;

@@ -87,8 +87,12 @@ export class AlarmoSettingsRow extends LitElement {
         border: none;
         padding: 12px 0px;
       }
-      ::slotted(ha-switch) {
-        padding: 16px 0;
+      ::slotted(input[type='checkbox']) {
+        margin: 14px 4px;
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary-color);
+        cursor: pointer;
       }
       .info {
         flex: 0 1 auto;

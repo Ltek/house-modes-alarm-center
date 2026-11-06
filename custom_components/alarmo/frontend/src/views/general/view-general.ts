@@ -115,12 +115,11 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
             <span slot="description">
               ${localize('panels.general.cards.general.fields.disarm_after_trigger.description', this.hass.language)}
             </span>
-            <ha-switch
-              ?checked=${this.data!.disarm_after_trigger}
+            <input type="checkbox" class="cb"
+              .checked=${this.data!.disarm_after_trigger}
               @change=${(ev: Event) => {
           this.saveData({ disarm_after_trigger: (ev.target as HTMLInputElement).checked });
-        }}
-            ></ha-switch>
+        }} />
           </alarmo-settings-row>
 
           ${this.data?.disarm_after_trigger === false
@@ -132,12 +131,11 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
             <span slot="description">
               ${localize('panels.general.cards.general.fields.ignore_blocking_sensors_after_trigger.description', this.hass.language)}
             </span>
-            <ha-switch
-              ?checked=${this.data!.ignore_blocking_sensors_after_trigger}
+            <input type="checkbox" class="cb"
+              .checked=${this.data!.ignore_blocking_sensors_after_trigger}
               @change=${(ev: Event) => {
               this.saveData({ ignore_blocking_sensors_after_trigger: (ev.target as HTMLInputElement).checked });
-            }}
-            ></ha-switch>
+            }} />
           </alarmo-settings-row>
           ` : ''}
 
@@ -152,11 +150,10 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
                   <span slot="description">
                     ${localize('panels.general.cards.general.fields.enable_master.description', this.hass.language)}
                   </span>
-                  <ha-switch
-                    ?checked=${this.data?.master?.enabled && Object.keys(this.areas).length >= 2}
+                  <input type="checkbox" class="cb"
+                    .checked=${this.data?.master?.enabled && Object.keys(this.areas).length >= 2}
                     ?disabled=${Object.keys(this.areas).length < 2}
-                    @change=${this.toggleEnableMaster}
-                  ></ha-switch>
+                    @change=${this.toggleEnableMaster} />
                 </alarmo-settings-row>
               `
           : ''}
@@ -189,12 +186,11 @@ export class AlarmViewGeneral extends SubscribeMixin(LitElement) {
             <span slot="description">
               ${localize('panels.general.cards.general.fields.enable_mqtt.description', this.hass.language)}
             </span>
-            <ha-switch
-              ?checked=${this.data?.mqtt?.enabled}
+            <input type="checkbox" class="cb"
+              .checked=${this.data?.mqtt?.enabled}
               @change=${(ev: Event) => {
           this.saveData({ mqtt: { ...this.data!.mqtt!, enabled: (ev.target as HTMLInputElement).checked } });
-        }}
-            ></ha-switch>
+        }} />
           </alarmo-settings-row>
 
           ${this.data?.mqtt?.enabled

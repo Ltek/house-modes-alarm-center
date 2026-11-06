@@ -180,13 +180,12 @@ export class MqttConfigCard extends SubscribeMixin(LitElement) {
           <span slot="description">
             ${localize('panels.general.cards.mqtt.fields.require_code.description', this.hass.language)}
           </span>
-          <ha-switch
-            ?checked=${this.selection.require_code}
+          <input type="checkbox" class="cb"
+            .checked=${this.selection.require_code}
             ?disabled=${!this.config!.code_arm_required && !this.config!.code_disarm_required}
             @change=${(ev: Event) => {
         this.selection = { ...this.selection!, require_code: (ev.target as HTMLInputElement).checked };
-      }}
-          ></ha-switch>
+      }} />
         </alarmo-settings-row>
 
         <div class="card-actions">

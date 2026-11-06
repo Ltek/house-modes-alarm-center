@@ -76,10 +76,9 @@ export class UserEditorCard extends LitElement {
     const multi = this.areaOptions.length >= 2;
     const limit = this.data.area_limit || [];
     return html`
-      <ha-card>
-        <div class="card-header">
-          <div class="name">${this.item ? `Edit user '${this.users![this.item]?.name || ''}'` : 'New user'}</div>
-          ${roleChip('settings')}
+      <div class="ed">
+        <div class="ed-head">
+          <div class="ed-title">${this.item ? this.users![this.item]?.name || 'User' : 'New user'}</div>
           <ha-icon-button .path=${mdiClose} .label=${'Close'} @click=${this.cancelClick}></ha-icon-button>
         </div>
 
@@ -143,9 +142,12 @@ export class UserEditorCard extends LitElement {
           <ha-button ?disabled=${this.busy} @click=${this.saveClick}>${this.busy ? 'Saving…' : 'Save'}</ha-button>
           <ha-button appearance="plain" @click=${this.cancelClick}>Cancel</ha-button>
           <span style="flex:1"></span>
-          ${this.item ? html`<ha-button appearance="plain" variant="danger" @click=${this.deleteClick}>Delete user</ha-button>` : nothing}
+          ${this.item
+            ? html`<ha-icon-button class="ed-del" .label=${'Delete user'} title="Delete user" @click=${this.deleteClick}>
+                <ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>`
+            : nothing}
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -226,15 +228,44 @@ export class UserEditorCard extends LitElement {
     return css`
       ${commonStyle}
       ${extStyles}
+      /* one compact panel with an accent outline (CARD_DESIGN_SYSTEM), like the other editors */
       :host {
+        display: block;
         padding: 0;
       }
+      .ed {
+        border: 1px solid var(--accent-color);
+        border-radius: 10px;
+        padding: 4px 4px 4px;
+      }
+      .ed-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 4px 0 12px;
+      }
+      .ed-title {
+        flex: 1 1 auto;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .ed-del:hover {
+        color: var(--error-color);
+      }
       .sect {
-        padding: 4px 16px 8px;
+        padding: 0 12px 8px;
         border-top: 1px solid var(--divider-color);
       }
       .sect .subhead {
         margin: 10px 0 4px;
+        color: var(--accent-color);
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 500;
+        font-size: 14px;
       }
       .card-actions {
         display: flex;

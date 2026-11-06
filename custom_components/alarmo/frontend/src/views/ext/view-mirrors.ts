@@ -1,7 +1,7 @@
 // Physical Panel page, "Panel zones" card (was the Zone Mirrors tab): every physical panel zone with its live
 // state, mirror, how it is used in Alarmo, and "Ignore". Panel zones not in Alarmo are flagged and can be added
 // with suggested settings as drafts on Zones (reviewed there before saving).
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { AlarmoArea, AlarmoSensor, Dictionary, HomeAssistant } from '../../types';
 import { Path } from '../../common/navigation';
@@ -34,6 +34,9 @@ const ZONE_DEFAULTS = {
 
 type Row = { source: string; name: string; zone: number | null; panel: string | null; panelZone: boolean; dc: string | null };
 
+
+/** Whether the zone list is open (module-level: kept across re-renders and tab changes). */
+const ZONES_OPEN = { open: false };
 
 @customElement('alarm-view-mirrors')
 export class AlarmViewMirrors extends LitElement {
@@ -158,6 +161,14 @@ export class AlarmViewMirrors extends LitElement {
               </div>
             </div>`
           : nothing}
+        <details class="collapse pz-list" ?open=${ZONES_OPEN.open} @toggle=${(e: Event) => (ZONES_OPEN.open = (e.target as HTMLDetailsElement).open)}>
+          <summary>
+            <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+            <span class="collapse-title">Zone list</span>
+            <span class="secondary" style="display:inline">${all.length} zone${all.length === 1 ? '' : 's'} ·
+              ${Object.keys(this.mirrors).length} mirrored · ${this.info.bypassed.length} bypassed${this.ignored.length ? ` · ${this.ignored.length} ignored` : ''}</span>
+          </summary>
+          <div class="collapse-body">
         <div class="toolbar">
           ${lockToggle(this.locked, () => (this.locked = !this.locked))}
           <input type="search" placeholder="Search" aria-label="Search" .value=${this.search} @input=${(e: any) => (this.search = e.target.value)} />
@@ -228,6 +239,8 @@ export class AlarmViewMirrors extends LitElement {
           })}</tbody>
         </table></div>
         ${!rows.length ? html`<div class="empty">No physical panel zones found. Add the physical panel's integration to Home Assistant, or mirror another entity below.</div>` : nothing}
+          </div>
+        </details>
       </ha-card>
       <ha-card>${sectionHead('Mirror another entity', 'settings')}
         <div class="card-content desc">
@@ -469,5 +482,15 @@ export class AlarmViewMirrors extends LitElement {
     }
   }
 
-  static styles = extStyles;
+  static styles = [
+    extStyles,
+    css`
+      details.collapse.pz-list > .collapse-body {
+        padding: 0 0 8px;
+      }
+      details.collapse.pz-list > .collapse-body > .toolbar {
+        padding-left: 12px;
+      }
+    `,
+  ];
 }

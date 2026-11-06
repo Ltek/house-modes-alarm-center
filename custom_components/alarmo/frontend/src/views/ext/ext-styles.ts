@@ -39,6 +39,15 @@ export const extStyles = css`
     flex: 1 1 auto;
   }
   select,
+  /* checkboxes, never toggle switches (user rule 2026-11-06) */
+  input[type='checkbox'] {
+    accent-color: var(--primary-color);
+    cursor: pointer;
+  }
+  input[type='checkbox'].cb {
+    width: 18px;
+    height: 18px;
+  }
   input[type='text'],
   input[type='number'],
   input[type='search'] {

@@ -247,10 +247,9 @@ export class SensorEditorCard extends SubscribeMixin(LitElement) {
                     ${localize('panels.sensors.cards.editor.fields.always_on.description', this.hass.language)}
                   </span>
 
-                  <ha-switch
-                    ?checked=${this.data.always_on}
-                    @change=${(ev: Event) => this._SetData({ always_on: (ev.target as HTMLInputElement).checked })}
-                  ></ha-switch>
+                  <input type="checkbox" class="cb"
+                    .checked=${this.data.always_on}
+                    @change=${(ev: Event) => this._SetData({ always_on: (ev.target as HTMLInputElement).checked })} />
                 </alarmo-settings-row>
               `
         : ''}
@@ -265,11 +264,10 @@ export class SensorEditorCard extends SubscribeMixin(LitElement) {
                     ${localize('panels.sensors.cards.editor.fields.use_exit_delay.description', this.hass.language)}
                   </span>
 
-                  <ha-switch
-                    ?checked=${this.data.use_exit_delay}
+                  <input type="checkbox" class="cb"
+                    .checked=${this.data.use_exit_delay}
                     ?disabled=${this.data.always_on}
-                    @change=${(ev: Event) => this._SetData({ use_exit_delay: (ev.target as HTMLInputElement).checked })}
-                  ></ha-switch>
+                    @change=${(ev: Event) => this._SetData({ use_exit_delay: (ev.target as HTMLInputElement).checked })} />
                 </alarmo-settings-row>
 
                 ${this.data.type == ESensorTypes.Motion && this.data.use_exit_delay
@@ -282,12 +280,11 @@ export class SensorEditorCard extends SubscribeMixin(LitElement) {
                           ${localize('panels.sensors.cards.editor.fields.allow_open.description', this.hass.language)}
                         </span>
 
-                        <ha-switch
-                          ?checked=${this.data.allow_open}
+                        <input type="checkbox" class="cb"
+                          .checked=${this.data.allow_open}
                           ?disabled=${this.data.always_on || this.data.arm_on_close}
                           @change=${(ev: Event) =>
-                this._SetData({ allow_open: (ev.target as HTMLInputElement).checked })}
-                        ></ha-switch>
+                this._SetData({ allow_open: (ev.target as HTMLInputElement).checked })} />
                       </alarmo-settings-row>
                     `
             : ''}
@@ -304,12 +301,11 @@ export class SensorEditorCard extends SubscribeMixin(LitElement) {
                     ${localize('panels.sensors.cards.editor.fields.use_entry_delay.description', this.hass.language)}
                   </span>
 
-                  <ha-switch
-                    ?checked=${this.data.use_entry_delay}
+                  <input type="checkbox" class="cb"
+                    .checked=${this.data.use_entry_delay}
                     ?disabled=${this.data.always_on}
                     @change=${(ev: Event) =>
-            this._SetData({ use_entry_delay: (ev.target as HTMLInputElement).checked })}
-                  ></ha-switch>
+            this._SetData({ use_entry_delay: (ev.target as HTMLInputElement).checked })} />
                 </alarmo-settings-row>
               `
         : ''}
@@ -373,11 +369,10 @@ export class SensorEditorCard extends SubscribeMixin(LitElement) {
                     ${localize('panels.sensors.cards.editor.fields.arm_on_close.description', this.hass.language)}
                   </span>
 
-                  <ha-switch
-                    ?checked=${this.data.arm_on_close}
+                  <input type="checkbox" class="cb"
+                    .checked=${this.data.arm_on_close}
                     ?disabled=${this.data.always_on}
-                    @change=${(ev: Event) => this._SetData({ arm_on_close: (ev.target as HTMLInputElement).checked })}
-                  ></ha-switch>
+                    @change=${(ev: Event) => this._SetData({ arm_on_close: (ev.target as HTMLInputElement).checked })} />
                 </alarmo-settings-row>
               `
         : ''}
@@ -391,11 +386,10 @@ export class SensorEditorCard extends SubscribeMixin(LitElement) {
                     ${localize('panels.sensors.cards.editor.fields.auto_bypass.description', this.hass.language)}
                   </span>
 
-                  <ha-switch
-                    ?checked=${this.data.auto_bypass}
+                  <input type="checkbox" class="cb"
+                    .checked=${this.data.auto_bypass}
                     ?disabled=${this.data.always_on}
-                    @change=${(ev: Event) => this._SetData({ auto_bypass: (ev.target as HTMLInputElement).checked })}
-                  ></ha-switch>
+                    @change=${(ev: Event) => this._SetData({ auto_bypass: (ev.target as HTMLInputElement).checked })} />
                 </alarmo-settings-row>
 
                 ${this.data.auto_bypass
@@ -440,12 +434,11 @@ export class SensorEditorCard extends SubscribeMixin(LitElement) {
                   ${localize('panels.sensors.cards.editor.fields.allow_open.description', this.hass.language)}
                 </span>
 
-                <ha-switch
-                  ?checked=${this.data.allow_open}
+                <input type="checkbox" class="cb"
+                  .checked=${this.data.allow_open}
                   ?disabled=${this.data.always_on || this.data.arm_on_close}
                   @change=${(ev: Event) =>
-            this._SetData({ allow_open: (ev.target as HTMLInputElement).checked })}
-                ></ha-switch>
+            this._SetData({ allow_open: (ev.target as HTMLInputElement).checked })} />
               </alarmo-settings-row>
             `
         : ''}
@@ -458,10 +451,9 @@ export class SensorEditorCard extends SubscribeMixin(LitElement) {
               ${localize('panels.sensors.cards.editor.fields.trigger_unavailable.description', this.hass.language)}
             </span>
 
-            <ha-switch
-              ?checked=${this.data.trigger_unavailable}
-              @change=${(ev: Event) => this._SetData({ trigger_unavailable: (ev.target as HTMLInputElement).checked })}
-            ></ha-switch>
+            <input type="checkbox" class="cb"
+              .checked=${this.data.trigger_unavailable}
+              @change=${(ev: Event) => this._SetData({ trigger_unavailable: (ev.target as HTMLInputElement).checked })} />
           </alarmo-settings-row>
         </alarmo-collapsible-section>
 

@@ -53,10 +53,18 @@ const SHOTS = [
       t.expanded = ['binary_sensor.back_door'];
     });
   }],
-  ['/alarmo/panel', '06-physical-panel'],
+  ['/alarmo/panel', '06-physical-panel', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-panel');
+      const m = v.shadowRoot.querySelector('alarm-view-mirrors');
+      for (let i = 0; i < 20 && !m.shadowRoot.querySelector('details.pz-list'); i++) await new Promise(r => setTimeout(r, 100));
+      m.shadowRoot.querySelector('details.pz-list').open = true;
+    });
+  }],
   ['/alarmo/codes', '07-users-codes-keypads', async (p) => {
     await p.evaluate(() => {
       const c = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-codes');
+      c.shadowRoot.querySelectorAll('details.uc-sec').forEach(d => (d.open = true));
       const k = c && c.shadowRoot.querySelector('alarm-view-connections');
       const d = k && k.shadowRoot.querySelector('details.collapse');
       if (d) d.open = true;
@@ -66,7 +74,7 @@ const SHOTS = [
   ['/alarmo/activity', '09-activity', async (p) => {
     await p.evaluate(() => {
       const a = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-activity');
-      const d = a && a.shadowRoot.querySelector('details.collapse');
+      const d = a && a.shadowRoot.querySelector('details.collapse.seq');
       if (d) d.open = true;
     });
   }],

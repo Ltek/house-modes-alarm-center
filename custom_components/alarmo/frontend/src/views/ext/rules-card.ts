@@ -110,11 +110,10 @@ export class AlarmoExtRulesCard extends LitElement {
                             r => html`
                               <tr class=${r.enabled ? '' : 'status-removed'}>
                                 <td class="c">
-                                  <ha-switch
+                                  <input type="checkbox" class="cb"
                                     aria-label=${`Enable ${r.name}`}
                                     .checked=${r.enabled}
-                                    @change=${(e: any) => this.toggleRule(r, e.target.checked)}
-                                  ></ha-switch>
+                                    @change=${(e: any) => this.toggleRule(r, e.target.checked)} />
                                 </td>
                                 <td class="name">${r.name}</td>
                                 <td style="white-space:normal">${describeMatch(r.match, this.registry)}</td>

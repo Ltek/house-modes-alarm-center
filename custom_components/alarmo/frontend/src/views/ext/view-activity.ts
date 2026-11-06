@@ -60,6 +60,7 @@ export class AlarmViewActivity extends LitElement {
   @state() private shadow?: { log: ShadowEntry[]; summary: ShadowSummary };
   @state() private shadowAll = false;
   @state() private shadowOpen = false;
+  @state() private seqOpen = true;
   private timer?: number;
 
   connectedCallback() {
@@ -130,7 +131,10 @@ export class AlarmViewActivity extends LitElement {
     if (!this.info) return html`<ha-card><div class="empty">${this.error || 'Loading…'}</div></ha-card>`;
     return html`
       ${this.error ? html`<div class="notice error" style="margin:0 0 12px">${this.error}</div>` : nothing}
-      ${this.renderArmCheck()} ${this.renderShadow()} ${this.renderSequences()} ${this.renderSettings()} ${this.renderPanelLog()} ${this.renderHouseHistory()}
+      <ha-card>
+        ${this.renderHeader()}
+        ${this.renderSequences()} ${this.renderArmCheck()} ${this.renderShadow()} ${this.renderSettings()} ${this.renderPanelLog()} ${this.renderHouseHistory()}
+      </ha-card>
     `;
   }
 
@@ -148,8 +152,7 @@ export class AlarmViewActivity extends LitElement {
           ? html`<ha-icon icon="mdi:alert-circle" style="color:var(--error-color)"></ha-icon>`
           : html`<ha-icon icon="mdi:information-outline" style="color:var(--secondary-text-color)"></ha-icon>`;
     return html`
-      <ha-card>
-        <details class="collapse" style="margin:12px 16px" ?open=${this.shadowOpen}
+        <details class="collapse act-sec" ?open=${this.shadowOpen}
           @toggle=${(e: Event) => (this.shadowOpen = (e.target as HTMLDetailsElement).open)}>
           <summary>
             <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
@@ -184,7 +187,6 @@ export class AlarmViewActivity extends LitElement {
               : html`<div class="empty">Nothing yet. Lines appear when the House Mode is requested or the partitions change.</div>`}
           </div>
         </details>
-      </ha-card>
     `;
   }
 
@@ -197,8 +199,7 @@ export class AlarmViewActivity extends LitElement {
   private renderArmCheck() {
     const open = this.path?.subpage === 'arm_check' || this.path?.page === 'why';
     return html`
-      <ha-card>
-        <details class="collapse" style="margin:12px 16px" ?open=${open}>
+        <details class="collapse act-sec" ?open=${open}>
           <summary>
             <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
             <span class="collapse-title">Arm Check</span>
@@ -208,7 +209,32 @@ export class AlarmViewActivity extends LitElement {
             <alarm-view-why .hass=${this.hass} .narrow=${this.narrow} .path=${this.path}></alarm-view-why>
           </div>
         </details>
-      </ha-card>
+    `;
+  }
+
+  // ------------------------------------------------------------ header: what it is and whether it records
+
+  private renderHeader() {
+    const i = this.info!;
+    return html`${sectionHead('Activity', 'readonly')}
+        <div class="card-content desc">
+          <p>Everything around House Modes, the alarm, the physical panel, locks and bypasses, grouped into <em>sequences</em>:
+            a sequence starts with a House Mode helper change, a lock keypad use, an alarm or panel change, the BYPASS
+            indicator or an alarm, and collects everything that follows until nothing happens for
+            ${i.settings.window_s} s. Each entry shows the time since the start and, where known, what caused it.</p>
+          <p>It only records — it never changes anything. Codes are never recorded.</p>
+        </div>
+        <div class=${`notice ${i.last_error || (i.settings.enabled && !i.running) ? 'error' : ''}`} style="margin:0 16px 12px">
+          ${!i.settings.enabled
+            ? html`<span class="rec off"><ha-icon icon="mdi:record-circle-outline"></ha-icon>RECORDING OFF</span>
+                <span class="secondary" style="display:inline">· turn it on under Recording settings below</span>`
+            : i.running
+              ? html`<span class="rec on"><ha-icon icon="mdi:record-circle"></ha-icon>RECORDING ENABLED</span> · ${Object.keys(i.watched || {}).length} entities watched ·
+                  ${i.open ? html`a sequence is open now (started ${clock(i.open.start)})` : 'waiting for the next sequence'} ·
+                  ${i.last_write ? html`last saved ${new Date(i.last_write * 1000).toLocaleString()}` : 'nothing saved since Home Assistant started'}`
+              : html`<strong>The recorder is not running.</strong> Check Settings → System → Logs for "alarmo" or "Activity recorder".`}
+          ${i.last_error ? html`<div><strong>Error:</strong> ${i.last_error}</div>` : nothing}
+        </div>
     `;
   }
 
@@ -220,25 +246,13 @@ export class AlarmViewActivity extends LitElement {
     const shown = this.seqs.filter(filt);
     const kindsSeen = Object.keys(i.kinds);
     return html`
-      <ha-card>${sectionHead('Activity', 'readonly')}
-        <div class="card-content desc">
-          <p>Everything around House Modes, the alarm, the physical panel, locks and bypasses, grouped into <em>sequences</em>:
-            a sequence starts with a House Mode helper change, a lock keypad use, an alarm or panel change, the BYPASS
-            indicator or an alarm, and collects everything that follows until nothing happens for
-            ${i.settings.window_s} s. Each entry shows the time since the start and, where known, what caused it.</p>
-          <p>It only records — it never changes anything. Codes are never recorded.</p>
-        </div>
-        <div class=${`notice ${i.last_error || (i.settings.enabled && !i.running) ? 'error' : ''}`} style="margin:0 16px 8px">
-          ${!i.settings.enabled
-            ? html`<span class="rec off"><ha-icon icon="mdi:record-circle-outline"></ha-icon>RECORDING OFF</span>
-                <span class="secondary" style="display:inline">· turn it on under Recording settings below</span>`
-            : i.running
-              ? html`<span class="rec on"><ha-icon icon="mdi:record-circle"></ha-icon>RECORDING ENABLED</span> · ${Object.keys(i.watched || {}).length} entities watched ·
-                  ${i.open ? html`a sequence is open now (started ${clock(i.open.start)})` : 'waiting for the next sequence'} ·
-                  ${i.last_write ? html`last saved ${new Date(i.last_write * 1000).toLocaleString()}` : 'nothing saved since Home Assistant started'}`
-              : html`<strong>The recorder is not running.</strong> Check Settings → System → Logs for "alarmo" or "Activity recorder".`}
-          ${i.last_error ? html`<div><strong>Error:</strong> ${i.last_error}</div>` : nothing}
-        </div>
+        <details class="collapse act-sec" ?open=${this.seqOpen} @toggle=${(e: Event) => (this.seqOpen = (e.target as HTMLDetailsElement).open)}>
+          <summary>
+            <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+            <span class="collapse-title">Sequences</span>
+            <span class="secondary" style="display:inline">${this.day} · ${shown.length} sequence${shown.length === 1 ? '' : 's'}${i.open ? ' · one open now' : ''}</span>
+          </summary>
+          <div class="collapse-body">
         <div class="toolbar">
           <label>Day
             <select @change=${async (e: any) => { this.day = e.target.value; await this.loadDay(); }}>
@@ -274,14 +288,15 @@ export class AlarmViewActivity extends LitElement {
         ${i.open && filt(i.open) ? this.renderSequence(i.open, true) : nothing}
         ${shown.map(s => this.renderSequence(s, false))}
         ${!shown.length && !i.open ? html`<div class="empty">Nothing recorded${this.seqs.length ? ' that matches the filters' : ' this day yet'}.</div>` : nothing}
-      </ha-card>
+          </div>
+        </details>
     `;
   }
 
   private renderSequence(s: ActivitySequence, live: boolean) {
     const problem = s.entries.some(e => /fail|error|not allowed|differ/i.test(e.text) || e.level === 'error');
     return html`
-      <details class="collapse" ?open=${live}>
+      <details class="collapse sub seq" ?open=${live}>
         <summary>
           <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
           <span class="seq-time">${clock(s.start)}</span>
@@ -324,8 +339,7 @@ export class AlarmViewActivity extends LitElement {
       .sort()
       .map(e => ({ value: e, label: `${this.hass.states[e].attributes.friendly_name || e} (${e})` }));
     return html`
-      <ha-card>
-        <details class="collapse" style="margin:12px 16px">
+        <details class="collapse act-sec">
           <summary>
             <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
             <span class="collapse-title">Recording settings</span>
@@ -350,7 +364,6 @@ export class AlarmViewActivity extends LitElement {
               <ha-button appearance="plain" @click=${() => (this.draft = JSON.parse(JSON.stringify(this.info!.settings)))}>Discard</ha-button></div>` : nothing}
           </div>
         </details>
-      </ha-card>
     `;
   }
 
@@ -358,8 +371,7 @@ export class AlarmViewActivity extends LitElement {
 
   private renderPanelLog() {
     return html`
-      <ha-card>
-        <details class="collapse" style="margin:12px 16px">
+        <details class="collapse act-sec">
           <summary>
             <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
             <span class="collapse-title">Physical panel link log</span>
@@ -374,7 +386,6 @@ export class AlarmViewActivity extends LitElement {
               : html`<div class="empty">Nothing yet.</div>`}
           </div>
         </details>
-      </ha-card>
     `;
   }
 
@@ -384,8 +395,7 @@ export class AlarmViewActivity extends LitElement {
     const name = (id: string | null) => (id ? h.settings.modes.find(m => m.id === id)?.name || id : 'unknown');
     const rows = [...h.settings.history].reverse();
     return html`
-      <ha-card>
-        <details class="collapse" style="margin:12px 16px">
+        <details class="collapse act-sec">
           <summary>
             <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
             <span class="collapse-title">House Mode history</span>
@@ -398,7 +408,6 @@ export class AlarmViewActivity extends LitElement {
             </tbody></table></div>
           </div>
         </details>
-      </ha-card>
     `;
   }
 
@@ -413,6 +422,19 @@ export class AlarmViewActivity extends LitElement {
         font-weight: 700;
         letter-spacing: 0.04em;
         --mdc-icon-size: 16px;
+      }
+      details.collapse.act-sec {
+        margin: 0 16px 12px;
+      }
+      details.collapse.act-sec > .collapse-body > .toolbar {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      details.collapse.seq {
+        margin: 0 0 8px;
+      }
+      details.collapse.sub[open] {
+        border-color: var(--accent-color);
       }
       .rec.on {
         color: var(--accent-color, var(--primary-color));

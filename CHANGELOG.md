@@ -3,6 +3,26 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.70 — 2026-11-06
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **Activity:** one card, with the title and the recording status at the top and collapsible sections under it:
+  *Sequences* (open to start with), *Arm Check*, *Shadow comparison*, *Recording settings*, *Physical panel link log*
+  and *House Mode history*.
+- **Checkboxes instead of toggle switches** everywhere in the panel (code settings, users, zones, rules, general
+  settings, MQTT).
+- **Users, Codes, Keypads** follows the design guide: one card with collapsible *Codes*, *Users* and *Keypads*
+  sections, each with a summary when closed.
+  - *Codes*: the three "code required" settings as checkboxes with their explanation, and the code format as chips.
+  - *Users*: one row per user (what the code can do, its format, lock slots and keypad actions), with an Enabled
+    chip, edit and delete (with a confirmation). *+ New user* sits at the top.
+  - The user editor is one panel with an accent outline, its name in the header, and the delete button (trash) next
+    to Save and Cancel.
+  - *Keypads*: the locks, without a second card around them.
+- **Physical Panel:** the panel zone list is collapsible (*Zone list*, closed to start with), with the zone, mirror,
+  bypassed and ignored counts in its summary.
+
 ## v2026.11.06.69 — 2026-11-06
 
 Restart Home Assistant after the update, then reload the browser (on phones, close and reopen the app).

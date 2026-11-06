@@ -14,14 +14,11 @@ import {
   TARGET_STATES,
   describeTargets,
   fetchHouse,
-  fetchShadow,
   detectHouse,
   applyDetected,
   DetectResult,
   runState,
   setRunState,
-  ShadowEntry,
-  ShadowSummary,
   modeErrors,
   newMode,
   removeMode,
@@ -83,8 +80,6 @@ export class AlarmViewHouse extends LitElement {
   @state() private error = '';
   @state() private busy = false;
   @state() private lastBlocked: { mode: string; reason: string } | null = null;
-  @state() private shadow?: { log: ShadowEntry[]; summary: ShadowSummary };
-  @state() private shadowAll = false;
   @state() private detect?: DetectResult;
   @state() private detectPick: string[] = [];
   @state() private detecting = false;
@@ -99,7 +94,6 @@ export class AlarmViewHouse extends LitElement {
   private async refresh(resetDraft = false) {
     try {
       this.info = await fetchHouse(this.hass);
-      if (runState(this.info.settings) === 'shadow') this.shadow = await fetchShadow(this.hass).catch(() => undefined);
       if (!this.draft || resetDraft) this.draft = clone(this.info.settings);
       else {
         // runtime state always comes from the server
@@ -135,7 +129,7 @@ export class AlarmViewHouse extends LitElement {
     const errors = modeErrors(this.draft.modes);
     return html`
       ${this.error ? html`<div class="notice error" style="white-space:pre-line;margin:0 0 12px">${this.error}</div>` : nothing}
-      ${this.renderCurrent()} ${this.renderShadow()}
+      ${this.renderCurrent()}
       <ha-card><div class="toolbar"><ha-icon icon="mdi:history"></ha-icon>House Mode history and every sequence around it are on the <a href="/alarmo/activity">Activity</a> tab.</div></ha-card>
       ${this.dirty
         ? html`<div class="savebar" role="region" aria-label="Unsaved House Mode settings">
@@ -153,6 +147,10 @@ export class AlarmViewHouse extends LitElement {
   private renderCurrent() {
     const s = this.info!.settings;
     const cur = s.modes.find(m => m.id === s.current);
+    const status = s.enabled
+      ? html`<div class="hm-status">${runState(s) === 'shadow' ? 'Would be' : 'Now'}: <strong>${cur ? cur.name : 'unknown'}</strong>
+          ${s.changed_at ? html`<span class="secondary" style="display:inline">since ${formatDate(s.changed_at, this.hass.language)} (${s.source})</span>` : nothing}</div>`
+      : html`<div class="hm-status secondary">Off — choose Shadow or Live and save to start.</div>`;
     return html`
       <ha-card>${sectionHead('House Modes', 'settings')}
         <div class="card-content desc">
@@ -167,25 +165,22 @@ export class AlarmViewHouse extends LitElement {
             the mode with <code>alarmo.set_house_mode</code> (mode + source).</p>
         </div>
         <div class="toolbar">
-          <span>House Modes</span>
+          <span>Current Run State:</span>
           ${(['off', 'shadow', 'live'] as const).map(
             v => html`<label><input type="radio" name="hm-run" .checked=${runState(this.draft!) === v}
                 @change=${() => this.set(d => setRunState(d, v))} />${v === 'off' ? 'Off' : v === 'shadow' ? 'Shadow' : 'Live'}</label>`
           )}
-          <span class="grow"></span>
-          ${s.enabled
-            ? html`<span>${runState(s) === 'shadow' ? 'Would be' : 'Now'}: <strong>${cur ? cur.name : 'unknown'}</strong>
-                ${s.changed_at ? html`<span class="secondary" style="display:inline">since ${formatDate(s.changed_at, this.hass.language)} (${s.source})</span>` : nothing}</span>`
-            : html`<span class="secondary" style="display:inline">Off — choose Shadow or Live and save to start.</span>`}
         </div>
         ${runState(this.draft!) === 'shadow'
           ? html`<div class="notice" style="margin:0 16px 12px">
               <strong>Shadow:</strong> House Modes run next to your own automations and change nothing. Each request
               (your input_select, the House Mode select, a lock code, a timer) is checked the way Live would handle it,
               then compared with what your automations really did. Nothing is armed or disarmed, no script
-              runs, no notification is sent, and the input_select is never written.
+              runs, no notification is sent, and the input_select is never written. The comparison is on the
+              <a href="/alarmo/activity">Activity</a> tab.
+              ${status}
             </div>`
-          : nothing}
+          : html`<div class="hm-status-line">${status}</div>`}
         ${this.lastBlocked
           ? html`<div class="notice warn">${this.lastBlocked.reason}
               <button class="link" @click=${() => this.choose(this.lastBlocked!.mode, true)}>Change anyway</button></div>`
@@ -223,56 +218,6 @@ export class AlarmViewHouse extends LitElement {
     }
   }
 
-  // ------------------------------------------------------------------ shadow
-
-  private renderShadow() {
-    if (runState(this.info!.settings) !== 'shadow') return nothing;
-    const sh = this.shadow;
-    const log = sh ? [...sh.log].reverse() : [];
-    const shown = this.shadowAll ? log : log.slice(0, 30);
-    const icon = (ok: boolean | null) =>
-      ok === true
-        ? html`<ha-icon icon="mdi:check-circle" style="color:var(--success-color,#4caf50)"></ha-icon>`
-        : ok === false
-          ? html`<ha-icon icon="mdi:alert-circle" style="color:var(--error-color)"></ha-icon>`
-          : html`<ha-icon icon="mdi:information-outline" style="color:var(--secondary-text-color)"></ha-icon>`;
-    return html`
-      <ha-card>${sectionHead('Shadow comparison', 'settings')}
-        <div class="card-content desc">
-          <p>What House Modes would have done, next to what your automations did.</p>
-          <ul>
-            <li><strong>✓</strong> your automations ended where House Modes would have;</li>
-            <li><strong>✗</strong> they differ: read the line, then fix the House Mode or your automation;</li>
-            <li>the same lines are on the <a href="/alarmo/activity">Activity</a> tab, marked <em>[shadow]</em>. This list
-              starts again after a restart.</li>
-          </ul>
-        </div>
-        <div class="toolbar">
-          <ha-button appearance="plain" @click=${() => this.refresh()}><ha-icon slot="start" icon="mdi:refresh"></ha-icon>Refresh</ha-button>
-          ${sh
-            ? html`<span>${sh.summary.matched} matched · <strong>${sh.summary.differed} differed</strong>${sh.summary.watching ? ' · watching a change…' : ''}</span>`
-            : nothing}
-        </div>
-        ${shown.length
-          ? html`<div class="table-wrap"><table class="full">
-              <tbody>
-                ${shown.map(
-                  e => html`<tr>
-                    <td style="width:28px">${icon(e.ok)}</td>
-                    <td style="white-space:nowrap" class="secondary">${new Date(e.t * 1000).toLocaleString()}</td>
-                    <td>${e.msg}</td>
-                  </tr>`
-                )}
-              </tbody>
-            </table></div>
-            ${log.length > 30 && !this.shadowAll
-              ? html`<div class="toolbar"><button class="link" @click=${() => (this.shadowAll = true)}>Show all ${log.length}</button></div>`
-              : nothing}`
-          : html`<div class="empty">Nothing yet. Lines appear when the House Mode is requested or the partitions change.</div>`}
-      </ha-card>
-    `;
-  }
-
   // ------------------------------------------------------------------ modes
 
   private renderModes() {
@@ -284,9 +229,8 @@ export class AlarmViewHouse extends LitElement {
     const enabled = st.enabled;
     const shadow = runState(st) === 'shadow';
     const saved = new Set(st.modes.map(m => m.id));
-    return html`
-      <div class="hm-sub">Modes (${d.modes.length})</div>
-        <div class="card-content desc" style="padding-top:4px">
+    return this.tabSec('modes', `Modes (${d.modes.length})`, '', true, html`
+        <div class="card-content desc hm-desc">
           <p><ha-icon icon="mdi:play-circle-outline" style="--mdc-icon-size:18px"></ha-icon> switches to a mode now.
             The pencil edits it: which partitions it arms, who may switch into or out of it, readiness checks, what happens
             if arming fails, timers, the scripts it runs (House Mode Actions) and the automations it triggers. Save at the
@@ -309,7 +253,8 @@ export class AlarmViewHouse extends LitElement {
                   return html`
                     <tr>
                       <td class="icon"><ha-icon icon=${m.icon} style=${`color:${m.color || defaultModeColor(m.name)}`}></ha-icon></td>
-                      <td class="name">${m.name}${m.id === cur ? html`<span class="secondary">${shadow ? 'current (would be)' : 'current'}</span>` : nothing}</td>
+                      <td class="name">${m.name}${m.id === cur ? html`<span class="secondary">${shadow ? 'current (would be)' : 'current'}</span>` : nothing}
+                        <span class="secondary hm-counts">${this.modeCounts(m)}</span></td>
                       <td>${describeTargets(m, names, s => STATE_LABEL[s] || s) || html`<span class="secondary" style="display:inline">leaves the partitions alone</span>`}</td>
                       <td class="row-actions">
                         ${m.id === cur || !enabled
@@ -332,7 +277,30 @@ export class AlarmViewHouse extends LitElement {
           : nothing}
         ${this.renderByScript()}
         ${this.renderEveryChange()}
-    `;
+    `);
+  }
+
+  /** "2 scripts · 1 timer · 3 automations" for a mode's row. */
+  private modeCounts(m: HouseMode) {
+    const r = this.actions ? reactingTo(this.actions.items, m.name) : { enter: [], leave: [] };
+    const n = (k: number, w: string) => `${k} ${w}${k === 1 ? '' : 's'}`;
+    return [n((m.steps || []).length, 'script'), n(m.timers.length, 'timer'), this.actions ? n(r.enter.length + r.leave.length, 'automation') : '']
+      .filter(Boolean)
+      .join(' · ');
+  }
+
+  /** A top-level section of the House Modes card, collapsible (open state kept across re-renders). */
+  private tabSec(key: string, title: string, summary: unknown, defOpen: boolean, body: unknown) {
+    const k = `*:tab:${key}`;
+    const open = k in SEC_OPEN ? SEC_OPEN[k] : defOpen;
+    return html`<details class="collapse hm-tabsec" ?open=${open} @toggle=${(e: Event) => (SEC_OPEN[k] = (e.target as HTMLDetailsElement).open)}>
+      <summary>
+        <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+        <span class="collapse-title">${title}</span>
+        ${summary ? html`<span class="secondary" style="display:inline">${summary}</span>` : nothing}
+      </summary>
+      <div class="hm-tabsec-body">${body}</div>
+    </details>`;
   }
 
   private async runDetect(ents?: Partial<DetectResult['entities']>) {
@@ -817,8 +785,10 @@ export class AlarmViewHouse extends LitElement {
         <div class="hm-row-label"><strong>${title}</strong><span class="secondary">${hint}</span></div>
         <div class="hm-row-ctl">${control}</div>
       </div>`;
-    return html`
-      <div class="hm-sub">Helpers and notifications</div>
+    const nHelpers = [d.input_select, d.current_entity, d.previous_entity].filter(Boolean).length;
+    const nNotify = (d.notify_services || []).length;
+    return this.tabSec('helpers', 'Helpers and notifications',
+      `${nHelpers} of 3 helpers · ${nNotify} notify service${nNotify === 1 ? '' : 's'}${d.notify_changes ? ' · every change' : ''}`, false, html`
       <div class="hm-rows">
         ${row('mdi:form-dropdown', 'House Mode selector',
           'Your input_select that people and automations change. Kept in step both ways; its options must match the mode names.',
@@ -858,7 +828,7 @@ export class AlarmViewHouse extends LitElement {
       </div>
       <div class="secondary" style="margin:0 16px 12px">Lock keypads and per-user keypad actions are on the
         <a href="/alarmo/codes">Users, Codes, Keypads</a> tab.</div>
-    `;
+    `);
   }
 
   private async save() {
@@ -953,6 +923,30 @@ export class AlarmViewHouse extends LitElement {
         border-color: var(--accent-color);
         color: var(--accent-color);
         text-decoration: line-through;
+      }
+      details.collapse.hm-tabsec {
+        margin: 8px 16px 12px;
+      }
+      .hm-tabsec-body {
+        padding: 0 0 8px;
+      }
+      .hm-desc {
+        padding-top: 8px;
+      }
+      .hm-tabsec-body .hm-rows {
+        padding: 4px 12px 8px;
+      }
+      .hm-status-line {
+        padding: 0 16px 12px;
+      }
+      .hm-status {
+        margin-top: 10px;
+      }
+      .notice .hm-status {
+        margin-top: 12px;
+      }
+      .hm-counts {
+        display: block;
       }
       .hm-noswitch {
         visibility: hidden;

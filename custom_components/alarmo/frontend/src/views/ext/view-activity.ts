@@ -15,7 +15,7 @@ import {
   sequenceMatches,
 } from '../../data/activity';
 import { fetchPanelLog, formatTime, LogEntry } from '../../data/panel';
-import { fetchHouse, HouseInfo } from '../../data/house';
+import { fetchHouse, fetchShadow, HouseInfo, runState, ShadowEntry, ShadowSummary } from '../../data/house';
 import { extStyles } from './ext-styles';
 import { sectionHead } from './page-intro';
 import './slider-field';
@@ -57,6 +57,9 @@ export class AlarmViewActivity extends LitElement {
   @state() private draft?: ActivityInfo['settings'];
   @state() private panelLog: LogEntry[] = [];
   @state() private house?: HouseInfo;
+  @state() private shadow?: { log: ShadowEntry[]; summary: ShadowSummary };
+  @state() private shadowAll = false;
+  @state() private shadowOpen = false;
   private timer?: number;
 
   connectedCallback() {
@@ -84,6 +87,7 @@ export class AlarmViewActivity extends LitElement {
       const [log, house] = await Promise.all([fetchPanelLog(this.hass).catch(() => ({ log: [] })), fetchHouse(this.hass).catch(() => undefined)]);
       this.panelLog = [...log.log].reverse();
       this.house = house;
+      if (house && runState(house.settings) === 'shadow') this.loadShadow();
       this.error = '';
     } catch (err) {
       this.error = wsErrorMessage(err);
@@ -126,8 +130,66 @@ export class AlarmViewActivity extends LitElement {
     if (!this.info) return html`<ha-card><div class="empty">${this.error || 'Loading…'}</div></ha-card>`;
     return html`
       ${this.error ? html`<div class="notice error" style="margin:0 0 12px">${this.error}</div>` : nothing}
-      ${this.renderArmCheck()} ${this.renderSequences()} ${this.renderSettings()} ${this.renderPanelLog()} ${this.renderHouseHistory()}
+      ${this.renderArmCheck()} ${this.renderShadow()} ${this.renderSequences()} ${this.renderSettings()} ${this.renderPanelLog()} ${this.renderHouseHistory()}
     `;
+  }
+
+  // ------------------------------------------------------------ Shadow comparison (was on the House Modes tab)
+
+  private renderShadow() {
+    if (!this.house || runState(this.house.settings) !== 'shadow') return nothing;
+    const sh = this.shadow;
+    const log = sh ? [...sh.log].reverse() : [];
+    const shown = this.shadowAll ? log : log.slice(0, 30);
+    const icon = (ok: boolean | null) =>
+      ok === true
+        ? html`<ha-icon icon="mdi:check-circle" style="color:var(--success-color,#4caf50)"></ha-icon>`
+        : ok === false
+          ? html`<ha-icon icon="mdi:alert-circle" style="color:var(--error-color)"></ha-icon>`
+          : html`<ha-icon icon="mdi:information-outline" style="color:var(--secondary-text-color)"></ha-icon>`;
+    return html`
+      <ha-card>
+        <details class="collapse" style="margin:12px 16px" ?open=${this.shadowOpen}
+          @toggle=${(e: Event) => (this.shadowOpen = (e.target as HTMLDetailsElement).open)}>
+          <summary>
+            <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+            <span class="collapse-title">Shadow comparison</span>
+            <span class="secondary" style="display:inline">${sh ? `${sh.summary.matched} matched · ${sh.summary.differed} differed${sh.summary.watching ? ' · watching a change…' : ''}` : 'loading…'}</span>
+          </summary>
+          <div class="collapse-body">
+            <p>What House Modes would have done, next to what your automations did:</p>
+            <ul>
+              <li><strong>✓</strong> your automations ended where House Modes would have;</li>
+              <li><strong>✗</strong> they differ: read the line, then fix the House Mode or your automation.</li>
+            </ul>
+            <p class="secondary">The same lines are in the sequences below, marked <em>[shadow]</em>. This list starts again after a restart.</p>
+            <div class="toolbar" style="padding-left:0">
+              <ha-button appearance="plain" @click=${() => this.loadShadow()}><ha-icon slot="start" icon="mdi:refresh"></ha-icon>Refresh</ha-button>
+            </div>
+            ${shown.length
+              ? html`<div class="table-wrap"><table class="full">
+                  <tbody>
+                    ${shown.map(
+                      e => html`<tr>
+                        <td style="width:28px">${icon(e.ok)}</td>
+                        <td style="white-space:nowrap" class="secondary">${new Date(e.t * 1000).toLocaleString()}</td>
+                        <td>${e.msg}</td>
+                      </tr>`
+                    )}
+                  </tbody>
+                </table></div>
+                ${log.length > 30 && !this.shadowAll
+                  ? html`<div class="toolbar"><button class="link" @click=${() => (this.shadowAll = true)}>Show all ${log.length}</button></div>`
+                  : nothing}`
+              : html`<div class="empty">Nothing yet. Lines appear when the House Mode is requested or the partitions change.</div>`}
+          </div>
+        </details>
+      </ha-card>
+    `;
+  }
+
+  private async loadShadow() {
+    this.shadow = await fetchShadow(this.hass).catch(() => undefined);
   }
 
   // ------------------------------------------------------------ Arm Check (was its own tab)

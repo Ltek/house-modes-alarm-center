@@ -56,7 +56,7 @@ automations and change nothing:
 - nothing is armed or disarmed, no script runs, no notification or House Mode event is sent, and the
   input_select is never written. Timers and delayed requests are only logged (in memory).
 
-The results are in the *Shadow comparison* card and, marked `[shadow]`, on the Activity tab. When the ✗ lines are
+The results are in *Shadow comparison* on the Activity tab and, marked `[shadow]`, in its sequences. When the ✗ lines are
 explained, switch to **Live** (the current mode is kept) and disable the automations in step 3.
 
 ## 2. Keep your dashboards working while you migrate

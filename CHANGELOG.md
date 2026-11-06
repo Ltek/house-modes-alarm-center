@@ -3,6 +3,20 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.67 — 2026-11-06
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **Shadow comparison** moved from the House Modes tab to the **Activity** tab, as a collapsible section (shown while
+  House Modes run in Shadow). Its summary line shows the matched and differed counts.
+- House Modes tab:
+  - the run-state choice is labelled **Current Run State:**;
+  - the status ("Would be: Disarmed since …" or "Now: …") is on its own line: inside the Shadow explanation in
+    Shadow, under the run state otherwise;
+  - **Modes** and **Helpers and notifications** are collapsible sections (Modes open to start with), with a summary
+    when closed, and space between the Modes title and its description;
+  - each mode's row shows its counts: "1 script · 1 timer · 3 automations".
+
 ## v2026.11.06.66 — 2026-11-06
 
 Card only; no Home Assistant restart needed (reload the browser).

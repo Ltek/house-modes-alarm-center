@@ -97,6 +97,12 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
       <a href="screenshots/20-house-mode-actions-by-script.png"><img src="screenshots/20-house-mode-actions-by-script.png" width="100%" alt="House mode actions by script"></a><br><sub>House mode actions by script</sub>
     </td>
   </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/21-shadow-comparison.png"><img src="screenshots/21-shadow-comparison.png" width="100%" alt="Shadow comparison"></a><br><sub>Shadow comparison</sub>
+    </td>
+    <td></td>
+  </tr>
 </table>
 <!-- SCREENSHOTS:END -->
 

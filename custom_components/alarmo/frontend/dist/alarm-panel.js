@@ -5718,9 +5718,9 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
       color: var(--primary-text-color);
       width: 160px;
     }
-  `,s([ye({attribute:!1})],xl.prototype,"hass",void 0),s([ye()],xl.prototype,"label",void 0),s([ye()],xl.prototype,"value",void 0),s([ye()],xl.prototype,"placeholder",void 0),xl=s([ue("alarmo-ext-icon-field")],xl);const Al=(e,t)=>{var a;const[i,s]=e.split(".");if("script"===i)return`/config/script/edit/${s}`;const n=null===(a=t.states[e])||void 0===a?void 0:a.attributes.id;return"scene"===i&&n?`/config/scene/edit/${n}`:null;},jl=e=>JSON.parse(JSON.stringify(e)),Sl={},Ol={armed_away:"Away",armed_home:"Home (Stay)",armed_night:"Night",armed_vacation:"Vacation",armed_custom_bypass:"Custom",disarmed:"Disarm"},Cl=e=>e.split(/[\s,]+/).map(e=>e.trim()).filter(Boolean);let El=class extends pe{constructor(){super(...arguments),this.narrow=!1,this.open=[],this.error="",this.busy=!1,this.lastBlocked=null,this.shadowAll=!1,this.detectPick=[],this.detecting=!1,this.pendingGroups=[],this.nameOf=e=>{var t,a;return(null===(a=null===(t=this.draft)||void 0===t?void 0:t.modes.find(t=>t.id===e))||void 0===a?void 0:a.name)||e;};}firstUpdated(){this.refresh(),this.loadActions();}async refresh(e=!1){try{if(this.info=await Ur(this.hass),"shadow"===Vr(this.info.settings)&&(this.shadow=await(t=this.hass,t.callWS({type:"alarmo/ext/house/shadow"})).catch(()=>{})),!this.draft||e)this.draft=jl(this.info.settings);else{const e=this.info.settings;this.draft=Object.assign(Object.assign({},this.draft),{current:e.current,previous:e.previous,source:e.source,changed_at:e.changed_at,history:e.history,pending:e.pending});}}catch(e){this.error=Hn(e);}var t;}editable(e){const{current:t,previous:a,source:s,changed_at:n,history:r,pending:o}=e,d=i(e,["current","previous","source","changed_at","history","pending"]);return JSON.stringify(d);}get dirty(){return!!this.info&&!!this.draft&&this.editable(this.info.settings)!==this.editable(this.draft);}set(e){const t=jl(this.draft);e(t),this.draft=t;}setMode(e,t){this.set(a=>t(a.modes.find(t=>t.id===e)));}render(){if(!this.info||!this.draft)return Z`<ha-card><div class="empty">${this.error||"Loading…"}</div></ha-card>`;const e=(e=>{const t=[],a=e.map(e=>e.name.trim().toLowerCase());a.some(e=>!e)&&t.push("Every House Mode needs a name."),new Set(a).size!==a.length&&t.push("House Mode names must be unique.");const i=new Set(e.map(e=>e.id));for(const a of e)for(const e of a.timers)"previous"===e.then||i.has(e.then)||t.push(`${a.name}: a timer goes to a mode that no longer exists.`);return t;})(this.draft.modes);return Z`
+  `,s([ye({attribute:!1})],xl.prototype,"hass",void 0),s([ye()],xl.prototype,"label",void 0),s([ye()],xl.prototype,"value",void 0),s([ye()],xl.prototype,"placeholder",void 0),xl=s([ue("alarmo-ext-icon-field")],xl);const Al=(e,t)=>{var a;const[i,s]=e.split(".");if("script"===i)return`/config/script/edit/${s}`;const n=null===(a=t.states[e])||void 0===a?void 0:a.attributes.id;return"scene"===i&&n?`/config/scene/edit/${n}`:null;},jl=e=>JSON.parse(JSON.stringify(e)),Sl={},Ol={armed_away:"Away",armed_home:"Home (Stay)",armed_night:"Night",armed_vacation:"Vacation",armed_custom_bypass:"Custom",disarmed:"Disarm"},Cl=e=>e.split(/[\s,]+/).map(e=>e.trim()).filter(Boolean);let El=class extends pe{constructor(){super(...arguments),this.narrow=!1,this.open=[],this.error="",this.busy=!1,this.lastBlocked=null,this.detectPick=[],this.detecting=!1,this.pendingGroups=[],this.nameOf=e=>{var t,a;return(null===(a=null===(t=this.draft)||void 0===t?void 0:t.modes.find(t=>t.id===e))||void 0===a?void 0:a.name)||e;};}firstUpdated(){this.refresh(),this.loadActions();}async refresh(e=!1){try{if(this.info=await Ur(this.hass),!this.draft||e)this.draft=jl(this.info.settings);else{const e=this.info.settings;this.draft=Object.assign(Object.assign({},this.draft),{current:e.current,previous:e.previous,source:e.source,changed_at:e.changed_at,history:e.history,pending:e.pending});}}catch(e){this.error=Hn(e);}}editable(e){const{current:t,previous:a,source:s,changed_at:n,history:r,pending:o}=e,d=i(e,["current","previous","source","changed_at","history","pending"]);return JSON.stringify(d);}get dirty(){return!!this.info&&!!this.draft&&this.editable(this.info.settings)!==this.editable(this.draft);}set(e){const t=jl(this.draft);e(t),this.draft=t;}setMode(e,t){this.set(a=>t(a.modes.find(t=>t.id===e)));}render(){if(!this.info||!this.draft)return Z`<ha-card><div class="empty">${this.error||"Loading…"}</div></ha-card>`;const e=(e=>{const t=[],a=e.map(e=>e.name.trim().toLowerCase());a.some(e=>!e)&&t.push("Every House Mode needs a name."),new Set(a).size!==a.length&&t.push("House Mode names must be unique.");const i=new Set(e.map(e=>e.id));for(const a of e)for(const e of a.timers)"previous"===e.then||i.has(e.then)||t.push(`${a.name}: a timer goes to a mode that no longer exists.`);return t;})(this.draft.modes);return Z`
       ${this.error?Z`<div class="notice error" style="white-space:pre-line;margin:0 0 12px">${this.error}</div>`:Y}
-      ${this.renderCurrent()} ${this.renderShadow()}
+      ${this.renderCurrent()}
       <ha-card><div class="toolbar"><ha-icon icon="mdi:history"></ha-icon>House Mode history and every sequence around it are on the <a href="/alarmo/activity">Activity</a> tab.</div></ha-card>
       ${this.dirty?Z`<div class="savebar" role="region" aria-label="Unsaved House Mode settings">
             <span class="count">Unsaved House Mode settings
@@ -5728,7 +5728,8 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             <ha-button appearance="plain" ?disabled=${this.busy} @click=${()=>this.draft=jl(this.info.settings)}>Discard</ha-button>
             <ha-button ?disabled=${this.busy||e.length>0} @click=${this.save}>${this.busy?"Saving…":"Save"}</ha-button>
           </div>`:Y}
-    `;}renderCurrent(){const e=this.info.settings,t=e.modes.find(t=>t.id===e.current);return Z`
+    `;}renderCurrent(){const e=this.info.settings,t=e.modes.find(t=>t.id===e.current),a=e.enabled?Z`<div class="hm-status">${"shadow"===Vr(e)?"Would be":"Now"}: <strong>${t?t.name:"unknown"}</strong>
+          ${e.changed_at?Z`<span class="secondary" style="display:inline">since ${Pn(e.changed_at,this.hass.language)} (${e.source})</span>`:Y}</div>`:Z`<div class="hm-status secondary">Off — choose Shadow or Live and save to start.</div>`;return Z`
       <ha-card>${Jn("House Modes","settings")}
         <div class="card-content desc">
           <p>A House Mode says what is going on at home — Away, Stay, Guest, Spa, … Each mode:</p>
@@ -5742,54 +5743,26 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             the mode with <code>alarmo.set_house_mode</code> (mode + source).</p>
         </div>
         <div class="toolbar">
-          <span>House Modes</span>
+          <span>Current Run State:</span>
           ${["off","shadow","live"].map(e=>Z`<label><input type="radio" name="hm-run" .checked=${Vr(this.draft)===e}
                 @change=${()=>this.set(t=>((e,t)=>{e.enabled="off"!==t,"off"!==t&&(e.run_mode=t);})(t,e))} />${"off"===e?"Off":"shadow"===e?"Shadow":"Live"}</label>`)}
-          <span class="grow"></span>
-          ${e.enabled?Z`<span>${"shadow"===Vr(e)?"Would be":"Now"}: <strong>${t?t.name:"unknown"}</strong>
-                ${e.changed_at?Z`<span class="secondary" style="display:inline">since ${Pn(e.changed_at,this.hass.language)} (${e.source})</span>`:Y}</span>`:Z`<span class="secondary" style="display:inline">Off — choose Shadow or Live and save to start.</span>`}
         </div>
         ${"shadow"===Vr(this.draft)?Z`<div class="notice" style="margin:0 16px 12px">
               <strong>Shadow:</strong> House Modes run next to your own automations and change nothing. Each request
               (your input_select, the House Mode select, a lock code, a timer) is checked the way Live would handle it,
               then compared with what your automations really did. Nothing is armed or disarmed, no script
-              runs, no notification is sent, and the input_select is never written.
-            </div>`:Y}
+              runs, no notification is sent, and the input_select is never written. The comparison is on the
+              <a href="/alarmo/activity">Activity</a> tab.
+              ${a}
+            </div>`:Z`<div class="hm-status-line">${a}</div>`}
         ${this.lastBlocked?Z`<div class="notice warn">${this.lastBlocked.reason}
               <button class="link" @click=${()=>this.choose(this.lastBlocked.mode,!0)}>Change anyway</button></div>`:Y}
         ${e.pending.length?Z`<div class="notice">${e.pending.map(t=>{const a=e.modes.find(e=>e.id===t.target);return Z`<div>${"delayed"===t.kind?"Delayed request":"Timer"}: ${a?a.name:t.target} at ${new Date(1e3*t.due).toLocaleTimeString()}</div>`;})}</div>`:Y}
         ${this.renderModes()}
         ${this.renderSettingsRow()}
       </ha-card>
-    `;}async choose(e,t=!1){var a;this.busy=!0,this.error="",this.lastBlocked=null;try{const i=await((e,t,a=!1)=>e.callWS({type:"alarmo/ext/house/set",mode:t,force:a}))(this.hass,e,t),s=(null===(a=this.info.settings.modes.find(t=>t.id===e))||void 0===a?void 0:a.name)||e;"blocked"===i.result?this.lastBlocked={mode:e,reason:i.reason||"Not allowed now."}:"not_ready"===i.result?this.lastBlocked={mode:e,reason:`Not ready, open: ${(i.open||[]).join(", ")}`}:"failed"===i.result?this.error=`${s} failed: ${(i.failed||[]).join(", ")} did not arm.`:"delayed"===i.result?qn(this,`${s} in ${i.minutes} min.`):"shadow"===i.result?qn(this,`Shadow: ${s} ${"changed"===i.would?"would be set":`would be ${i.would}`} (nothing changed)`):qn(this,`House Mode: ${s}`),await this.refresh();}catch(e){this.error=Hn(e);}finally{this.busy=!1;}}renderShadow(){if("shadow"!==Vr(this.info.settings))return Y;const e=this.shadow,t=e?[...e.log].reverse():[],a=this.shadowAll?t:t.slice(0,30);return Z`
-      <ha-card>${Jn("Shadow comparison","settings")}
-        <div class="card-content desc">
-          <p>What House Modes would have done, next to what your automations did.</p>
-          <ul>
-            <li><strong>✓</strong> your automations ended where House Modes would have;</li>
-            <li><strong>✗</strong> they differ: read the line, then fix the House Mode or your automation;</li>
-            <li>the same lines are on the <a href="/alarmo/activity">Activity</a> tab, marked <em>[shadow]</em>. This list
-              starts again after a restart.</li>
-          </ul>
-        </div>
-        <div class="toolbar">
-          <ha-button appearance="plain" @click=${()=>this.refresh()}><ha-icon slot="start" icon="mdi:refresh"></ha-icon>Refresh</ha-button>
-          ${e?Z`<span>${e.summary.matched} matched · <strong>${e.summary.differed} differed</strong>${e.summary.watching?" · watching a change…":""}</span>`:Y}
-        </div>
-        ${a.length?Z`<div class="table-wrap"><table class="full">
-              <tbody>
-                ${a.map(e=>{return Z`<tr>
-                    <td style="width:28px">${t=e.ok,!0===t?Z`<ha-icon icon="mdi:check-circle" style="color:var(--success-color,#4caf50)"></ha-icon>`:!1===t?Z`<ha-icon icon="mdi:alert-circle" style="color:var(--error-color)"></ha-icon>`:Z`<ha-icon icon="mdi:information-outline" style="color:var(--secondary-text-color)"></ha-icon>`}</td>
-                    <td style="white-space:nowrap" class="secondary">${new Date(1e3*e.t).toLocaleString()}</td>
-                    <td>${e.msg}</td>
-                  </tr>`;var t;})}
-              </tbody>
-            </table></div>
-            ${t.length>30&&!this.shadowAll?Z`<div class="toolbar"><button class="link" @click=${()=>this.shadowAll=!0}>Show all ${t.length}</button></div>`:Y}`:Z`<div class="empty">Nothing yet. Lines appear when the House Mode is requested or the partitions change.</div>`}
-      </ha-card>
-    `;}renderModes(){const e=this.draft,t={};this.info.targets.forEach(e=>t[e.key]=e.name);const a=this.info.settings,i=a.current,s=a.enabled,n="shadow"===Vr(a),r=new Set(a.modes.map(e=>e.id));return Z`
-      <div class="hm-sub">Modes (${e.modes.length})</div>
-        <div class="card-content desc" style="padding-top:4px">
+    `;}async choose(e,t=!1){var a;this.busy=!0,this.error="",this.lastBlocked=null;try{const i=await((e,t,a=!1)=>e.callWS({type:"alarmo/ext/house/set",mode:t,force:a}))(this.hass,e,t),s=(null===(a=this.info.settings.modes.find(t=>t.id===e))||void 0===a?void 0:a.name)||e;"blocked"===i.result?this.lastBlocked={mode:e,reason:i.reason||"Not allowed now."}:"not_ready"===i.result?this.lastBlocked={mode:e,reason:`Not ready, open: ${(i.open||[]).join(", ")}`}:"failed"===i.result?this.error=`${s} failed: ${(i.failed||[]).join(", ")} did not arm.`:"delayed"===i.result?qn(this,`${s} in ${i.minutes} min.`):"shadow"===i.result?qn(this,`Shadow: ${s} ${"changed"===i.would?"would be set":`would be ${i.would}`} (nothing changed)`):qn(this,`House Mode: ${s}`),await this.refresh();}catch(e){this.error=Hn(e);}finally{this.busy=!1;}}renderModes(){const e=this.draft,t={};this.info.targets.forEach(e=>t[e.key]=e.name);const a=this.info.settings,i=a.current,s=a.enabled,n="shadow"===Vr(a),r=new Set(a.modes.map(e=>e.id));return this.tabSec("modes",`Modes (${e.modes.length})`,"",!0,Z`
+        <div class="card-content desc hm-desc">
           <p><ha-icon icon="mdi:play-circle-outline" style="--mdc-icon-size:18px"></ha-icon> switches to a mode now.
             The pencil edits it: which partitions it arms, who may switch into or out of it, readiness checks, what happens
             if arming fails, timers, the scripts it runs (House Mode Actions) and the automations it triggers. Save at the
@@ -5808,7 +5781,8 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 ${e.modes.map(e=>{const a=this.open.includes(e.id);return Z`
                     <tr>
                       <td class="icon"><ha-icon icon=${e.icon} style=${`color:${e.color||Kr(e.name)}`}></ha-icon></td>
-                      <td class="name">${e.name}${e.id===i?Z`<span class="secondary">${n?"current (would be)":"current"}</span>`:Y}</td>
+                      <td class="name">${e.name}${e.id===i?Z`<span class="secondary">${n?"current (would be)":"current"}</span>`:Y}
+                        <span class="secondary hm-counts">${this.modeCounts(e)}</span></td>
                       <td>${Yr(e,t,e=>Ol[e]||e)||Z`<span class="secondary" style="display:inline">leaves the partitions alone</span>`}</td>
                       <td class="row-actions">
                         ${e.id!==i&&s?Z`<ha-icon-button .label=${`Switch to ${e.name}`} title=${n?`Switch to ${e.name} (Shadow: only logged)`:`Switch to ${e.name}`}
@@ -5827,7 +5801,14 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </table></div>`:Y}
         ${this.renderByScript()}
         ${this.renderEveryChange()}
-    `;}async runDetect(e){var t,a,i;this.detecting=!0,this.error="";try{const s=null===(t=this.detect)||void 0===t?void 0:t.entities;this.detect=await(a=this.hass,i=e?Object.assign(Object.assign({},s),e):void 0,a.callWS(Object.assign({type:"alarmo/ext/house/detect"},i||{}))),this.detectPick=this.detect.suggestions.filter(e=>"none"!==e.basis).map(e=>e.name);}catch(e){this.error=Hn(e);}finally{this.detecting=!1;}}renderDetect(){const e=this.detect,t={};e.targets.forEach(e=>t[e.key]=e.name);const a=e=>this.draft.modes.some(t=>t.name.toLowerCase()===e.toLowerCase()),i=(t,a)=>Z`<label>${a}
+    `);}modeCounts(e){const t=this.actions?wl(this.actions.items,e.name):{enter:[],leave:[]},a=(e,t)=>`${e} ${t}${1===e?"":"s"}`;return[a((e.steps||[]).length,"script"),a(e.timers.length,"timer"),this.actions?a(t.enter.length+t.leave.length,"automation"):""].filter(Boolean).join(" · ");}tabSec(e,t,a,i,s){const n=`*:tab:${e}`,r=n in Sl?Sl[n]:i;return Z`<details class="collapse hm-tabsec" ?open=${r} @toggle=${e=>Sl[n]=e.target.open}>
+      <summary>
+        <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+        <span class="collapse-title">${t}</span>
+        ${a?Z`<span class="secondary" style="display:inline">${a}</span>`:Y}
+      </summary>
+      <div class="hm-tabsec-body">${s}</div>
+    </details>`;}async runDetect(e){var t,a,i;this.detecting=!0,this.error="";try{const s=null===(t=this.detect)||void 0===t?void 0:t.entities;this.detect=await(a=this.hass,i=e?Object.assign(Object.assign({},s),e):void 0,a.callWS(Object.assign({type:"alarmo/ext/house/detect"},i||{}))),this.detectPick=this.detect.suggestions.filter(e=>"none"!==e.basis).map(e=>e.name);}catch(e){this.error=Hn(e);}finally{this.detecting=!1;}}renderDetect(){const e=this.detect,t={};e.targets.forEach(e=>t[e.key]=e.name);const a=e=>this.draft.modes.some(t=>t.name.toLowerCase()===e.toLowerCase()),i=(t,a)=>Z`<label>${a}
         <select @change=${e=>this.runDetect({[t]:e.target.value||null})}>
           <option value="" ?selected=${!e.entities[t]}>none</option>
           ${e.selects.map(a=>Z`<option value=${a.entity_id} ?selected=${e.entities[t]===a.entity_id}>${a.name||a.entity_id} (${a.entity_id})</option>`)}
@@ -6076,8 +6057,7 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         <ha-icon class="hm-row-icon" icon=${e}></ha-icon>
         <div class="hm-row-label"><strong>${t}</strong><span class="secondary">${a}</span></div>
         <div class="hm-row-ctl">${i}</div>
-      </div>`;return Z`
-      <div class="hm-sub">Helpers and notifications</div>
+      </div>`,l=[t.input_select,t.current_entity,t.previous_entity].filter(Boolean).length,c=(t.notify_services||[]).length;return this.tabSec("helpers","Helpers and notifications",`${l} of 3 helpers · ${c} notify service${1===c?"":"s"}${t.notify_changes?" · every change":""}`,!1,Z`
       <div class="hm-rows">
         ${d("mdi:form-dropdown","House Mode selector","Your input_select that people and automations change. Kept in step both ways; its options must match the mode names.",Z`${o(t.input_select,a,e=>this.set(t=>t.input_select=e),"House Mode selector")}
             ${t.input_select&&t.modes.length?r.length?Z`<div class="notice warn" style="margin:6px 0 0">Missing options on ${t.input_select}: ${r.join(", ")}.</div>`:Z`<div class="secondary hm-ok"><ha-icon icon="mdi:check-circle"></ha-icon>Its options match the ${t.modes.length} modes.</div>`:Y}`)}
@@ -6100,7 +6080,7 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
       </div>
       <div class="secondary" style="margin:0 16px 12px">Lock keypads and per-user keypad actions are on the
         <a href="/alarmo/codes">Users, Codes, Keypads</a> tab.</div>
-    `;}async save(){this.busy=!0,this.error="";try{await(e=this.hass,t=this.draft,e.callWS({type:"alarmo/ext/house/save",settings:t})),qn(this,"House Modes saved."),await this.refresh(!0);}catch(e){this.error=Hn(e);}finally{this.busy=!1;}var e,t;}};El.styles=[Zn,h`
+    `);}async save(){this.busy=!0,this.error="";try{await(e=this.hass,t=this.draft,e.callWS({type:"alarmo/ext/house/save",settings:t})),qn(this,"House Modes saved."),await this.refresh(!0);}catch(e){this.error=Hn(e);}finally{this.busy=!1;}var e,t;}};El.styles=[Zn,h`
       .hm-sub {
         padding: 12px 16px 0;
         border-top: 1px solid var(--divider-color);
@@ -6176,6 +6156,30 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         border-color: var(--accent-color);
         color: var(--accent-color);
         text-decoration: line-through;
+      }
+      details.collapse.hm-tabsec {
+        margin: 8px 16px 12px;
+      }
+      .hm-tabsec-body {
+        padding: 0 0 8px;
+      }
+      .hm-desc {
+        padding-top: 8px;
+      }
+      .hm-tabsec-body .hm-rows {
+        padding: 4px 12px 8px;
+      }
+      .hm-status-line {
+        padding: 0 16px 12px;
+      }
+      .hm-status {
+        margin-top: 10px;
+      }
+      .notice .hm-status {
+        margin-top: 12px;
+      }
+      .hm-counts {
+        display: block;
       }
       .hm-noswitch {
         visibility: hidden;
@@ -6303,7 +6307,7 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
           grid-column: 2;
         }
       }
-    `],s([ye({attribute:!1})],El.prototype,"hass",void 0),s([ye({type:Boolean})],El.prototype,"narrow",void 0),s([ye({attribute:!1})],El.prototype,"path",void 0),s([be()],El.prototype,"actions",void 0),s([be()],El.prototype,"info",void 0),s([be()],El.prototype,"draft",void 0),s([be()],El.prototype,"open",void 0),s([be()],El.prototype,"error",void 0),s([be()],El.prototype,"busy",void 0),s([be()],El.prototype,"lastBlocked",void 0),s([be()],El.prototype,"shadow",void 0),s([be()],El.prototype,"shadowAll",void 0),s([be()],El.prototype,"detect",void 0),s([be()],El.prototype,"detectPick",void 0),s([be()],El.prototype,"detecting",void 0),s([be()],El.prototype,"pendingGroups",void 0),El=s([ue("alarm-view-house")],El);const Tl=[{id:"general",view:"general",section:"general",titleKey:"panels.general.title"},{id:"house",view:"house",titleKey:"panels.house.title"},{id:"actions",view:"actions",section:"actions",titleKey:"panels.actions.title"},{id:"partitions",view:"general",section:"partitions",titleKey:"panels.partitions.title"},{id:"zones",view:"sensor_table",titleKey:"panels.zones.title"},{id:"codes",view:"codes",titleKey:"panels.users_codes.title"},{id:"notifications",view:"actions",section:"notifications",titleKey:"panels.notifications.title"},{id:"panel",view:"panel",titleKey:"panels.panel.title"},{id:"activity",view:"activity",titleKey:"panels.activity.title"},{id:"backup",view:"backup",titleKey:"panels.backup.title"}],Ml={sensors:"zones",zones_legacy:"zones",why:"activity",house_actions:"house",sensor_table:"zones",mirrors:"panel",connections:"codes",ha_zones:"panel",modes:"partitions"},Nl=(e,t,a={})=>{const i=e||"general";return i in Ml?Tl.find(e=>e.id===Ml[i]):"general"===i&&a.edit_area?Tl.find(e=>"partitions"===e.id):"general"===i&&"mqtt_configuration"===t?Tl.find(e=>"backup"===e.id):"actions"===i?"new_notification"===t||a.edit_notification?Tl.find(e=>"notifications"===e.id):Tl.find(e=>"actions"===e.id):Tl.find(e=>e.id===i);},Ll=(e,t={})=>!!e||Object.values(t).some(e=>void 0!==e),Hl={disarmed:"mdi:shield-off-outline",armed_away:"mdi:shield-lock",armed_home:"mdi:shield-home",armed_night:"mdi:shield-moon",armed_vacation:"mdi:shield-airplane",armed_custom_bypass:"mdi:shield-half-full",arming:"mdi:shield-sync",pending:"mdi:shield-alert-outline",triggered:"mdi:bell-ring"},Dl=e=>(e||"unknown").replace(/_/g," ");let Pl=class extends pe{constructor(){super(...arguments),this.load=async()=>{try{this.info=await(e=this.hass,e.callWS({type:"alarmo/ext/status"}));}catch(e){}var e;};}connectedCallback(){super.connectedCallback(),this.load(),this.timer=window.setInterval(()=>this.load(),15e3),window.addEventListener("alarmo-ext-ui-changed",this.load);}disconnectedCallback(){super.disconnectedCallback(),window.clearInterval(this.timer),window.removeEventListener("alarmo-ext-ui-changed",this.load);}go(e){An(0,e),window.setTimeout(this.load,1500);}chip(e,t,a,i,s=""){return Z`<button class="chip ${s}" title=${a} @click=${()=>this.go(i)}>
+    `],s([ye({attribute:!1})],El.prototype,"hass",void 0),s([ye({type:Boolean})],El.prototype,"narrow",void 0),s([ye({attribute:!1})],El.prototype,"path",void 0),s([be()],El.prototype,"actions",void 0),s([be()],El.prototype,"info",void 0),s([be()],El.prototype,"draft",void 0),s([be()],El.prototype,"open",void 0),s([be()],El.prototype,"error",void 0),s([be()],El.prototype,"busy",void 0),s([be()],El.prototype,"lastBlocked",void 0),s([be()],El.prototype,"detect",void 0),s([be()],El.prototype,"detectPick",void 0),s([be()],El.prototype,"detecting",void 0),s([be()],El.prototype,"pendingGroups",void 0),El=s([ue("alarm-view-house")],El);const Tl=[{id:"general",view:"general",section:"general",titleKey:"panels.general.title"},{id:"house",view:"house",titleKey:"panels.house.title"},{id:"actions",view:"actions",section:"actions",titleKey:"panels.actions.title"},{id:"partitions",view:"general",section:"partitions",titleKey:"panels.partitions.title"},{id:"zones",view:"sensor_table",titleKey:"panels.zones.title"},{id:"codes",view:"codes",titleKey:"panels.users_codes.title"},{id:"notifications",view:"actions",section:"notifications",titleKey:"panels.notifications.title"},{id:"panel",view:"panel",titleKey:"panels.panel.title"},{id:"activity",view:"activity",titleKey:"panels.activity.title"},{id:"backup",view:"backup",titleKey:"panels.backup.title"}],Ml={sensors:"zones",zones_legacy:"zones",why:"activity",house_actions:"house",sensor_table:"zones",mirrors:"panel",connections:"codes",ha_zones:"panel",modes:"partitions"},Nl=(e,t,a={})=>{const i=e||"general";return i in Ml?Tl.find(e=>e.id===Ml[i]):"general"===i&&a.edit_area?Tl.find(e=>"partitions"===e.id):"general"===i&&"mqtt_configuration"===t?Tl.find(e=>"backup"===e.id):"actions"===i?"new_notification"===t||a.edit_notification?Tl.find(e=>"notifications"===e.id):Tl.find(e=>"actions"===e.id):Tl.find(e=>e.id===i);},Ll=(e,t={})=>!!e||Object.values(t).some(e=>void 0!==e),Hl={disarmed:"mdi:shield-off-outline",armed_away:"mdi:shield-lock",armed_home:"mdi:shield-home",armed_night:"mdi:shield-moon",armed_vacation:"mdi:shield-airplane",armed_custom_bypass:"mdi:shield-half-full",arming:"mdi:shield-sync",pending:"mdi:shield-alert-outline",triggered:"mdi:bell-ring"},Dl=e=>(e||"unknown").replace(/_/g," ");let Pl=class extends pe{constructor(){super(...arguments),this.load=async()=>{try{this.info=await(e=this.hass,e.callWS({type:"alarmo/ext/status"}));}catch(e){}var e;};}connectedCallback(){super.connectedCallback(),this.load(),this.timer=window.setInterval(()=>this.load(),15e3),window.addEventListener("alarmo-ext-ui-changed",this.load);}disconnectedCallback(){super.disconnectedCallback(),window.clearInterval(this.timer),window.removeEventListener("alarmo-ext-ui-changed",this.load);}go(e){An(0,e),window.setTimeout(this.load,1500);}chip(e,t,a,i,s=""){return Z`<button class="chip ${s}" title=${a} @click=${()=>this.go(i)}>
       <ha-icon icon=${e}></ha-icon><span>${t}</span>
     </button>`;}render(){const e=this.info;if(!e)return Y;const t=e=>e?this.hass.states[e]:void 0,a=(()=>{try{return!!window.sessionStorage.getItem(ud);}catch(e){return!1;}})();return Z`
       <div class="strip" role="status" aria-label="Alarm system status">
@@ -6448,10 +6452,42 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
           </div>
         </details>
       </ha-card>
-    `;}};Rl.styles=Zn,s([ye({attribute:!1})],Rl.prototype,"hass",void 0),s([ye({type:Boolean})],Rl.prototype,"narrow",void 0),s([ye({attribute:!1})],Rl.prototype,"path",void 0),s([be()],Rl.prototype,"why",void 0),s([be()],Rl.prototype,"error",void 0),s([be()],Rl.prototype,"sensors",void 0),s([be()],Rl.prototype,"areas",void 0),s([be()],Rl.prototype,"walkArea",void 0),s([be()],Rl.prototype,"walking",void 0),s([be()],Rl.prototype,"walk",void 0),s([be()],Rl.prototype,"walkOpen",void 0),Rl=s([ue("alarm-view-why")],Rl);const Il=e=>e.callWS({type:"alarmo/ext/activity/get"}),Vl=(e,t)=>e.callWS({type:"alarmo/ext/activity/day",day:t}),Ul=/fail|error|not allowed|differ|could not/i,Gl={house:"mdi:home-switch",alarmo:"mdi:shield-home",panel:"mdi:alarm-panel-outline",keypad:"mdi:dialpad",lock:"mdi:lock-smart",bypass:"mdi:debug-step-over",zone:"mdi:door",helper:"mdi:toggle-switch-outline",automation:"mdi:robot",command:"mdi:send",notify:"mdi:bell-ring-outline",link:"mdi:link-variant",event:"mdi:flash-outline"},Fl=e=>new Date(1e3*e).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});let Kl=class extends pe{constructor(){super(...arguments),this.narrow=!1,this.day="",this.seqs=[],this.kinds=[],this.onlyProblems=!1,this.search="",this.error="",this.panelLog=[],this.downloadAll=async()=>{const e=[];for(const t of[...this.info.days].reverse()){[...(await Vl(this.hass,t)).sequences].reverse().forEach(t=>e.push(JSON.stringify(t)));}Dn(`alarmo_activity_${this.info.days[this.info.days.length-1]}_to_${this.info.days[0]}.jsonl`,e.join("\n")+"\n","application/x-ndjson"),qn(this,`${e.length} sequence(s) downloaded.`);};}connectedCallback(){super.connectedCallback(),this.timer=window.setInterval(()=>this.loadOpen(),5e3);}disconnectedCallback(){super.disconnectedCallback(),window.clearInterval(this.timer);}firstUpdated(){this.load();}async load(){try{this.info=await Il(this.hass),this.draft=JSON.parse(JSON.stringify(this.info.settings));const t=new Date(),a=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;this.day||(this.day=this.info.days[0]||a),await this.loadDay();const[i,s]=await Promise.all([(e=this.hass,e.callWS({type:"alarmo/ext/panel/log"})).catch(()=>({log:[]})),Ur(this.hass).catch(()=>{})]);this.panelLog=[...i.log].reverse(),this.house=s,this.error="";}catch(e){this.error=Hn(e);}var e;}async loadOpen(){if(this.info)try{const e=await Il(this.hass),t=this.info.open&&(!e.open||e.open.id!==this.info.open.id);this.info=Object.assign(Object.assign({},e),{settings:this.info.settings}),t&&(await this.loadDay());}catch(e){}}async loadDay(){const e=await Vl(this.hass,this.day);this.seqs=e.sequences,this.summary=e.summary;}get dirty(){return!!this.info&&JSON.stringify(this.info.settings)!==JSON.stringify(this.draft);}async save(){try{await(e=this.hass,t=this.draft,e.callWS({type:"alarmo/ext/activity/settings",settings:t})),qn(this,"Activity settings saved."),await this.load();}catch(e){this.error=Hn(e);}var e,t;}render(){return this.info?Z`
+    `;}};Rl.styles=Zn,s([ye({attribute:!1})],Rl.prototype,"hass",void 0),s([ye({type:Boolean})],Rl.prototype,"narrow",void 0),s([ye({attribute:!1})],Rl.prototype,"path",void 0),s([be()],Rl.prototype,"why",void 0),s([be()],Rl.prototype,"error",void 0),s([be()],Rl.prototype,"sensors",void 0),s([be()],Rl.prototype,"areas",void 0),s([be()],Rl.prototype,"walkArea",void 0),s([be()],Rl.prototype,"walking",void 0),s([be()],Rl.prototype,"walk",void 0),s([be()],Rl.prototype,"walkOpen",void 0),Rl=s([ue("alarm-view-why")],Rl);const Il=e=>e.callWS({type:"alarmo/ext/activity/get"}),Vl=(e,t)=>e.callWS({type:"alarmo/ext/activity/day",day:t}),Ul=/fail|error|not allowed|differ|could not/i,Gl={house:"mdi:home-switch",alarmo:"mdi:shield-home",panel:"mdi:alarm-panel-outline",keypad:"mdi:dialpad",lock:"mdi:lock-smart",bypass:"mdi:debug-step-over",zone:"mdi:door",helper:"mdi:toggle-switch-outline",automation:"mdi:robot",command:"mdi:send",notify:"mdi:bell-ring-outline",link:"mdi:link-variant",event:"mdi:flash-outline"},Fl=e=>new Date(1e3*e).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});let Kl=class extends pe{constructor(){super(...arguments),this.narrow=!1,this.day="",this.seqs=[],this.kinds=[],this.onlyProblems=!1,this.search="",this.error="",this.panelLog=[],this.shadowAll=!1,this.shadowOpen=!1,this.downloadAll=async()=>{const e=[];for(const t of[...this.info.days].reverse()){[...(await Vl(this.hass,t)).sequences].reverse().forEach(t=>e.push(JSON.stringify(t)));}Dn(`alarmo_activity_${this.info.days[this.info.days.length-1]}_to_${this.info.days[0]}.jsonl`,e.join("\n")+"\n","application/x-ndjson"),qn(this,`${e.length} sequence(s) downloaded.`);};}connectedCallback(){super.connectedCallback(),this.timer=window.setInterval(()=>this.loadOpen(),5e3);}disconnectedCallback(){super.disconnectedCallback(),window.clearInterval(this.timer);}firstUpdated(){this.load();}async load(){try{this.info=await Il(this.hass),this.draft=JSON.parse(JSON.stringify(this.info.settings));const t=new Date(),a=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;this.day||(this.day=this.info.days[0]||a),await this.loadDay();const[i,s]=await Promise.all([(e=this.hass,e.callWS({type:"alarmo/ext/panel/log"})).catch(()=>({log:[]})),Ur(this.hass).catch(()=>{})]);this.panelLog=[...i.log].reverse(),this.house=s,s&&"shadow"===Vr(s.settings)&&this.loadShadow(),this.error="";}catch(e){this.error=Hn(e);}var e;}async loadOpen(){if(this.info)try{const e=await Il(this.hass),t=this.info.open&&(!e.open||e.open.id!==this.info.open.id);this.info=Object.assign(Object.assign({},e),{settings:this.info.settings}),t&&(await this.loadDay());}catch(e){}}async loadDay(){const e=await Vl(this.hass,this.day);this.seqs=e.sequences,this.summary=e.summary;}get dirty(){return!!this.info&&JSON.stringify(this.info.settings)!==JSON.stringify(this.draft);}async save(){try{await(e=this.hass,t=this.draft,e.callWS({type:"alarmo/ext/activity/settings",settings:t})),qn(this,"Activity settings saved."),await this.load();}catch(e){this.error=Hn(e);}var e,t;}render(){return this.info?Z`
       ${this.error?Z`<div class="notice error" style="margin:0 0 12px">${this.error}</div>`:Y}
-      ${this.renderArmCheck()} ${this.renderSequences()} ${this.renderSettings()} ${this.renderPanelLog()} ${this.renderHouseHistory()}
-    `:Z`<ha-card><div class="empty">${this.error||"Loading…"}</div></ha-card>`;}renderArmCheck(){var e,t;const a="arm_check"===(null===(e=this.path)||void 0===e?void 0:e.subpage)||"why"===(null===(t=this.path)||void 0===t?void 0:t.page);return Z`
+      ${this.renderArmCheck()} ${this.renderShadow()} ${this.renderSequences()} ${this.renderSettings()} ${this.renderPanelLog()} ${this.renderHouseHistory()}
+    `:Z`<ha-card><div class="empty">${this.error||"Loading…"}</div></ha-card>`;}renderShadow(){if(!this.house||"shadow"!==Vr(this.house.settings))return Y;const e=this.shadow,t=e?[...e.log].reverse():[],a=this.shadowAll?t:t.slice(0,30);return Z`
+      <ha-card>
+        <details class="collapse" style="margin:12px 16px" ?open=${this.shadowOpen}
+          @toggle=${e=>this.shadowOpen=e.target.open}>
+          <summary>
+            <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+            <span class="collapse-title">Shadow comparison</span>
+            <span class="secondary" style="display:inline">${e?`${e.summary.matched} matched · ${e.summary.differed} differed${e.summary.watching?" · watching a change…":""}`:"loading…"}</span>
+          </summary>
+          <div class="collapse-body">
+            <p>What House Modes would have done, next to what your automations did:</p>
+            <ul>
+              <li><strong>✓</strong> your automations ended where House Modes would have;</li>
+              <li><strong>✗</strong> they differ: read the line, then fix the House Mode or your automation.</li>
+            </ul>
+            <p class="secondary">The same lines are in the sequences below, marked <em>[shadow]</em>. This list starts again after a restart.</p>
+            <div class="toolbar" style="padding-left:0">
+              <ha-button appearance="plain" @click=${()=>this.loadShadow()}><ha-icon slot="start" icon="mdi:refresh"></ha-icon>Refresh</ha-button>
+            </div>
+            ${a.length?Z`<div class="table-wrap"><table class="full">
+                  <tbody>
+                    ${a.map(e=>{return Z`<tr>
+                        <td style="width:28px">${t=e.ok,!0===t?Z`<ha-icon icon="mdi:check-circle" style="color:var(--success-color,#4caf50)"></ha-icon>`:!1===t?Z`<ha-icon icon="mdi:alert-circle" style="color:var(--error-color)"></ha-icon>`:Z`<ha-icon icon="mdi:information-outline" style="color:var(--secondary-text-color)"></ha-icon>`}</td>
+                        <td style="white-space:nowrap" class="secondary">${new Date(1e3*e.t).toLocaleString()}</td>
+                        <td>${e.msg}</td>
+                      </tr>`;var t;})}
+                  </tbody>
+                </table></div>
+                ${t.length>30&&!this.shadowAll?Z`<div class="toolbar"><button class="link" @click=${()=>this.shadowAll=!0}>Show all ${t.length}</button></div>`:Y}`:Z`<div class="empty">Nothing yet. Lines appear when the House Mode is requested or the partitions change.</div>`}
+          </div>
+        </details>
+      </ha-card>
+    `;}async loadShadow(){var e;this.shadow=await(e=this.hass,e.callWS({type:"alarmo/ext/house/shadow"})).catch(()=>{});}renderArmCheck(){var e,t;const a="arm_check"===(null===(e=this.path)||void 0===e?void 0:e.subpage)||"why"===(null===(t=this.path)||void 0===t?void 0:t.page);return Z`
       <ha-card>
         <details class="collapse" style="margin:12px 16px" ?open=${a}>
           <summary>
@@ -6607,7 +6643,7 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         display: block;
         --ha-card-box-shadow: none;
       }
-    `],s([ye({attribute:!1})],Kl.prototype,"hass",void 0),s([ye({type:Boolean})],Kl.prototype,"narrow",void 0),s([ye({attribute:!1})],Kl.prototype,"path",void 0),s([be()],Kl.prototype,"info",void 0),s([be()],Kl.prototype,"day",void 0),s([be()],Kl.prototype,"seqs",void 0),s([be()],Kl.prototype,"summary",void 0),s([be()],Kl.prototype,"kinds",void 0),s([be()],Kl.prototype,"onlyProblems",void 0),s([be()],Kl.prototype,"search",void 0),s([be()],Kl.prototype,"error",void 0),s([be()],Kl.prototype,"draft",void 0),s([be()],Kl.prototype,"panelLog",void 0),s([be()],Kl.prototype,"house",void 0),Kl=s([ue("alarm-view-activity")],Kl);const Wl=[{id:"house",icon:"mdi:home-switch-outline",title:"House Modes only",text:"Home, Away, Sleep, Guest, … to tell your automations what is going on. No alarm: the House Modes do not arm anything (one partition is kept in the background)."},{id:"virtual",icon:"mdi:shield-home-outline",title:"Alarm without a physical panel",text:"The built-in alarm: a partition with Away, Home and Night, your door, window and motion sensors as zones, and a user code."},{id:"panel",icon:"mdi:alarm-panel-outline",title:"House Modes and a physical panel",text:"The alarm and your panel (e.g. a Vista through Envisalink) kept in step, with House Modes. Everything starts in Shadow next to your own automations, so nothing changes until you switch to Live."}],Yl={done:"mdi:check-circle",todo:"mdi:circle-outline",manual:"mdi:hand-pointing-right",skip:"mdi:minus-circle-outline"};let Ql=Zl=class extends pe{constructor(){super(...arguments),this.narrow=!1,this.plans={},this.error="",this.busy="",this.pickZones=null,this.cardOn=null;}firstUpdated(){this.load(),this.findCard();}async findCard(){const e=[];try{const t=[{url_path:null,title:"Overview"},...(await this.hass.callWS({type:"lovelace/dashboards/list"}))];for(const a of t)try{const t=await this.hass.callWS({type:"lovelace/config",url_path:a.url_path});JSON.stringify(t).includes("custom:house-modes-alarm-center-card")&&e.push(a.title||a.url_path||"Overview");}catch(e){}}catch(e){return void(this.cardOn=null);}this.cardOn=e;}picked(e){if(this.pickZones)return this.pickZones;const t=[].concat(...Zl.GROUPS.filter(e=>e.on).map(e=>e.classes));return e.filter(e=>t.includes(e.device_class)).map(e=>e.entity_id);}async load(){try{const e=await this.hass.callWS({type:"alarmo/ext/quickstart/plan"});this.status=e.status,this.plans=e.plans,this.error="";}catch(e){this.error=Hn(e);}}async apply(e){const t=this.plans[e],a=t.steps.filter(e=>"todo"===e.status).map(e=>e.title);if(window.confirm(`Quick Start will make a backup, then:\n\n• ${a.join("\n• ")}\n\nGo ahead?`)){this.busy=e;try{const a=t.steps.find(e=>"zones"===e.id),i=(null==a?void 0:a.candidates)?this.picked(a.candidates):void 0,s=await this.hass.callWS(Object.assign({type:"alarmo/ext/quickstart/apply",setup:e},i?{entities:i}:{}));this.plans=Object.assign(Object.assign({},this.plans),{[e]:s.plan}),this.status=s.status,qn(this,s.done.length?`Done: ${s.done.length} step(s). A backup was made first.`:"Nothing to do."),await this.load();}catch(e){this.error=Hn(e);}finally{this.busy="";}}}render(){return Z`
+    `],s([ye({attribute:!1})],Kl.prototype,"hass",void 0),s([ye({type:Boolean})],Kl.prototype,"narrow",void 0),s([ye({attribute:!1})],Kl.prototype,"path",void 0),s([be()],Kl.prototype,"info",void 0),s([be()],Kl.prototype,"day",void 0),s([be()],Kl.prototype,"seqs",void 0),s([be()],Kl.prototype,"summary",void 0),s([be()],Kl.prototype,"kinds",void 0),s([be()],Kl.prototype,"onlyProblems",void 0),s([be()],Kl.prototype,"search",void 0),s([be()],Kl.prototype,"error",void 0),s([be()],Kl.prototype,"draft",void 0),s([be()],Kl.prototype,"panelLog",void 0),s([be()],Kl.prototype,"house",void 0),s([be()],Kl.prototype,"shadow",void 0),s([be()],Kl.prototype,"shadowAll",void 0),s([be()],Kl.prototype,"shadowOpen",void 0),Kl=s([ue("alarm-view-activity")],Kl);const Wl=[{id:"house",icon:"mdi:home-switch-outline",title:"House Modes only",text:"Home, Away, Sleep, Guest, … to tell your automations what is going on. No alarm: the House Modes do not arm anything (one partition is kept in the background)."},{id:"virtual",icon:"mdi:shield-home-outline",title:"Alarm without a physical panel",text:"The built-in alarm: a partition with Away, Home and Night, your door, window and motion sensors as zones, and a user code."},{id:"panel",icon:"mdi:alarm-panel-outline",title:"House Modes and a physical panel",text:"The alarm and your panel (e.g. a Vista through Envisalink) kept in step, with House Modes. Everything starts in Shadow next to your own automations, so nothing changes until you switch to Live."}],Yl={done:"mdi:check-circle",todo:"mdi:circle-outline",manual:"mdi:hand-pointing-right",skip:"mdi:minus-circle-outline"};let Ql=Zl=class extends pe{constructor(){super(...arguments),this.narrow=!1,this.plans={},this.error="",this.busy="",this.pickZones=null,this.cardOn=null;}firstUpdated(){this.load(),this.findCard();}async findCard(){const e=[];try{const t=[{url_path:null,title:"Overview"},...(await this.hass.callWS({type:"lovelace/dashboards/list"}))];for(const a of t)try{const t=await this.hass.callWS({type:"lovelace/config",url_path:a.url_path});JSON.stringify(t).includes("custom:house-modes-alarm-center-card")&&e.push(a.title||a.url_path||"Overview");}catch(e){}}catch(e){return void(this.cardOn=null);}this.cardOn=e;}picked(e){if(this.pickZones)return this.pickZones;const t=[].concat(...Zl.GROUPS.filter(e=>e.on).map(e=>e.classes));return e.filter(e=>t.includes(e.device_class)).map(e=>e.entity_id);}async load(){try{const e=await this.hass.callWS({type:"alarmo/ext/quickstart/plan"});this.status=e.status,this.plans=e.plans,this.error="";}catch(e){this.error=Hn(e);}}async apply(e){const t=this.plans[e],a=t.steps.filter(e=>"todo"===e.status).map(e=>e.title);if(window.confirm(`Quick Start will make a backup, then:\n\n• ${a.join("\n• ")}\n\nGo ahead?`)){this.busy=e;try{const a=t.steps.find(e=>"zones"===e.id),i=(null==a?void 0:a.candidates)?this.picked(a.candidates):void 0,s=await this.hass.callWS(Object.assign({type:"alarmo/ext/quickstart/apply",setup:e},i?{entities:i}:{}));this.plans=Object.assign(Object.assign({},this.plans),{[e]:s.plan}),this.status=s.status,qn(this,s.done.length?`Done: ${s.done.length} step(s). A backup was made first.`:"Nothing to do."),await this.load();}catch(e){this.error=Hn(e);}finally{this.busy="";}}}render(){return Z`
       ${this.error?Z`<div class="notice error" style="margin:0 0 12px">${this.error}</div>`:Y}
       <ha-card>${Jn("Quick Start","settings")}
         <div class="card-content desc">
@@ -6786,7 +6822,7 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             ${Cs("title",this.hass.language)}
           </div>
           <div class="version">
-            v${"2026.11.06.66"}
+            v${"2026.11.06.67"}
           </div>
         </div>
 

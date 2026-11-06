@@ -74,10 +74,18 @@ const SHOTS = [
   ['/alarmo/house', '12-house-modes-shadow', async (p) => {
     await p.evaluate(async () => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');
-      const t0 = Date.parse('2026-10-28T20:30:00');
-      const at = (m) => (t0 + m * 60000) / 1000;
       v.info = { ...v.info, settings: { ...v.info.settings, run_mode: 'shadow', compare_entity: 'input_select.house_mode' } };
       v.draft = JSON.parse(JSON.stringify(v.info.settings));
+      await v.updateComplete;
+    });
+  }],
+  ['/alarmo/activity', '21-shadow-comparison', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-activity');
+      for (let i = 0; i < 30 && !v.house; i++) await new Promise(r => setTimeout(r, 100));
+      const t0 = Date.parse('2026-10-28T20:30:00');
+      const at = (m) => (t0 + m * 60000) / 1000;
+      v.house = { ...v.house, settings: { ...v.house.settings, run_mode: 'shadow', enabled: true } };
       v.shadow = { summary: { matched: 9, differed: 2, since: at(0), watching: false }, log: [
         { t: at(0), kind: 'request', ok: null, msg: 'automation: Disarmed → Stay: would set House Stay; would run script.lock_up' },
         { t: at(0.5), kind: 'request', ok: true, msg: 'Stay: your automations got there after 26 s' },
@@ -89,6 +97,7 @@ const SHOTS = [
         { t: at(600), kind: 'external', ok: null, msg: 'partitions changed outside House Modes → House Mode would become Disarmed' },
         { t: at(600.5), kind: 'compare', ok: false, msg: 'input_select.house_mode is Stay, House Modes: Disarmed' },
       ] };
+      v.shadowOpen = true;
       await v.updateComplete;
     });
   }],

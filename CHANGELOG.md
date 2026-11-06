@@ -3,6 +3,13 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.74 — 2026-11-06
+
+Restart Home Assistant after the update, then click **Update blueprint** under Smart Repeating Alerts (Notifications).
+
+- Ships Smart Repeating Alerts **v2026.11.06.42**, its first published build (build numbers continue from Repeating
+  Alert Notifications). Same blueprint as v2026.11.06.3.
+
 ## v2026.11.06.73 — 2026-11-06
 
 Restart Home Assistant after the update, then click **Update blueprint** under Smart Repeating Alerts (Notifications).

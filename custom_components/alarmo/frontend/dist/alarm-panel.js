@@ -7118,7 +7118,7 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             ${Es("title",this.hass.language)}
           </div>
           <div class="version">
-            v${"2026.11.06.74"}
+            v${"2026.11.06.75"}
           </div>
         </div>
 

@@ -41,7 +41,7 @@ from .ext_card import CARD_COMMANDS, register_card_services
 from .recorder import ACTIVITY_COMMANDS, ActivityRecorder
 from .ext_locks import LOCK_COMMANDS, LockManager
 from .ext_rules import RulesError, RulesManager
-from .ext_alerts import ALERT_COMMANDS
+from .ext_alerts import ALERT_COMMANDS, async_sync_blueprint
 from .ext_status import STATUS_COMMANDS
 from .panel_link import PanelLinkManager
 from .house_modes import HouseModeManager
@@ -593,6 +593,7 @@ async def async_setup_ext(hass: HomeAssistant, store) -> None:
         manager.rules.async_start()
         register_house_service(hass)
         register_card_services(hass)
+        hass.async_create_task(async_sync_blueprint(hass), "alarmo_ext_blueprint")
 
         # panel links need the Alarmo alarm entities, which are added after setup
         @callback

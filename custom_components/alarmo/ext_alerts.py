@@ -76,6 +76,32 @@ def install_blueprint(hass: HomeAssistant, force: bool = False) -> dict[str, Any
     return blueprint_status(hass)
 
 
+def sync_blueprint(hass: HomeAssistant) -> str | None:
+    """On startup: install the blueprint when missing, update it when the file is ours and older. Else leave it.
+
+    Returns "installed" / "updated" when the file changed, None otherwise. Never raises.
+    """
+    try:
+        st = blueprint_status(hass)
+        if not st["installed"]:
+            install_blueprint(hass)
+            return "installed"
+        if st["update"]:
+            install_blueprint(hass)
+            return "updated"
+    except (OSError, ValueError) as err:
+        _LOGGER.warning("Smart Repeating Alerts blueprint not installed: %s", err)
+    return None
+
+
+async def async_sync_blueprint(hass: HomeAssistant) -> None:
+    """Install or update the blueprint, then reload automations so ones using it load (only when it changed)."""
+    changed = await hass.async_add_executor_job(sync_blueprint, hass)
+    if changed and hass.services.has_service("automation", "reload"):
+        _LOGGER.info("Smart Repeating Alerts blueprint %s; reloading automations", changed)
+        await hass.services.async_call("automation", "reload", blocking=False)
+
+
 def _as_list(v: Any) -> list:
     if v is None:
         return []

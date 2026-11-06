@@ -3,6 +3,15 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.75 — 2026-11-06
+
+Restart Home Assistant after the update.
+
+- The integration **installs the Smart Repeating Alerts blueprint on startup** when
+  `blueprints/automation/LTek/smart-repeating-alerts-ltek.yaml` is missing, and updates it when that file is the
+  integration's own older copy, then reloads automations. A file there that isn't Smart Repeating Alerts (or that
+  you've replaced with your own) is left alone. The Install / Update button on the Notifications tab stays.
+
 ## v2026.11.06.74 — 2026-11-06
 
 Restart Home Assistant after the update, then click **Update blueprint** under Smart Repeating Alerts (Notifications).
@@ -27,7 +36,7 @@ Restart Home Assistant after the update.
   as native Home Assistant automations made from the new *Smart Repeating Alerts* blueprint
   ([Ltek/smart-repeating-alerts](https://github.com/Ltek/smart-repeating-alerts): Repeating Alert Notifications plus camera snapshots,
   URI buttons, extra notify services, Android priority / alarm stream, cooldown and a test mode).
-  - The integration ships the blueprint and installs it (Install / Update) into
+  - The integration ships the blueprint and installs it on startup (and with Install / Update) into
     `blueprints/automation/LTek/smart-repeating-alerts-ltek.yaml`. It never replaces a file there that isn't Smart Repeating Alerts.
   - One row per alert: what triggers it, how many targets, repeats, camera, buttons, critical, test mode; with an
     Enabled chip, run, edit (Home Assistant's editor) and delete. *+ New alert* makes an empty one and opens it in
@@ -43,7 +52,7 @@ Restart Home Assistant after the update.
   as native Home Assistant automations made from the new *Smart Alerts* blueprint
   ([Ltek/smart-alerts](https://github.com/Ltek/smart-alerts): Repeating Alert Notifications plus camera snapshots,
   URI buttons, extra notify services, Android priority / alarm stream, cooldown and a test mode).
-  - The integration ships the blueprint and installs it (Install / Update) into
+  - The integration ships the blueprint and installs it on startup (and with Install / Update) into
     `blueprints/automation/LTek/smart-alerts-ltek.yaml`. It never replaces a file there that isn't Smart Alerts.
   - One row per alert: what triggers it, how many targets, repeats, camera, buttons, critical, test mode; with an
     Enabled chip, run, edit (Home Assistant's editor) and delete. *+ New alert* makes an empty one and opens it in

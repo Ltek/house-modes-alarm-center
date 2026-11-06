@@ -3,6 +3,13 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.76 — 2026-11-06
+
+Restart Home Assistant after the update.
+
+- Ships Smart Repeating Alerts **v2026.11.06.43** (the camera alerts' Android channel used the camera name before it
+  was set). It replaces the integration's own older copy on startup.
+
 ## v2026.11.06.75 — 2026-11-06
 
 Restart Home Assistant after the update.

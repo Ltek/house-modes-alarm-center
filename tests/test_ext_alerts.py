@@ -1,4 +1,4 @@
-"""Smart Repeating Alerts on the Notifications tab: the blueprint is installed safely, and its automations are listed."""
+"""Smart Repeating Alerts on the Notifications tab: the blueprint installs safely; its automations are listed."""
 
 import os
 from typing import Any
@@ -7,7 +7,7 @@ import pytest
 from homeassistant.setup import async_setup_component
 
 from tests.ext_helpers import setup_real_alarmo
-from custom_components.alarmo.ext_alerts import SHIPPED, summary, blueprint_status, install_blueprint
+from custom_components.alarmo.ext_alerts import SHIPPED, BLUEPRINT_PATH, summary, blueprint_status, install_blueprint
 
 pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
 
@@ -30,7 +30,7 @@ async def test_install_and_list(hass: Any, hass_storage: Any, hass_ws_client: An
     assert os.path.getsize(target) == os.path.getsize(SHIPPED)
 
     assert await async_setup_component(hass, "automation", {"automation": [
-        {"id": "a1", "alias": "Front Door", "use_blueprint": {"path": "LTek/smart-repeating-alerts-ltek.yaml", "input": {
+        {"id": "a1", "alias": "Front Door", "use_blueprint": {"path": BLUEPRINT_PATH, "input": {
             "alert_trigger": [{"trigger": "state", "entity_id": "binary_sensor.front_door", "to": "on"}],
             "repeat_notification": True, "test_mode": True}}},
         {"id": "a2", "alias": "Plain", "triggers": [], "actions": []},

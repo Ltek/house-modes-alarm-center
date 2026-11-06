@@ -1,4 +1,4 @@
-"""Smart Repeating Alerts on the Notifications tab: automations made from the Smart Repeating Alerts blueprint, and the blueprint.
+"""Smart Repeating Alerts on the Notifications tab: automations made from the blueprint, and the blueprint.
 
 The alerts stay native Home Assistant automations (``use_blueprint``); this module only lists them with a short
 summary read from their inputs, and installs or updates the blueprint file that ships with the integration. Creating,
@@ -68,7 +68,7 @@ def install_blueprint(hass: HomeAssistant, force: bool = False) -> dict[str, Any
     """Copy the shipped blueprint into blueprints/automation/LTek/. Never overwrites a file that isn't ours."""
     st = blueprint_status(hass)
     if st["installed"] and not st["ours"] and not force:
-        raise ValueError(f"blueprints/automation/{BLUEPRINT_PATH} exists and is not Smart Repeating Alerts; not replaced")
+        raise ValueError(f"blueprints/automation/{BLUEPRINT_PATH} is not Smart Repeating Alerts; not replaced")
     target = hass.config.path("blueprints", "automation", *BLUEPRINT_PATH.split("/"))
     os.makedirs(os.path.dirname(target), exist_ok=True)
     shutil.copyfile(SHIPPED, target)

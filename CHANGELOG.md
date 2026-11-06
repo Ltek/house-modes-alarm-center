@@ -3,6 +3,13 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.73 — 2026-11-06
+
+Restart Home Assistant after the update, then click **Update blueprint** under Smart Repeating Alerts (Notifications).
+
+- Ships Smart Repeating Alerts **v2026.11.06.3**: *Alerts per Entity* → *One alert per triggering entity* gives each
+  window, leak sensor, … its own alert when one automation covers several. Before, a second one replaced the first.
+
 ## v2026.11.06.72 — 2026-11-06
 
 Restart Home Assistant after the update.

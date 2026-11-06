@@ -48,3 +48,18 @@ test('script ids are unique slugs', () => {
   assert.equal(freeScriptId('Ärger: Alarm!', taken), 'alarm_event_arger_alarm_2');
   assert.deepEqual(scriptSequence([{}]), []);
 });
+
+import { describeAlert, formatDuration } from '../src/data/alerts.ts';
+
+test('Smart Alerts: durations and the one-line summary', () => {
+  assert.equal(formatDuration({ minutes: 5 }), '5 min');
+  assert.equal(formatDuration('01:00:00'), '1 h');
+  assert.equal(formatDuration(45), '45 s');
+  assert.equal(formatDuration(null), '');
+  const a = { entity_id: 'automation.x', name: 'X', state: 'on', last_triggered: null, edit_id: '1', blueprint: 'LTek/smart-alerts-ltek.yaml', old: null,
+    summary: { triggers: ['binary_sensor.front', 'label leak'], devices: 2, services: 1, repeat: true, repeat_every: { minutes: 5 }, max_repeats: 3,
+      camera: 'camera.patio', test_mode: true, tag: 't', buttons: 2, critical: true } };
+  const names = { 'binary_sensor.front': 'Front Door', 'camera.patio': 'Patio' };
+  assert.equal(describeAlert(a, e => names[e] || e),
+    'Front Door, label leak · 3 targets · repeats every 5 min (max 3) · camera Patio · 2 buttons · critical · TEST MODE');
+});

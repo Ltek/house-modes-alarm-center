@@ -255,11 +255,21 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
         ("a6", "Guest Wi-Fi on", ["Guest"]),
         ("a7", "Notify on every House Mode change", []),
     ]
+    from custom_components.alarmo.ext_alerts import install_blueprint  # noqa: PLC0415
+
+    await hass.async_add_executor_job(install_blueprint, hass)
     assert await async_setup_component(hass, "automation", {"automation": [
         *({"id": i, "alias": n, "triggers": [{"trigger": "state", "entity_id": hm, **({"to": m} if m else {})}], "actions": []}
           for i, n, m in autos),
         {"id": "s1", "alias": "Bedtime at 23:30", "triggers": [{"trigger": "time", "at": "23:30:00"}],
          "actions": [{"action": "alarmo.set_house_mode", "data": {"mode": "Sleep", "source": "schedule"}}]},
+        {"id": "sa1", "alias": "Smart Alert - Patio Door left open", "use_blueprint": {"path": "LTek/smart-alerts-ltek.yaml", "input": {
+            "alert_trigger": [{"trigger": "state", "entity_id": "binary_sensor.patio_door", "to": "on", "for": {"minutes": 5}}],
+            "notify_device": ["d1", "d2"], "repeat_notification": True, "time_between_repeat_notification": {"minutes": 10},
+            "max_repeat_count": 3, "include_action_buttons": ["enable_action_button_1"], "action_button_1_label": "Close it"}}},
+        {"id": "sa2", "alias": "Smart Alert - Driveway camera", "use_blueprint": {"path": "LTek/smart-alerts-ltek.yaml", "input": {
+            "alert_trigger": [{"trigger": "state", "entity_id": "binary_sensor.driveway_motion", "to": "on"}],
+            "camera": "camera.driveway", "notify_device": ["d1"], "cooldown_time": 180, "test_mode": True}}},
         {"id": "s2", "alias": "Sleep when the bedroom TV turns off", "triggers": [{"trigger": "state", "entity_id": "media_player.bedroom", "to": "off"}],
          "actions": [{"action": "input_select.select_option", "target": {"entity_id": "input_select.house_mode_selector"}, "data": {"option": "Sleep"}}]},
     ]})
@@ -289,7 +299,7 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
     i = 1
     for t in [
         "alarmo/ext/info", "alarmo/ext/status", "alarmo/ext/why", "alarmo/ext/house/get", "alarmo/ext/house/locks",
-        "alarmo/ext/panel/get", "alarmo/ext/panel/log", "alarmo/ext/house_actions/get", "alarmo/ext/rules/list", "alarmo/ext/rules/preview",
+        "alarmo/ext/panel/get", "alarmo/ext/panel/log", "alarmo/ext/house_actions/get", "alarmo/ext/alerts/get", "alarmo/ext/rules/list", "alarmo/ext/rules/preview",
         "alarmo/ext/backup/list", "alarmo/ext/locks/get", "alarmo/ext/locks/legacy", "alarmo/ext/activity/get",
         "config/area_registry/list", "config/floor_registry/list", "config/label_registry/list",
         "alarmo/ext/card/get", "alarmo/ext/quickstart/plan",

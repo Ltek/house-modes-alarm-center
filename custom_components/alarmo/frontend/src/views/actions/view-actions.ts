@@ -24,6 +24,7 @@ import { exportPath, Path } from '../../common/navigation';
 import { roleChip, sectionHead } from '../ext/page-intro';
 import { isLegacyEvent, eventTargets } from '../../data/alarm-events';
 import '../ext/event-migrate';
+import '../ext/smart-alerts';
 
 const noArea = 'no_area';
 
@@ -128,6 +129,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
       const showNotifications = this.section !== 'actions';
       const showActions = this.section !== 'notifications';
       return html`
+        ${showNotifications && !editor ? html`<alarmo-ext-smart-alerts .hass=${this.hass}></alarmo-ext-smart-alerts>` : ''}
         ${showNotifications ? this.renderNotifications(editor, notificationData) : ''}
 
         ${showActions ? this.renderAlarmEvents(editor, automationData) : ''}
@@ -245,7 +247,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
       </div>`;
     };
     return html`
-      <ha-card>${sectionHead(localize('panels.actions.cards.notifications.title', lang), 'settings')}
+      <ha-card>${sectionHead('Alarm notifications', 'settings')}
         <div class="card-content desc">
           <p>Messages sent on alarm events (armed, disarmed, triggered, failed to arm and more), per partition. Each one goes
             to a notify service: a phone, a speaker. House Mode messages are set on the House Modes tab.</p>

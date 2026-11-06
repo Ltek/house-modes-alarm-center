@@ -40,7 +40,15 @@ const SHOTS = [
     });
   }],
   ['/alarmo/zones', '04-zone-assignments'],
-  ['/alarmo/notifications', '17-notifications'],
+  ['/alarmo/notifications', '17-notifications', async (p) => {
+    await p.evaluate(async () => {
+      const t = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions');
+      const sa = t.shadowRoot.querySelector('alarmo-ext-smart-alerts');
+      for (let i = 0; i < 30 && !sa.info; i++) await new Promise(r => setTimeout(r, 100));
+      sa.shadowRoot.querySelector('details.collapse').open = true;
+      await new Promise(r => setTimeout(r, 100));
+    });
+  }],
   ['/alarmo/notifications', '18-notification-editor', async (p) => {
     await p.evaluate(() => {
       const t = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions');

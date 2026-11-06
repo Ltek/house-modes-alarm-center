@@ -41,6 +41,7 @@ from .ext_card import CARD_COMMANDS, register_card_services
 from .recorder import ACTIVITY_COMMANDS, ActivityRecorder
 from .ext_locks import LOCK_COMMANDS, LockManager
 from .ext_rules import RulesError, RulesManager
+from .ext_alerts import ALERT_COMMANDS
 from .ext_status import STATUS_COMMANDS
 from .panel_link import PanelLinkManager
 from .house_modes import HouseModeManager
@@ -538,6 +539,7 @@ COMMANDS = (
     *STATUS_COMMANDS,
     *ACTIVITY_COMMANDS,
     *HOUSE_ACTION_COMMANDS,
+    *ALERT_COMMANDS,
     *CARD_COMMANDS,
     *QUICKSTART_COMMANDS,
 )

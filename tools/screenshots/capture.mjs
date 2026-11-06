@@ -108,6 +108,16 @@ const SHOTS = [
       window.scrollBy(0, -60);
     });
   }],
+  ['/alarmo/house', '20-house-mode-actions-by-script', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');
+      const d = v.shadowRoot.querySelectorAll('details.hm-every')[0];
+      d.open = true;
+      await new Promise(r => setTimeout(r, 150));
+      d.scrollIntoView();
+      window.scrollBy(0, -80);
+    });
+  }],
   ['/alarmo/house', '13-house-modes-detect', async (p) => {
     await p.evaluate(async () => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');

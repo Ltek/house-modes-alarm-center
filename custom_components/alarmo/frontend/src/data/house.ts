@@ -306,3 +306,52 @@ export const describeTimer = (t: HouseTimer, modeName: (id: string) => string): 
   ]
     .filter(Boolean)
     .join(' · ');
+
+// ------------------------------------------------------------------ House Mode Actions by script
+// The actions are stored per mode (mode.steps). This view groups them by script and timing, so one script used by
+// several modes is one row: tick the modes, set the timing once.
+
+export type ActionGroup = { entity_id: string; when: HouseStep['when']; phase: HouseStep['phase']; modes: string[] };
+
+type ActionKey = { entity_id: string; when: string; phase: string };
+const sameKey = (st: ActionKey, g: ActionKey) =>
+  st.entity_id === g.entity_id && st.when === g.when && st.phase === g.phase;
+
+/** One group per script + timing, with the ids of the modes that run it that way (in mode order). */
+export const actionGroups = (s: HouseSettings): ActionGroup[] => {
+  const out: ActionGroup[] = [];
+  for (const m of s.modes)
+    for (const st of m.steps || []) {
+      let g = out.find(x => sameKey(st, x));
+      if (!g) out.push((g = { entity_id: st.entity_id, when: st.when, phase: st.phase, modes: [] }));
+      if (!g.modes.includes(m.id)) g.modes.push(m.id);
+    }
+  return out;
+};
+
+const mapSteps = (s: HouseSettings, fn: (m: HouseMode, steps: HouseStep[]) => HouseStep[]): HouseSettings => ({
+  ...s,
+  modes: s.modes.map(m => ({ ...m, steps: fn(m, (m.steps || []).map(st => ({ ...st, modes: [...st.modes] }))) })),
+});
+
+/** Run the group in exactly the modes ``modeIds``: adds the action where missing, removes it elsewhere. */
+export const setGroupModes = (s: HouseSettings, g: Omit<ActionGroup, 'modes'>, modeIds: string[]): HouseSettings =>
+  mapSteps(s, (m, steps) => {
+    const has = steps.some(st => sameKey(st, g));
+    if (modeIds.includes(m.id) && !has) return [...steps, { entity_id: g.entity_id, when: g.when, phase: g.phase, modes: [], wait: false }];
+    if (!modeIds.includes(m.id) && has) return steps.filter(st => !sameKey(st, g));
+    return steps;
+  });
+
+/** Change the script or timing of every action in the group (a mode that already has the new one keeps just one). */
+export const updateGroup = (s: HouseSettings, g: Omit<ActionGroup, 'modes'>, to: Partial<Omit<ActionGroup, 'modes'>>): HouseSettings => {
+  const next = { ...g, ...to };
+  return mapSteps(s, (_m, steps) => {
+    if (!steps.some(st => sameKey(st, g))) return steps;
+    const dup = steps.some(st => sameKey(st, next)) && !sameKey(g, next);
+    return dup ? steps.filter(st => !sameKey(st, g)) : steps.map(st => (sameKey(st, g) ? { ...st, ...to } : st));
+  });
+};
+
+/** Remove the group's action from every mode. */
+export const removeGroup = (s: HouseSettings, g: Omit<ActionGroup, 'modes'>): HouseSettings => setGroupModes(s, g, []);

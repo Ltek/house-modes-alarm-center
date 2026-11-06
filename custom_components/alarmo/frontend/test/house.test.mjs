@@ -77,3 +77,32 @@ test('action choices: scripts only, hm_ ones first', () => {
   assert.equal(isHmEntity('script.hm_x'), true);
   assert.equal(isHmEntity('script.xhm_'), false);
 });
+
+import { actionGroups, setGroupModes, updateGroup, removeGroup } from '../src/data/house.ts';
+
+test('actions by script: one group per script and timing, across modes', () => {
+  const st = (e, when = 'enter', phase = 'after', extra = {}) => ({ entity_id: e, when, phase, modes: [], wait: false, ...extra });
+  let s = { modes: [
+    { id: 'sleep', name: 'Sleep', steps: [st('script.lock', 'enter', 'before'), st('script.lights')] },
+    { id: 'away', name: 'Away', steps: [st('script.lock', 'enter', 'before', { modes: ['stay'], wait: true })] },
+    { id: 'vac', name: 'Vacation', steps: [st('script.lock', 'leave')] },
+    { id: 'stay', name: 'Stay', steps: [] },
+  ] };
+  assert.deepEqual(actionGroups(s), [
+    { entity_id: 'script.lock', when: 'enter', phase: 'before', modes: ['sleep', 'away'] },
+    { entity_id: 'script.lights', when: 'enter', phase: 'after', modes: ['sleep'] },
+    { entity_id: 'script.lock', when: 'leave', phase: 'after', modes: ['vac'] },
+  ]);
+  const lock = { entity_id: 'script.lock', when: 'enter', phase: 'before' };
+  s = setGroupModes(s, lock, ['away', 'stay']);
+  assert.deepEqual(actionGroups(s).find(g => g.entity_id === 'script.lock' && g.when === 'enter').modes, ['away', 'stay']);
+  assert.deepEqual(s.modes[1].steps[0].modes, ['stay'], 'an existing action keeps its own settings');
+  assert.equal(s.modes[1].steps[0].wait, true);
+  s = updateGroup(s, lock, { phase: 'after' });
+  assert.deepEqual(actionGroups(s).find(g => g.entity_id === 'script.lock' && g.when === 'enter').phase, 'after');
+  // retiming onto an action the mode already has keeps one
+  s = updateGroup(s, { entity_id: 'script.lock', when: 'leave', phase: 'after' }, { when: 'enter' });
+  assert.equal(s.modes[2].steps.length, 1);
+  s = removeGroup(s, { entity_id: 'script.lights', when: 'enter', phase: 'after' });
+  assert.equal(actionGroups(s).some(g => g.entity_id === 'script.lights'), false);
+});

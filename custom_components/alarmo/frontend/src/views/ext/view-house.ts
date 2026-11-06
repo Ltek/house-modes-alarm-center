@@ -31,6 +31,11 @@ import {
   setHouseMode,
   actionChoices,
   describeTimer,
+  ActionGroup,
+  actionGroups,
+  setGroupModes,
+  updateGroup,
+  removeGroup,
 } from '../../data/house';
 import { extStyles } from './ext-styles';
 import { HouseActionItem, HouseActionsInfo, editorPath, fetchHouseActions, reactingTo, reactingToAny } from '../../data/house-actions';
@@ -83,6 +88,8 @@ export class AlarmViewHouse extends LitElement {
   @state() private detect?: DetectResult;
   @state() private detectPick: string[] = [];
   @state() private detecting = false;
+  /** script rows added on "House Mode Actions by script" that no mode runs yet */
+  @state() private pendingGroups: Omit<ActionGroup, 'modes'>[] = [];
 
   firstUpdated() {
     this.refresh();
@@ -323,6 +330,7 @@ export class AlarmViewHouse extends LitElement {
               </tbody>
             </table></div>`
           : nothing}
+        ${this.renderByScript()}
         ${this.renderEveryChange()}
     `;
   }
@@ -687,6 +695,91 @@ export class AlarmViewHouse extends LitElement {
     `;
   }
 
+  /** House Mode Actions grouped by script: one row per script and timing, with a chip per mode. */
+  private renderByScript() {
+    const d = this.draft!;
+    if (!d.modes.length) return nothing;
+    const groups = actionGroups(d);
+    const pending = this.pendingGroups.filter(p => !groups.some(g => g.entity_id === p.entity_id && g.when === p.when && g.phase === p.phase));
+    const rows: ActionGroup[] = [...groups, ...pending.map(p => ({ ...p, modes: [] as string[] }))];
+    const choices = actionChoices(this.hass);
+    const name = (e: string) => (this.hass.states[e]?.attributes.friendly_name as string) || e;
+    const nScripts = new Set(groups.map(g => g.entity_id)).size;
+    const nActions = groups.reduce((n, g) => n + g.modes.length, 0);
+    const isPending = (g: ActionGroup) => !g.modes.length;
+    const change = (g: ActionGroup, to: Partial<Omit<ActionGroup, 'modes'>>) => {
+      if (isPending(g)) this.pendingGroups = this.pendingGroups.map(p => (p.entity_id === g.entity_id && p.when === g.when && p.phase === g.phase ? { ...p, ...to } : p));
+      else this.draft = updateGroup(d, g, to);
+    };
+    const tick = (g: ActionGroup, id: string) => {
+      const modes = g.modes.includes(id) ? g.modes.filter(x => x !== id) : [...g.modes, id];
+      this.draft = setGroupModes(d, g, modes);
+      if (!modes.length) this.pendingGroups = [...this.pendingGroups, { entity_id: g.entity_id, when: g.when, phase: g.phase }];
+    };
+    const remove = (g: ActionGroup) => {
+      this.pendingGroups = this.pendingGroups.filter(p => !(p.entity_id === g.entity_id && p.when === g.when && p.phase === g.phase));
+      if (!isPending(g)) this.draft = removeGroup(d, g);
+    };
+    const add = () => {
+      const used = new Set(rows.map(g => g.entity_id));
+      const eid = choices.find(c => !used.has(c)) || choices[0];
+      if (eid) this.pendingGroups = [...this.pendingGroups, { entity_id: eid, when: 'enter', phase: 'after' }];
+    };
+    return html`<details class="collapse sub hm-sec hm-every" ?open=${!!SEC_OPEN['*:byscript']}
+        @toggle=${(e: Event) => (SEC_OPEN['*:byscript'] = (e.target as HTMLDetailsElement).open)}>
+      <summary>
+        <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+        <span class="collapse-title">House Mode Actions by script</span>
+        <span class="secondary" style="display:inline">${nScripts} script${nScripts === 1 ? '' : 's'} · used ${nActions} time${nActions === 1 ? '' : 's'}</span>
+      </summary>
+      <div class="collapse-body">
+        <button class="hm-add" ?disabled=${!choices.length} @click=${add}><ha-icon icon="mdi:plus"></ha-icon>Script</button>
+        ${rows.map(g => html`<div class="hm-item">
+          ${entityBadge(this.hass, g.entity_id)}
+          <div class="hm-item-body">
+            <label>Run
+              <select @change=${(e: any) => change(g, { entity_id: e.target.value })}>
+                ${choices.includes(g.entity_id) ? nothing : html`<option value=${g.entity_id} selected>${g.entity_id} (${g.entity_id.startsWith('scene.') ? 'a scene: replace it with a script' : 'missing'})</option>`}
+                ${choices.map(c => html`<option value=${c} ?selected=${c === g.entity_id}>${name(c)}</option>`)}
+              </select></label>
+            <label>
+              <select aria-label="When" @change=${(e: any) => change(g, { when: e.target.value })}>
+                <option value="enter" ?selected=${g.when === 'enter'}>entering</option>
+                <option value="leave" ?selected=${g.when === 'leave'}>leaving</option>
+              </select></label>
+            <label>
+              <select aria-label="Phase" @change=${(e: any) => change(g, { phase: e.target.value })}>
+                <option value="before" ?selected=${g.phase === 'before'}>before arming</option>
+                <option value="after" ?selected=${g.phase === 'after'}>after the change</option>
+              </select></label>
+            <span class="hm-modes">
+              ${d.modes.map(m => {
+                const on = g.modes.includes(m.id);
+                return html`<button class="hm-chip ${on ? 'en' : ''}" aria-pressed=${on}
+                  title=${on ? `Runs ${g.when === 'enter' ? 'entering' : 'leaving'} ${m.name}: click to remove` : `Click to run it ${g.when === 'enter' ? 'entering' : 'leaving'} ${m.name}`}
+                  @click=${() => tick(g, m.id)}>${m.name}</button>`;
+              })}
+            </span>
+          </div>
+          <span class="hm-item-actions">
+            ${editorPathFor(g.entity_id, this.hass)
+              ? html`<ha-icon-button .label=${'Open in Home Assistant'} title="Open in Home Assistant's editor"
+                  @click=${() => navigate(this, editorPathFor(g.entity_id, this.hass)!)}><ha-icon icon="mdi:open-in-new"></ha-icon></ha-icon-button>`
+              : nothing}
+            <ha-icon-button .label=${'Run now'} title="Run now" @click=${() => this.runEntity(g.entity_id)}><ha-icon icon="mdi:play"></ha-icon></ha-icon-button>
+            <ha-icon-button class="hm-del" .label=${'Remove from every mode'} title="Remove from every mode" @click=${() => remove(g)}>
+              <ha-icon icon="mdi:trash-can-outline"></ha-icon></ha-icon-button>
+          </span>
+        </div>`)}
+        ${!rows.length ? html`<div class="secondary hm-hint">None yet. Add a script, then tick the modes that run it.</div>` : nothing}
+        <div class="secondary hm-hint">One row per script and timing: tick every mode that runs it, and set entering or leaving
+          and before arming or after the change once. A script that runs differently in some modes has a row for each timing.
+          "Only when coming from" and "wait for it" are set per mode, in the mode's <em>House Mode Actions</em>. Save at the
+          bottom of the page.</div>
+      </div>
+    </details>`;
+  }
+
   /** Automations that run on every House Mode change (any mode). */
   private renderEveryChange() {
     const any = this.actions ? reactingToAny(this.actions.items) : [];
@@ -968,6 +1061,11 @@ export class AlarmViewHouse extends LitElement {
         align-items: flex-start;
         flex: 1 1 auto;
         min-width: 0;
+      }
+      .hm-modes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
       }
       .hm-chip.en {
         border-color: var(--primary-color);

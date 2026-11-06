@@ -3,6 +3,17 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.66 — 2026-11-06
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **House Mode Actions by script** (House Modes tab, under the modes): one row per script and timing, with a chip
+  for each House Mode. Tick every mode that runs the script and set entering or leaving and before arming or after
+  the change once, instead of adding the same script in each mode. A script that runs differently in some modes
+  gets a row for each timing. *Only when coming from* and *wait for it* stay per mode, in the mode's editor.
+- The actions are still stored per mode, so nothing changes in your settings, and each mode's *House Mode
+  Actions* shows the same actions from the mode's side.
+
 ## v2026.11.06.65 — 2026-11-06
 
 Card only; no Home Assistant restart needed (reload the browser).

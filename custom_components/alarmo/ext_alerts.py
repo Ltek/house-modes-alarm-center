@@ -1,4 +1,4 @@
-"""Smart Alerts on the Notifications tab: automations made from the Smart Alerts blueprint, and the blueprint.
+"""Smart Repeating Alerts on the Notifications tab: automations made from the Smart Repeating Alerts blueprint, and the blueprint.
 
 The alerts stay native Home Assistant automations (``use_blueprint``); this module only lists them with a short
 summary read from their inputs, and installs or updates the blueprint file that ships with the integration. Creating,
@@ -19,13 +19,13 @@ from homeassistant.components import websocket_api
 
 _LOGGER = logging.getLogger(__name__)
 
-BLUEPRINT_PATH = "LTek/smart-alerts-ltek.yaml"
+BLUEPRINT_PATH = "LTek/smart-repeating-alerts-ltek.yaml"
 OLD_BLUEPRINTS = {
     "LTek/repeating-alerts-ltek.yaml": "Repeating Alerts",
     "LTek/smart-camera-notifications-ltek.yaml": "Smart Camera Notifications",
 }
-SHIPPED = os.path.join(os.path.dirname(__file__), "blueprints", "smart-alerts-ltek.yaml")
-MARKER = "github.com/Ltek/smart-alerts"
+SHIPPED = os.path.join(os.path.dirname(__file__), "blueprints", "smart-repeating-alerts-ltek.yaml")
+MARKER = "github.com/Ltek/smart-repeating-alerts"
 VERSION_RE = re.compile(r"Version (\d{4}\.\d{2}\.\d{2}\.\d+)")
 
 
@@ -68,11 +68,11 @@ def install_blueprint(hass: HomeAssistant, force: bool = False) -> dict[str, Any
     """Copy the shipped blueprint into blueprints/automation/LTek/. Never overwrites a file that isn't ours."""
     st = blueprint_status(hass)
     if st["installed"] and not st["ours"] and not force:
-        raise ValueError(f"blueprints/automation/{BLUEPRINT_PATH} exists and is not Smart Alerts; not replaced")
+        raise ValueError(f"blueprints/automation/{BLUEPRINT_PATH} exists and is not Smart Repeating Alerts; not replaced")
     target = hass.config.path("blueprints", "automation", *BLUEPRINT_PATH.split("/"))
     os.makedirs(os.path.dirname(target), exist_ok=True)
     shutil.copyfile(SHIPPED, target)
-    _LOGGER.info("Installed Smart Alerts blueprint %s", st["shipped_version"])
+    _LOGGER.info("Installed Smart Repeating Alerts blueprint %s", st["shipped_version"])
     return blueprint_status(hass)
 
 
@@ -114,7 +114,7 @@ def summary(inputs: dict) -> dict[str, Any]:
 
 
 def alert_items(hass: HomeAssistant) -> list[dict[str, Any]]:
-    """Every automation made from Smart Alerts (or its two predecessors), with a summary. Event loop only."""
+    """Every automation made from Smart Repeating Alerts (or its two predecessors), with a summary. Event loop only."""
     from homeassistant.components.automation import DATA_COMPONENT  # noqa: PLC0415
 
     items = []
@@ -147,7 +147,7 @@ def alert_items(hass: HomeAssistant) -> list[dict[str, Any]]:
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_alerts_get(hass, connection, msg):
-    """Smart Alerts automations and the blueprint's status."""
+    """Smart Repeating Alerts automations and the blueprint's status."""
     status = await hass.async_add_executor_job(blueprint_status, hass)
     connection.send_result(msg["id"], {"blueprint": status, "items": alert_items(hass)})
 
@@ -158,7 +158,7 @@ async def ws_alerts_get(hass, connection, msg):
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_alerts_install(hass, connection, msg):
-    """Install or update the Smart Alerts blueprint."""
+    """Install or update the Smart Repeating Alerts blueprint."""
     try:
         st = await hass.async_add_executor_job(install_blueprint, hass, msg["force"])
     except (ValueError, OSError) as err:

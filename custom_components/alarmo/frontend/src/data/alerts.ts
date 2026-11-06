@@ -1,4 +1,4 @@
-// Smart Alerts on the Notifications tab: native automations made from the Smart Alerts blueprint.
+// Smart Repeating Alerts on the Notifications tab: native automations made from the Smart Repeating Alerts blueprint.
 import type { HomeAssistant } from '../types';
 
 export type AlertSummary = {
@@ -78,7 +78,7 @@ export const createAlert = async (hass: HomeAssistant, alias: string, path: stri
   const id = newAutomationId();
   await hass.callApi('POST', `config/automation/config/${id}`, {
     alias,
-    description: 'Smart Alerts (made on the Notifications tab)',
+    description: 'Smart Repeating Alerts (made on the Notifications tab)',
     use_blueprint: { path, input: {} },
   });
   return id;

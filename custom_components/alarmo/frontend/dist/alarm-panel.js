@@ -4254,12 +4254,12 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
     li.bad b {
       color: var(--error-color);
     }
-  `,s([ye({attribute:!1})],cd.prototype,"hass",void 0),s([ye({attribute:!1})],cd.prototype,"events",void 0),s([be()],cd.prototype,"plan",void 0),s([be()],cd.prototype,"busy",void 0),s([be()],cd.prototype,"results",void 0),cd=s([ue("alarmo-ext-event-migrate")],cd);const hd=e=>{let t=0;if("number"==typeof e)t=e;else if("string"==typeof e){const a=e.split(":").map(Number);t=3===a.length?3600*a[0]+60*a[1]+a[2]:Number(e)||0;}else if(e&&"object"==typeof e){const a=e;t=86400*(a.days||0)+3600*(a.hours||0)+60*(a.minutes||0)+(a.seconds||0);}return t?t%3600==0?t/3600+" h":t%60==0?t/60+" min":`${t} s`:"";},pd=async(e,t,a)=>{const i=String(Date.now());return await e.callApi("POST",`config/automation/config/${i}`,{alias:t,description:"Smart Alerts (made on the Notifications tab)",use_blueprint:{path:a,input:{}}}),i;};let md=class extends pe{constructor(){super(...arguments),this.error="",this.busy=!1,this.name=e=>{var t;return(null===(t=this.hass.states[e])||void 0===t?void 0:t.attributes.friendly_name)||e;};}firstUpdated(){this.load();}async load(){try{this.info=await(e=this.hass,e.callWS({type:"alarmo/ext/alerts/get"})),this.error="";}catch(e){this.error=Dn(e);}var e;}later(){window.setTimeout(()=>this.load(),900);}async install(e=!1){this.busy=!0;try{await((e,t=!1)=>e.callWS({type:"alarmo/ext/alerts/install",force:t}))(this.hass,e),Bn(this,"Smart Alerts blueprint installed."),await this.load();}catch(e){this.error=Dn(e);}finally{this.busy=!1;}}async add(){const e=window.prompt("Name of the new alert","Smart Alert - ");if(e){this.busy=!0;try{const t=await pd(this.hass,e.trim(),this.info.blueprint.path);jn(0,`/config/automation/edit/${t}`);}catch(e){this.error=Dn(e);}finally{this.busy=!1;}}}async deleteOne(e){var t,a;if(e.edit_id&&window.confirm(`Delete the automation "${e.name}"?`))try{await(t=this.hass,a=e.edit_id,t.callApi("DELETE",`config/automation/config/${a}`)),Bn(this,`${e.name} deleted.`),this.later();}catch(e){this.error=Dn(e);}}async setEnabled(e,t){await this.hass.callService("automation",t?"turn_on":"turn_off",{entity_id:e.entity_id}),this.later();}async run(e){await this.hass.callService("automation","trigger",{entity_id:e.entity_id,skip_condition:!1}),Bn(this,`Ran ${e.name}.`);}row(e){const t=e.edit_id?`/config/automation/edit/${e.edit_id}`:null,a="on"===e.state;return Z`<div class="sa-row ${a?"":"off"}">
+  `,s([ye({attribute:!1})],cd.prototype,"hass",void 0),s([ye({attribute:!1})],cd.prototype,"events",void 0),s([be()],cd.prototype,"plan",void 0),s([be()],cd.prototype,"busy",void 0),s([be()],cd.prototype,"results",void 0),cd=s([ue("alarmo-ext-event-migrate")],cd);const hd=e=>{let t=0;if("number"==typeof e)t=e;else if("string"==typeof e){const a=e.split(":").map(Number);t=3===a.length?3600*a[0]+60*a[1]+a[2]:Number(e)||0;}else if(e&&"object"==typeof e){const a=e;t=86400*(a.days||0)+3600*(a.hours||0)+60*(a.minutes||0)+(a.seconds||0);}return t?t%3600==0?t/3600+" h":t%60==0?t/60+" min":`${t} s`:"";},pd=async(e,t,a)=>{const i=String(Date.now());return await e.callApi("POST",`config/automation/config/${i}`,{alias:t,description:"Smart Repeating Alerts (made on the Notifications tab)",use_blueprint:{path:a,input:{}}}),i;};let md=class extends pe{constructor(){super(...arguments),this.error="",this.busy=!1,this.name=e=>{var t;return(null===(t=this.hass.states[e])||void 0===t?void 0:t.attributes.friendly_name)||e;};}firstUpdated(){this.load();}async load(){try{this.info=await(e=this.hass,e.callWS({type:"alarmo/ext/alerts/get"})),this.error="";}catch(e){this.error=Dn(e);}var e;}later(){window.setTimeout(()=>this.load(),900);}async install(e=!1){this.busy=!0;try{await((e,t=!1)=>e.callWS({type:"alarmo/ext/alerts/install",force:t}))(this.hass,e),Bn(this,"Smart Repeating Alerts blueprint installed."),await this.load();}catch(e){this.error=Dn(e);}finally{this.busy=!1;}}async add(){const e=window.prompt("Name of the new alert","Smart Repeating Alert - ");if(e){this.busy=!0;try{const t=await pd(this.hass,e.trim(),this.info.blueprint.path);jn(0,`/config/automation/edit/${t}`);}catch(e){this.error=Dn(e);}finally{this.busy=!1;}}}async deleteOne(e){var t,a;if(e.edit_id&&window.confirm(`Delete the automation "${e.name}"?`))try{await(t=this.hass,a=e.edit_id,t.callApi("DELETE",`config/automation/config/${a}`)),Bn(this,`${e.name} deleted.`),this.later();}catch(e){this.error=Dn(e);}}async setEnabled(e,t){await this.hass.callService("automation",t?"turn_on":"turn_off",{entity_id:e.entity_id}),this.later();}async run(e){await this.hass.callService("automation","trigger",{entity_id:e.entity_id,skip_condition:!1}),Bn(this,`Ran ${e.name}.`);}row(e){const t=e.edit_id?`/config/automation/edit/${e.edit_id}`:null,a="on"===e.state;return Z`<div class="sa-row ${a?"":"off"}">
       <ha-icon class="sa-icon" icon=${e.summary.camera?"mdi:cctv":e.summary.critical?"mdi:alarm-light-outline":"mdi:bell-ring-outline"}></ha-icon>
       <div class="sa-name">
         ${t?Z`<button class="link" title="Open in Home Assistant's editor" @click=${()=>jn(0,t)}>${e.name}</button>`:Z`<span>${e.name}</span>`}
         <span class="secondary">${((e,t)=>{const a=e.summary,i=[];a.triggers.length&&i.push(a.triggers.slice(0,3).map(e=>e.includes(".")?t(e):e).join(", ")+(a.triggers.length>3?" +"+(a.triggers.length-3):""));const s=a.devices+a.services;return i.push(s?`${s} target${1===s?"":"s"}`:"no targets"),a.repeat&&i.push(`repeats${hd(a.repeat_every)?` every ${hd(a.repeat_every)}`:""}${a.max_repeats?` (max ${a.max_repeats})`:""}`),a.camera&&i.push(`camera ${t(a.camera)}`),a.buttons&&i.push(`${a.buttons} button${1===a.buttons?"":"s"}`),a.critical&&i.push("critical"),a.test_mode&&i.push("TEST MODE"),i.join(" · ");})(e,this.name)}</span>
-        ${e.old?Z`<span class="sa-old"><ha-icon icon="mdi:alert"></ha-icon>Uses ${e.old}: change its blueprint to Smart Alerts (the converted YAML is ready).</span>`:Y}
+        ${e.old?Z`<span class="sa-old"><ha-icon icon="mdi:alert"></ha-icon>Uses ${e.old}: change its blueprint to Smart Repeating Alerts (the converted YAML is ready).</span>`:Y}
       </div>
       <button class="sa-chip ${a?"on":""}" title=${a?"Enabled: click to disable":"Disabled: click to enable"} @click=${()=>this.setEnabled(e,!a)}>${a?"Enabled":"Disabled"}</button>
       <ha-icon-button .label=${"Run now"} title="Run now (as if triggered)" @click=${()=>this.run(e)}><ha-icon icon="mdi:play"></ha-icon></ha-icon-button>
@@ -4277,10 +4277,10 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
       </summary>
       <div class="fold-body">${n}</div>
     </details>
-  </ha-card>`)("smart-alerts","mdi:bell-ring-outline","Smart Alerts",n,"settings",Z`
+  </ha-card>`)("smart-alerts","mdi:bell-ring-outline","Smart Repeating Alerts",n,"settings",Z`
       <div class="card-content desc">
         <p>Repeating, actionable alerts for doors, windows, leaks, smoke, cameras and anything else with a trigger: each one
-          a Home Assistant automation made from the <em>Smart Alerts</em> blueprint, with repeats until cleared, buttons,
+          a Home Assistant automation made from the <em>Smart Repeating Alerts</em> blueprint, with repeats until cleared, buttons,
           camera snapshots, critical alerts and a test mode. They are listed here and edited in Home Assistant's editor,
           so they keep traces and are in every backup.</p>
         <p class="secondary">Alarm messages (armed, triggered, failed to arm) are set up under <em>Alarm notifications</em> below.</p>
@@ -4290,7 +4290,7 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             <ha-icon icon=${s.installed?"mdi:check-circle":"mdi:alert-circle-outline"} class=${s.installed?"ok":"warn"}></ha-icon>
             ${s.installed?Z`<span>Blueprint <code>${s.path}</code> ${s.installed_version?`v${s.installed_version}`:""}
                   ${s.update?Z`· <strong>v${s.shipped_version} is available</strong>`:Y}
-                  ${s.ours?Y:Z`· <span class="secondary" style="display:inline">not the copy that ships with this integration</span>`}</span>`:Z`<span>The Smart Alerts blueprint is not installed yet.</span>`}
+                  ${s.ours?Y:Z`· <span class="secondary" style="display:inline">not the copy that ships with this integration</span>`}</span>`:Z`<span>The Smart Repeating Alerts blueprint is not installed yet.</span>`}
             ${!s.installed||s.update?Z`<ha-button ?disabled=${this.busy} @click=${()=>this.install()}>${s.installed?"Update":"Install"} blueprint</ha-button>`:Y}
           </div>`:Y}
       <div class="toolbar">
@@ -4301,7 +4301,7 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
       <div class="sa-list">
         ${a.map(e=>this.row(e))}
         ${i.length?Z`<div class="sa-group">Still on the old blueprints</div>${i.map(e=>this.row(e))}`:Y}
-        ${e&&!t.length?Z`<div class="empty">No Smart Alerts yet. <em>New alert</em> makes one and opens it in Home Assistant's editor.</div>`:Y}
+        ${e&&!t.length?Z`<div class="empty">No Smart Repeating Alerts yet. <em>New alert</em> makes one and opens it in Home Assistant's editor.</div>`:Y}
       </div>
     `);}};md.styles=[Wn,h`
       :host {
@@ -7118,7 +7118,7 @@ var e=function(t,a){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             ${Es("title",this.hass.language)}
           </div>
           <div class="version">
-            v${"2026.11.06.71"}
+            v${"2026.11.06.72"}
           </div>
         </div>
 

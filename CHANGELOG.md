@@ -3,6 +3,24 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.72 — 2026-11-06
+
+Restart Home Assistant after the update.
+
+- The blueprint is named **Smart Repeating Alerts (Ltek)** (`LTek/smart-repeating-alerts-ltek.yaml`); .71 called it Smart Alerts. Install it from the Notifications tab.
+
+- **Smart Repeating Alerts** on the Notifications tab: repeating, actionable alerts (doors, windows, leaks, smoke, cameras …)
+  as native Home Assistant automations made from the new *Smart Repeating Alerts* blueprint
+  ([Ltek/smart-repeating-alerts](https://github.com/Ltek/smart-repeating-alerts): Repeating Alert Notifications plus camera snapshots,
+  URI buttons, extra notify services, Android priority / alarm stream, cooldown and a test mode).
+  - The integration ships the blueprint and installs it (Install / Update) into
+    `blueprints/automation/LTek/smart-repeating-alerts-ltek.yaml`. It never replaces a file there that isn't Smart Repeating Alerts.
+  - One row per alert: what triggers it, how many targets, repeats, camera, buttons, critical, test mode; with an
+    Enabled chip, run, edit (Home Assistant's editor) and delete. *+ New alert* makes an empty one and opens it in
+    Home Assistant's editor.
+  - Automations still on *Repeating Alerts* or *Smart Camera Notifications* are listed with a note to switch.
+- The integration's own alarm notifications are under **Alarm notifications**, below Smart Repeating Alerts.
+
 ## v2026.11.06.71 — 2026-11-06
 
 Restart Home Assistant after the update.

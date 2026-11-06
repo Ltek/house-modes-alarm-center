@@ -263,11 +263,11 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
           for i, n, m in autos),
         {"id": "s1", "alias": "Bedtime at 23:30", "triggers": [{"trigger": "time", "at": "23:30:00"}],
          "actions": [{"action": "alarmo.set_house_mode", "data": {"mode": "Sleep", "source": "schedule"}}]},
-        {"id": "sa1", "alias": "Smart Alert - Patio Door left open", "use_blueprint": {"path": "LTek/smart-alerts-ltek.yaml", "input": {
+        {"id": "sa1", "alias": "Smart Repeating Alert - Patio Door left open", "use_blueprint": {"path": "LTek/smart-repeating-alerts-ltek.yaml", "input": {
             "alert_trigger": [{"trigger": "state", "entity_id": "binary_sensor.patio_door", "to": "on", "for": {"minutes": 5}}],
             "notify_device": ["d1", "d2"], "repeat_notification": True, "time_between_repeat_notification": {"minutes": 10},
             "max_repeat_count": 3, "include_action_buttons": ["enable_action_button_1"], "action_button_1_label": "Close it"}}},
-        {"id": "sa2", "alias": "Smart Alert - Driveway camera", "use_blueprint": {"path": "LTek/smart-alerts-ltek.yaml", "input": {
+        {"id": "sa2", "alias": "Smart Repeating Alert - Driveway camera", "use_blueprint": {"path": "LTek/smart-repeating-alerts-ltek.yaml", "input": {
             "alert_trigger": [{"trigger": "state", "entity_id": "binary_sensor.driveway_motion", "to": "on"}],
             "camera": "camera.driveway", "notify_device": ["d1"], "cooldown_time": 180, "test_mode": True}}},
         {"id": "s2", "alias": "Sleep when the bedroom TV turns off", "triggers": [{"trigger": "state", "entity_id": "media_player.bedroom", "to": "off"}],

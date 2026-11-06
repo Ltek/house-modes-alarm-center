@@ -1,4 +1,4 @@
-"""Smart Alerts on the Notifications tab: the blueprint is installed safely, and its automations are listed."""
+"""Smart Repeating Alerts on the Notifications tab: the blueprint is installed safely, and its automations are listed."""
 
 import os
 from typing import Any
@@ -19,7 +19,7 @@ async def test_install_and_list(hass: Any, hass_storage: Any, hass_ws_client: An
     assert blueprint_status(hass)["installed"] is False
     st = await hass.async_add_executor_job(install_blueprint, hass)
     assert st["installed"] and st["ours"] and st["installed_version"] == st["shipped_version"] and not st["update"]
-    target = tmp_path / "blueprints" / "automation" / "LTek" / "smart-alerts-ltek.yaml"
+    target = tmp_path / "blueprints" / "automation" / "LTek" / "smart-repeating-alerts-ltek.yaml"
     target.write_text("blueprint:\n  name: someone else's\n")
     try:
         await hass.async_add_executor_job(install_blueprint, hass)
@@ -30,7 +30,7 @@ async def test_install_and_list(hass: Any, hass_storage: Any, hass_ws_client: An
     assert os.path.getsize(target) == os.path.getsize(SHIPPED)
 
     assert await async_setup_component(hass, "automation", {"automation": [
-        {"id": "a1", "alias": "Front Door", "use_blueprint": {"path": "LTek/smart-alerts-ltek.yaml", "input": {
+        {"id": "a1", "alias": "Front Door", "use_blueprint": {"path": "LTek/smart-repeating-alerts-ltek.yaml", "input": {
             "alert_trigger": [{"trigger": "state", "entity_id": "binary_sensor.front_door", "to": "on"}],
             "repeat_notification": True, "test_mode": True}}},
         {"id": "a2", "alias": "Plain", "triggers": [], "actions": []},

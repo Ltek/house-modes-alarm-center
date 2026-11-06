@@ -1,4 +1,4 @@
-// Notifications tab → Smart Alerts: native Home Assistant automations made from the Smart Alerts blueprint
+// Notifications tab → Smart Repeating Alerts: native Home Assistant automations made from the Smart Repeating Alerts blueprint
 // (repeating, actionable alerts with camera snapshots). Listed here; created, edited and deleted through Home
 // Assistant's automation editor and config API, so they stay ordinary automations with traces and backups.
 import { LitElement, html, nothing, css } from 'lit';
@@ -40,7 +40,7 @@ export class ExtSmartAlerts extends LitElement {
     this.busy = true;
     try {
       await installAlertsBlueprint(this.hass, force);
-      toast(this, 'Smart Alerts blueprint installed.');
+      toast(this, 'Smart Repeating Alerts blueprint installed.');
       await this.load();
     } catch (err) {
       this.error = wsErrorMessage(err);
@@ -50,7 +50,7 @@ export class ExtSmartAlerts extends LitElement {
   }
 
   private async add() {
-    const alias = window.prompt('Name of the new alert', 'Smart Alert - ');
+    const alias = window.prompt('Name of the new alert', 'Smart Repeating Alert - ');
     if (!alias) return;
     this.busy = true;
     try {
@@ -92,7 +92,7 @@ export class ExtSmartAlerts extends LitElement {
       <div class="sa-name">
         ${edit ? html`<button class="link" title="Open in Home Assistant's editor" @click=${() => navigate(this, edit)}>${a.name}</button>` : html`<span>${a.name}</span>`}
         <span class="secondary">${describeAlert(a, this.name)}</span>
-        ${a.old ? html`<span class="sa-old"><ha-icon icon="mdi:alert"></ha-icon>Uses ${a.old}: change its blueprint to Smart Alerts (the converted YAML is ready).</span>` : nothing}
+        ${a.old ? html`<span class="sa-old"><ha-icon icon="mdi:alert"></ha-icon>Uses ${a.old}: change its blueprint to Smart Repeating Alerts (the converted YAML is ready).</span>` : nothing}
       </div>
       <button class="sa-chip ${on ? 'on' : ''}" title=${on ? 'Enabled: click to disable' : 'Disabled: click to enable'} @click=${() => this.setEnabled(a, !on)}>${on ? 'Enabled' : 'Disabled'}</button>
       <ha-icon-button .label=${'Run now'} title="Run now (as if triggered)" @click=${() => this.run(a)}><ha-icon icon="mdi:play"></ha-icon></ha-icon-button>
@@ -110,10 +110,10 @@ export class ExtSmartAlerts extends LitElement {
     const summary = i
       ? `${current.length} alert${current.length === 1 ? '' : 's'}${old.length ? ` · ${old.length} on old blueprints` : ''} · ${current.filter(a => a.state === 'on').length} enabled`
       : 'loading…';
-    return collapsibleCard('smart-alerts', 'mdi:bell-ring-outline', 'Smart Alerts', summary, 'settings', html`
+    return collapsibleCard('smart-alerts', 'mdi:bell-ring-outline', 'Smart Repeating Alerts', summary, 'settings', html`
       <div class="card-content desc">
         <p>Repeating, actionable alerts for doors, windows, leaks, smoke, cameras and anything else with a trigger: each one
-          a Home Assistant automation made from the <em>Smart Alerts</em> blueprint, with repeats until cleared, buttons,
+          a Home Assistant automation made from the <em>Smart Repeating Alerts</em> blueprint, with repeats until cleared, buttons,
           camera snapshots, critical alerts and a test mode. They are listed here and edited in Home Assistant's editor,
           so they keep traces and are in every backup.</p>
         <p class="secondary">Alarm messages (armed, triggered, failed to arm) are set up under <em>Alarm notifications</em> below.</p>
@@ -126,7 +126,7 @@ export class ExtSmartAlerts extends LitElement {
               ? html`<span>Blueprint <code>${bp.path}</code> ${bp.installed_version ? `v${bp.installed_version}` : ''}
                   ${bp.update ? html`· <strong>v${bp.shipped_version} is available</strong>` : nothing}
                   ${!bp.ours ? html`· <span class="secondary" style="display:inline">not the copy that ships with this integration</span>` : nothing}</span>`
-              : html`<span>The Smart Alerts blueprint is not installed yet.</span>`}
+              : html`<span>The Smart Repeating Alerts blueprint is not installed yet.</span>`}
             ${!bp.installed || bp.update
               ? html`<ha-button ?disabled=${this.busy} @click=${() => this.install()}>${bp.installed ? 'Update' : 'Install'} blueprint</ha-button>`
               : nothing}
@@ -140,7 +140,7 @@ export class ExtSmartAlerts extends LitElement {
       <div class="sa-list">
         ${current.map(a => this.row(a))}
         ${old.length ? html`<div class="sa-group">Still on the old blueprints</div>${old.map(a => this.row(a))}` : nothing}
-        ${i && !items.length ? html`<div class="empty">No Smart Alerts yet. <em>New alert</em> makes one and opens it in Home Assistant's editor.</div>` : nothing}
+        ${i && !items.length ? html`<div class="empty">No Smart Repeating Alerts yet. <em>New alert</em> makes one and opens it in Home Assistant's editor.</div>` : nothing}
       </div>
     `);
   }

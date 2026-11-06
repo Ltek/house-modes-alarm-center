@@ -66,7 +66,7 @@ TIMER_SCHEMA = vol.All(vol.Schema(
 
 STEP_SCHEMA = vol.Schema(
     {
-        # a native HA scene (scene.turn_on) or script (script.turn_on with the House Mode variables)
+        # a native HA script (run with the House Mode variables); scene.* is still accepted and run for older configs
         vol.Required("entity_id"): vol.Match(r"^(scene|script)\.[a-z0-9_]+$"),
         vol.Optional("when", default="enter"): vol.In(("enter", "leave")),
         # before: before the partitions are armed/disarmed; after: once the change succeeded

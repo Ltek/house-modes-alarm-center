@@ -126,7 +126,7 @@ class HouseModeManager:
         return clean
 
     async def _sync_actions(self, settings: dict) -> None:
-        """Mirror the House Mode actions onto their scripts and scenes (labels, script descriptions)."""
+        """Mirror the House Mode actions onto their scripts (labels, descriptions)."""
         from .house_action_sync import async_sync_actions  # noqa: PLC0415
 
         res = await async_sync_actions(self.hass, settings)
@@ -453,7 +453,7 @@ class HouseModeManager:
             )
 
     async def _run_steps(self, leaving: dict | None, entering: dict | None, phase: str, source: str) -> None:
-        """Run the House Mode actions (native scenes / scripts) for this change and phase. Never raises."""
+        """Run the House Mode actions (scripts; scenes from older configs) for this change and phase. Never raises."""
         steps = steps_for(leaving, entering, phase)
         if not steps:
             return

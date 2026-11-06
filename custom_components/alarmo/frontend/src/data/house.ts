@@ -288,13 +288,13 @@ export const describeStep = (st: HouseStep, modeName: (id: string) => string): s
     .filter(Boolean)
     .join(' · ');
 
-/** True for a House Modes script or scene by name: its object id starts with ``hm_`` (e.g. script.hm_lock_up). */
+/** True for a House Modes script by name: its object id starts with ``hm_`` (e.g. script.hm_lock_up). */
 export const isHmEntity = (entityId: string): boolean => entityId.split('.', 2)[1]?.startsWith('hm_') || false;
 
-/** The scenes and scripts a House Mode can run as an action, ``hm_…`` ones first, each group sorted. */
+/** The scripts a House Mode can run as an action, ``hm_…`` ones first, each group sorted. */
 export const actionChoices = (hass: { states: Record<string, unknown> }): string[] =>
   Object.keys(hass.states)
-    .filter(e => e.startsWith('scene.') || e.startsWith('script.'))
+    .filter(e => e.startsWith('script.'))
     .sort((a, b) => Number(isHmEntity(b)) - Number(isHmEntity(a)) || a.localeCompare(b));
 
 /** Short description of a timer, e.g. "after 10 min → Stay · only from Away, Stay · 20:30–05:00". */
@@ -306,23 +306,3 @@ export const describeTimer = (t: HouseTimer, modeName: (id: string) => string): 
   ]
     .filter(Boolean)
     .join(' · ');
-
-/** Names of the modes that run ``entityId`` (a scene or script) as an "entering" action. */
-export const enterStepModes = (s: HouseSettings, entityId: string): string[] =>
-  s.modes.filter(m => (m.steps || []).some(st => st.entity_id === entityId && st.when === 'enter')).map(m => m.name);
-
-/**
- * Make ``entityId`` an "entering, after the change" action of exactly the modes in ``names``. Other steps are kept; a
- * mode that already runs it on entering keeps that step as it is. Returns the new settings.
- */
-export const setEnterSteps = (s: HouseSettings, entityId: string, names: string[]): HouseSettings => ({
-  ...s,
-  modes: s.modes.map(m => {
-    const steps = m.steps || [];
-    const has = steps.some(st => st.entity_id === entityId && st.when === 'enter');
-    const want = names.includes(m.name);
-    if (want && !has) return { ...m, steps: [...steps, { entity_id: entityId, when: 'enter', phase: 'after', modes: [], wait: false }] };
-    if (!want && has) return { ...m, steps: steps.filter(st => !(st.entity_id === entityId && st.when === 'enter')) };
-    return m;
-  }),
-});

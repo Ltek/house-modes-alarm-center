@@ -1,7 +1,7 @@
 // Unit tests for src/data/house.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { newMode, modeErrors, describeTargets, removeMode, slug, SOURCES, describeTimer, setEnterSteps, enterStepModes } from '../src/data/house.ts';
+import { newMode, modeErrors, describeTargets, removeMode, slug, SOURCES, describeTimer } from '../src/data/house.ts';
 
 test('newMode makes unique ids and allows every source', () => {
   const a = newMode('Late Night', []);
@@ -69,23 +69,11 @@ test('describeTimer', () => {
   assert.equal(describeTimer({ at: '01:00', then: 'previous', from_modes: [], notify: true }, name), 'at 01:00 → the previous mode');
 });
 
-test('setEnterSteps adds and removes a scene as an entering step, keeping other steps', () => {
-  const lock = { entity_id: 'script.lock_up', when: 'enter', phase: 'before', modes: [], wait: true };
-  const s = { modes: [{ id: 'stay', name: 'Stay', steps: [lock] }, { id: 'spa', name: 'Spa', steps: [] }] };
-  const a = setEnterSteps(s, 'scene.spa', ['Spa']);
-  assert.deepEqual(a.modes[1].steps, [{ entity_id: 'scene.spa', when: 'enter', phase: 'after', modes: [], wait: false }]);
-  assert.deepEqual(a.modes[0].steps, [lock]);
-  assert.deepEqual(enterStepModes(a, 'scene.spa'), ['Spa']);
-  const b = setEnterSteps(a, 'scene.spa', []);
-  assert.deepEqual(b.modes[1].steps, []);
-  assert.deepEqual(enterStepModes(a, 'script.lock_up'), ['Stay']);
-});
-
 import { actionChoices, isHmEntity } from '../src/data/house.ts';
 
-test('action choices: scenes and scripts, hm_ ones first', () => {
+test('action choices: scripts only, hm_ ones first', () => {
   const states = { 'script.zzz': {}, 'scene.hm_spa': {}, 'light.x': {}, 'script.hm_lock_up': {}, 'scene.movie': {} };
-  assert.deepEqual(actionChoices({ states }), ['scene.hm_spa', 'script.hm_lock_up', 'scene.movie', 'script.zzz']);
+  assert.deepEqual(actionChoices({ states }), ['script.hm_lock_up', 'script.zzz']);
   assert.equal(isHmEntity('script.hm_x'), true);
   assert.equal(isHmEntity('script.xhm_'), false);
 });

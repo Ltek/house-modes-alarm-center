@@ -3,6 +3,18 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.64 — 2026-11-06
+
+Restart Home Assistant after the update.
+
+- House Mode **actions are scripts only**. The action picker lists only scripts (`hm_…` first). A script can still
+  turn on a scene. An action that is still a scene keeps running, and the mode shows it as "a scene: replace it with
+  a script".
+- The **Scenes card is removed** from the Actions tab, along with its "Runs when these House Modes start" option.
+  Scenes you made with it stay in Home Assistant; edit them there.
+- The Actions tab's *Other Alarm Events* card is now **Alarm Events** and lists every Alarm Event, including the
+  ones that run a scene (they were shown on the Scenes card before).
+
 ## v2026.11.05.63 — 2026-11-05
 
 Restart Home Assistant after the update.

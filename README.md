@@ -30,70 +30,64 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
       <a href="screenshots/02-actions.png"><img src="screenshots/02-actions.png" width="100%" alt="Actions"></a><br><sub>Actions</sub>
     </td>
     <td align="center" valign="top" width="50%">
-      <a href="screenshots/03-scenes.png"><img src="screenshots/03-scenes.png" width="100%" alt="Scenes"></a><br><sub>Scenes</sub>
+      <a href="screenshots/04-zone-assignments.png"><img src="screenshots/04-zone-assignments.png" width="100%" alt="Zone assignments"></a><br><sub>Zone assignments</sub>
     </td>
   </tr>
   <tr>
-    <td align="center" valign="top" width="50%">
-      <a href="screenshots/04-zone-assignments.png"><img src="screenshots/04-zone-assignments.png" width="100%" alt="Zone assignments"></a><br><sub>Zone assignments</sub>
-    </td>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/05-zone-editor.png"><img src="screenshots/05-zone-editor.png" width="100%" alt="Zone editor"></a><br><sub>Zone editor</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/06-physical-panel.png"><img src="screenshots/06-physical-panel.png" width="100%" alt="Physical panel"></a><br><sub>Physical panel</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/07-users-codes-keypads.png"><img src="screenshots/07-users-codes-keypads.png" width="100%" alt="Users codes keypads"></a><br><sub>Users codes keypads</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/08-arm-check.png"><img src="screenshots/08-arm-check.png" width="100%" alt="Arm check"></a><br><sub>Arm check</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/09-activity.png"><img src="screenshots/09-activity.png" width="100%" alt="Activity"></a><br><sub>Activity</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/10-backup.png"><img src="screenshots/10-backup.png" width="100%" alt="Backup"></a><br><sub>Backup</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/11-alarm-events-migrate.png"><img src="screenshots/11-alarm-events-migrate.png" width="100%" alt="Alarm events migrate"></a><br><sub>Alarm events migrate</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/12-house-modes-shadow.png"><img src="screenshots/12-house-modes-shadow.png" width="100%" alt="House modes shadow"></a><br><sub>House modes shadow</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/13-house-modes-detect.png"><img src="screenshots/13-house-modes-detect.png" width="100%" alt="House modes detect"></a><br><sub>House modes detect</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/14-house-mode-editor.png"><img src="screenshots/14-house-mode-editor.png" width="100%" alt="House mode editor"></a><br><sub>House mode editor</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/15-dashboard-card.png"><img src="screenshots/15-dashboard-card.png" width="100%" alt="Dashboard card"></a><br><sub>Dashboard card</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" valign="top" width="50%">
       <a href="screenshots/16-card-editor.png"><img src="screenshots/16-card-editor.png" width="100%" alt="Card editor"></a><br><sub>Card editor</sub>
     </td>
-    <td align="center" valign="top" width="50%">
-      <a href="screenshots/17-notifications.png"><img src="screenshots/17-notifications.png" width="100%" alt="Notifications"></a><br><sub>Notifications</sub>
-    </td>
   </tr>
   <tr>
     <td align="center" valign="top" width="50%">
+      <a href="screenshots/17-notifications.png"><img src="screenshots/17-notifications.png" width="100%" alt="Notifications"></a><br><sub>Notifications</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
       <a href="screenshots/18-notification-editor.png"><img src="screenshots/18-notification-editor.png" width="100%" alt="Notification editor"></a><br><sub>Notification editor</sub>
     </td>
-    <td></td>
   </tr>
 </table>
 <!-- SCREENSHOTS:END -->
@@ -117,17 +111,16 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 **Quick Start** — the first tab: what is configured, and three guided setups (House Modes only; an alarm without a
 physical panel; House Modes and a physical panel). Each shows its steps and makes a backup before it changes anything.
 
-**Actions** — one tab: *What runs on each mode* (per House Mode, its scripts and scenes, its timers, and the
-automations whose triggers react to it), native scenes (with the House Modes and Alarm Events that run each one), and
-the remaining Alarm Events (scripts, and legacy ones to migrate).
+**Actions** — one tab: *What runs on each mode* (per House Mode, its scripts, its timers, and the automations whose
+triggers react to it), and the Alarm Events (with Migrate for old ones).
 
 **House Modes** — Away, Stay, Sleep, Guest, Spa, … ([HOUSE-MODES.md](HOUSE-MODES.md))
 - Each mode sets partitions to an Arm Mode (or leaves them), decides **who may change it** (manual, automations,
   schedule, presence, a lock code, the panel keypad), can check zones are closed and change itself back on a timer.
-- Each mode runs native scripts and scenes as **actions** (entering or leaving, before arming or after), and has
-  **timers** (after N minutes or at a clock time, to a mode or back to the previous one). Each script and scene it runs
-  gets a "House Mode: <mode>" label, and each script a "House Mode action: …" line in its description, so you can find
-  them in Home Assistant. Name them `hm_…` to have them listed first.
+- Each mode runs native scripts as **actions** (entering or leaving, before arming or after), and has **timers**
+  (after N minutes or at a clock time, to a mode or back to the previous one). Each script it runs gets a
+  "House Mode: <mode>" label and a "House Mode action: …" line in its description, so you can find them in Home
+  Assistant. Name them `hm_…` to have them listed first. A script can turn on a scene if you want one.
 - A notification on every change, if you want one, saying where it came from and why.
 - `select.alarmo_house_mode`, the `alarmo.set_house_mode` service, events, two blueprints, an optional `input_select`
   kept in step.

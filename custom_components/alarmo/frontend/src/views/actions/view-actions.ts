@@ -23,7 +23,6 @@ import { extStyles } from '../ext/ext-styles';
 import { exportPath, Path } from '../../common/navigation';
 import { roleChip, sectionHead } from '../ext/page-intro';
 import '../ext/event-migrate';
-import { isLegacyEvent, eventTargets } from '../../data/alarm-events';
 
 const noArea = 'no_area';
 
@@ -53,7 +52,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
   @property()
   selectedArea?: string;
 
-  /** ext: in the Actions tab only the events that are not just "run a scene" (legacy ones, scripts) */
+  /** ext: embedded in the Actions tab (no own title) */
   @property()
   only?: 'other';
 
@@ -167,7 +166,6 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
 
       const automationData = this.automations
         .filter(e => e.type == EAutomationTypes.Action)
-        .filter(e => this.only !== 'other' || isLegacyEvent(e) || eventTargets(e).some(t => !t.startsWith('scene.')) || !eventTargets(e).length)
         .map(e =>
           Object({
             ...e,
@@ -185,8 +183,8 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
         ${showActions ? html`
         <ha-card>${this.only === 'other' ? nothing : sectionHead(localize('panels.actions.title', this.hass.language), 'settings')}
           <div class="card-content" style=${this.only === 'other' ? 'padding:12px 16px 4px' : ''}>${this.only === 'other'
-            ? html`Alarm Events that run a script, or still use the old built-in list of actions (legacy: migrate them to scenes and
-                scripts). Events that run a scene are shown on that scene above.`
+            ? html`Scenes and scripts that run when the alarm arms, disarms or triggers. Events that still use the old
+                built-in list of actions can be migrated to scenes and scripts.`
             : localize('panels.actions.cards.actions.description', this.hass.language)}</div>
           <div class="card-actions" style="border-top:none;border-bottom:1px solid var(--divider-color)">
             <ha-button appearance="plain" ?disabled=${!!editor} @click=${this.addActionClick}>

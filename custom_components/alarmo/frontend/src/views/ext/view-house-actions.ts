@@ -1,7 +1,6 @@
-// "What runs on each mode" (Actions tab): per House Mode, the scripts and scenes it runs (its actions), its timers,
+// "What runs on each mode" (Actions tab): per House Mode, the scripts it runs (its actions), its timers,
 // and the Home Assistant automations that react when the mode starts or ends (read from their triggers).
 // Read-only: actions and timers are edited in the mode (House Modes tab), automations in Home Assistant's editor.
-// The Scenes card below it creates native scenes and can make a scene an "entering" action of modes.
 import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
@@ -11,7 +10,6 @@ import { toast, wsErrorMessage } from '../../data/ext-websockets';
 import { HouseActionItem, HouseActionsInfo, editorPath, fetchHouseActions, reactingTo, reactingToAny } from '../../data/house-actions';
 import { HouseMode, HouseSettings, defaultModeColor, describeStep, describeTimer, fetchHouse } from '../../data/house';
 import { extStyles } from './ext-styles';
-import './scene-editor';
 import { collapsibleCard, entityBadge } from './page-intro';
 
 /** Which mode panels are open (module-level, so they stay open across re-renders and tab changes). */
@@ -113,7 +111,7 @@ export class AlarmViewHouseActions extends LitElement {
       </summary>
       <div class="collapse-body">
         ${this.group('Actions (run by the mode)', steps.map(st => this.line(st.entity_id, describeStep(st, this.nameOf))),
-          'None. Add scripts or scenes in the mode on the House Modes tab.')}
+          'None. Add scripts in the mode on the House Modes tab.')}
         ${this.group('Timers', m.timers.map(t => html`<div class="wr-line"><ha-icon class="wr-ticon" icon="mdi:timer-outline"></ha-icon>
             <div class="wr-name"><span>${describeTimer(t, this.nameOf)}</span></div></div>`), 'None.')}
         ${this.group('Automations that react', [
@@ -138,7 +136,7 @@ export class AlarmViewHouseActions extends LitElement {
       ${collapsibleCard('house-actions', 'mdi:home-lightning-bolt-outline', 'What runs on each mode',
         `${nSteps} action${nSteps === 1 ? '' : 's'} · ${nTimers} timer${nTimers === 1 ? '' : 's'} · ${nAuto} automation${nAuto === 1 ? '' : 's'} react${nAuto === 1 ? 's' : ''}`, 'readonly', html`
         <div class="card-content desc">
-          <p>For each House Mode: the scripts and scenes it runs (its <em>actions</em>), its timers, and the Home Assistant
+          <p>For each House Mode: the scripts it runs (its <em>actions</em>), its timers, and the Home Assistant
             automations whose triggers react when the mode starts or ends. This is an overview: change actions and timers in
             the mode on the <a href="/alarmo/house">House Modes</a> tab, and automations in Home Assistant's editor (click a name).</p>
           <p class="secondary" style="display:block">Automations that only use the House Mode as a condition are not listed.
@@ -159,8 +157,6 @@ export class AlarmViewHouseActions extends LitElement {
             </details></div>`
           : nothing}
       `)}
-      <alarmo-ext-scene-editor embedded .hass=${this.hass} .house=${house}
-        @scenes-changed=${() => window.setTimeout(() => this.load(), 800)}></alarmo-ext-scene-editor>
     `;
   }
 

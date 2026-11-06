@@ -358,8 +358,7 @@ export class AutomationEditorCard extends LitElement {
         <span slot="heading">Scenes and scripts</span>
         <span slot="description">
           Run these native scenes or scripts, in this order. Scripts get the variables <code>event</code>,
-          <code>area</code> and <code>arm_mode</code>. Create scenes on the
-          <a href="/alarmo/actions">Actions</a> tab (Scenes), scripts in Home Assistant.
+          <code>area</code> and <code>arm_mode</code>. Create them in Home Assistant.
         </span>
         <alarmo-selector
           .hass=${this.hass}

@@ -42,26 +42,6 @@ const SHOTS = [
       await new Promise(r => setTimeout(r, 100));
     });
   }],
-  ['/alarmo/actions', '03-scenes', async (p) => {
-    await p.evaluate(() => {
-      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab').shadowRoot.querySelector('alarm-view-house-actions');
-      const ed = v.shadowRoot.querySelector('alarmo-ext-scene-editor');
-      ed.shadowRoot.querySelector('details.collapse').open = true;
-      ed.startNew();
-      ed.draft = { id: 'demo', name: 'Evening lights', icon: 'mdi:weather-sunset',
-        entities: { 'light.living_room': { state: 'on', brightness: 153, color_temp_kelvin: 2700 },
-                    'light.kitchen': { state: 'on', brightness: 77, rgb_color: [255, 170, 80] },
-                    'cover.living_room_blinds': { state: 'open', current_position: 40 },
-                    'lock.front_door_lock': { state: 'locked' } } };
-      ed.draftModes = ['Stay'];
-      ed.scrollIntoView();
-    });
-    await p.evaluate(() => window.scrollTo(0, 0));
-    await p.evaluate(() => {
-      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-actions-tab').shadowRoot.querySelector('alarm-view-house-actions');
-      v.shadowRoot.querySelector('ha-card').style.display = 'none';
-    });
-  }],
   ['/alarmo/zones', '04-zone-assignments'],
   ['/alarmo/notifications', '17-notifications'],
   ['/alarmo/notifications', '18-notification-editor', async (p) => {
@@ -102,7 +82,7 @@ const SHOTS = [
       v.info = { ...v.info, settings: { ...v.info.settings, run_mode: 'shadow', compare_entity: 'input_select.house_mode' } };
       v.draft = JSON.parse(JSON.stringify(v.info.settings));
       v.shadow = { summary: { matched: 9, differed: 2, since: at(0), watching: false }, log: [
-        { t: at(0), kind: 'request', ok: null, msg: 'automation: Disarmed → Stay: would set House Stay; would run scene.lock_up' },
+        { t: at(0), kind: 'request', ok: null, msg: 'automation: Disarmed → Stay: would set House Stay; would run script.lock_up' },
         { t: at(0.5), kind: 'request', ok: true, msg: 'Stay: your automations got there after 26 s' },
         { t: at(0.6), kind: 'compare', ok: true, msg: 'input_select.house_mode is Stay' },
         { t: at(21), kind: 'request', ok: null, msg: 'manual: Stay → Disarmed: would set House Disarmed' },

@@ -172,7 +172,7 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
                 {"id": "stay", "name": "Stay", "icon": "mdi:home", "targets": {GF: "armed_home", UP: "disarmed", GAR: "armed_away"}},
                 {"id": "sleep", "name": "Sleep", "icon": "mdi:bed", "targets": {GF: "armed_night", UP: "armed_night", GAR: "armed_away"},
                  "readiness": {"entities": ["binary_sensor.front_door", "binary_sensor.back_door"], "action": "block"},
-                 "steps": [{"entity_id": "scene.lock_up", "when": "enter", "phase": "before"}],
+                 "steps": [{"entity_id": "script.lock_up", "when": "enter", "phase": "before"}],
                  "timers": [{"after_minutes": 10, "then": "previous", "from_modes": ["stay"], "window_start": "23:30", "window_end": "06:00"}]},
                 {"id": "away", "name": "Away", "icon": "mdi:shield-lock", "targets": {GF: "armed_away", UP: "armed_away", GAR: "armed_away"},
                  "enter_sources": ["manual", "automation", "presence_away", "lock", "timer", "schedule"]},
@@ -240,7 +240,7 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
     await hass.async_block_till_done()
     await hass.async_block_till_done()
 
-    # native automations / scripts / scenes related to House Modes (labels)
+    # native automations / scripts related to House Modes (labels)
     from homeassistant.setup import async_setup_component  # noqa: PLC0415
 
     hm = "select.alarmo_house_mode"
@@ -259,17 +259,10 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
     ]})
     assert await async_setup_component(hass, "script", {"script": {
         "spa_evening": {"alias": "Spa evening", "sequence": [{"condition": "state", "entity_id": hm, "state": "Guest"}]},
+        "lock_up": {"alias": "Lock up", "sequence": []},
     }})
     await hass.async_block_till_done()
-    for sid, name in (("1001", "Evening lights"), ("1002", "Lock up"), ("1003", "Spa"), ("1004", "Good morning")):
-        eid = "scene." + name.lower().replace(" ", "_")
-        reg.async_get_or_create("scene", "homeassistant", sid, suggested_object_id=eid.split(".")[1])
-        hass.states.async_set(eid, "2026-10-26T20:30:00+00:00", {"friendly_name": name, "id": sid})
     from custom_components.alarmo.ext_house_actions import set_modes  # noqa: PLC0415
-
-    set_modes(hass, "scene.evening_lights", ["Stay"])
-    set_modes(hass, "scene.lock_up", ["Away", "Stay", "Sleep"])
-    set_modes(hass, "scene.spa", ["Guest"])
 
     for i, _n, m in autos[:5]:
         set_modes(hass, next(st.entity_id for st in hass.states.async_all("automation") if st.attributes.get("id") == i), m)

@@ -1,9 +1,10 @@
-"""House Mode actions: mirror them onto the scripts and scenes they run.
+"""House Mode actions: mirror them onto the scripts they run.
 
 The House Mode's action list (its ``steps``) is the only source of truth. From it the integration writes, so the
-scripts and scenes can be found from Home Assistant's own lists and files:
+scripts can be found from Home Assistant's own lists and files:
 
-* a label "House Mode: <mode>" on each script and scene, one per mode that runs it (removed when no mode does);
+* a label "House Mode: <mode>" on each script, one per mode that runs it (removed when no mode does; scenes, which
+  older configs could run, are kept in step too);
 * a first line in each script's description, e.g. "House Mode action: Sleep, Away · entering, before arming".
 
 Neither is ever read back. Descriptions are written only for scripts in ``scripts.yaml``, the same way Home

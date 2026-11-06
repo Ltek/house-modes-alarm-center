@@ -82,7 +82,7 @@
     },
     "set_house_mode": {
       "name": "Set House Mode",
-      "description": "Change the House Mode. The integration checks who may change the mode (source), whether zones are ready, arms/disarms the partitions and retries; lifestyle actions stay in your automations (trigger on alarmo_house_mode_changed or select.alarmo_house_mode).",
+      "description": "Change the House Mode. The integration checks the mode's Allowed Sources (pass a source), whether zones are ready, arms/disarms the partitions and runs the mode's Script Actions.",
       "fields": {
         "mode": {
           "name": "Mode",

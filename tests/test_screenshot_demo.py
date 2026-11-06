@@ -256,8 +256,12 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
         ("a7", "Notify on every House Mode change", []),
     ]
     assert await async_setup_component(hass, "automation", {"automation": [
-        {"id": i, "alias": n, "triggers": [{"trigger": "state", "entity_id": hm, **({"to": m} if m else {})}], "actions": []}
-        for i, n, m in autos
+        *({"id": i, "alias": n, "triggers": [{"trigger": "state", "entity_id": hm, **({"to": m} if m else {})}], "actions": []}
+          for i, n, m in autos),
+        {"id": "s1", "alias": "Bedtime at 23:30", "triggers": [{"trigger": "time", "at": "23:30:00"}],
+         "actions": [{"action": "alarmo.set_house_mode", "data": {"mode": "Sleep", "source": "schedule"}}]},
+        {"id": "s2", "alias": "Sleep when the bedroom TV turns off", "triggers": [{"trigger": "state", "entity_id": "media_player.bedroom", "to": "off"}],
+         "actions": [{"action": "input_select.select_option", "target": {"entity_id": "input_select.house_mode_selector"}, "data": {"option": "Sleep"}}]},
     ]})
     assert await async_setup_component(hass, "script", {"script": {
         "spa_evening": {"alias": "Spa evening", "sequence": [{"condition": "state", "entity_id": hm, "state": "Guest"}]},

@@ -10,7 +10,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util.yaml import dump, load_yaml
 
 from tests.ext_helpers import setup_real_alarmo
-from custom_components.alarmo.ext_house_actions import detect
+from custom_components.alarmo.ext_house_actions import detect, setters, trigger_kinds
 from custom_components.alarmo.house_action_sync import (
     action_line,
     actions_by_entity,
@@ -140,3 +140,30 @@ async def test_sync_labels_and_descriptions(hass: Any, hass_storage: Any, tmp_pa
     # a second run changes nothing
     res = await async_sync_actions(hass, s)
     assert res == {"labels": [], "descriptions": [], "errors": []}
+
+
+def test_setters_and_trigger_kinds() -> None:
+    """How an automation sets the House Mode (service with/without source, the select, the selector, the helper)."""
+    roles = {"select": {"select.alarmo_house_mode"}, "selector": {"input_select.house_mode_selector"},
+             "current": {"input_select.house_mode"}}
+    cfg = {"triggers": [{"trigger": "time", "at": "20:30"}, {"trigger": "state", "entity_id": ["person.a"], "to": "home"}],
+           "actions": [
+               {"action": "alarmo.set_house_mode", "data": {"mode": "stay", "source": "schedule"}},
+               {"choose": [{"conditions": [], "sequence": [
+                   {"action": "input_select.select_option", "target": {"entity_id": "input_select.house_mode_selector"}, "data": {"option": "Sleep"}}]}]},
+               {"if": [], "then": [{"action": "input_select.select_option", "target": {"entity_id": "input_select.house_mode"}, "data": {"option": "{{ prior }}"}}]},
+               {"action": "select.select_option", "target": {"entity_id": "select.alarmo_house_mode"}, "data": {"option": "Away"}},
+               {"action": "alarmo.set_house_mode", "data": {"mode": "Guest"}},
+               {"action": "input_select.select_option", "target": {"entity_id": "input_select.other"}, "data": {"option": "Sleep"}},
+               {"action": "alarmo.set_house_mode", "enabled": False, "data": {"mode": "Away"}},
+           ]}
+    assert setters(cfg, roles, [*MODES, "Guest"]) == [
+        {"mode": "Stay", "template": False, "via": "service", "source": "schedule"},
+        {"mode": "Sleep", "template": False, "via": "selector", "source": None},
+        {"mode": None, "template": True, "via": "current", "source": None},
+        {"mode": "Away", "template": False, "via": "select", "source": None},
+        {"mode": "Guest", "template": False, "via": "service", "source": None},
+    ]
+    assert setters({"actions": [{"action": "light.turn_on"}]}, roles, MODES) is None
+    assert trigger_kinds(cfg) == ["time", "presence"]
+    assert trigger_kinds({"triggers": [{"trigger": "state", "entity_id": "input_select.house_mode_selector"}, {"trigger": "event"}]}) == ["house_mode", "event"]

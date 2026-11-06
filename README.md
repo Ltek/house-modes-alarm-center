@@ -118,7 +118,10 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 | **Panel** | The physical alarm panel, e.g. a Honeywell Vista through Envisalink. |
 | **Panel link** | Keeps the alarm and the panel in step, in both directions. |
 | **Alarm system** | The alarm and the panel together. |
-| **House Mode Action** | A Home Assistant script a House Mode runs when it starts or ends. |
+| **Script Action** | A Home Assistant script a House Mode runs when it starts or ends. |
+| **Automation Action** | A Home Assistant automation whose trigger is a House Mode starting or ending. |
+| **Trigger** | What starts a House Mode: an automation that sets it, a timer, a lock code, manual. |
+| **Allowed Sources** | Per House Mode: which kinds of request (manual, schedule, presence, lock, timer, …) may enter or exit it. |
 | **Shadow / Live** | Shadow only logs what it would do, next to your own automations; Live does it. Used by House Modes and the panel link. |
 
 ## What it adds to Alarmo
@@ -127,13 +130,15 @@ Rendered from a demo house (made-up names) — see *Development* for how they ar
 physical panel; House Modes and a physical panel). Each shows its steps and makes a backup before it changes anything.
 
 **House Modes** — Away, Stay, Sleep, Guest, Spa, … ([HOUSE-MODES.md](HOUSE-MODES.md))
-- Each mode sets partitions to an Arm Mode (or leaves them), decides **who may change it** (manual, automations,
-  schedule, presence, a lock code, the panel keypad), can check zones are closed and change itself back on a timer.
-- Each mode runs native scripts as **actions** (entering or leaving, before arming or after), and has **timers**
+- Each mode sets partitions to an Arm Mode (or leaves them), has **Allowed Sources**: which kinds of request may
+  enter or exit it (manual, automations, schedule, presence, a lock code, the panel keypad, timers), can check zones are closed and change itself back on a timer.
+- Each mode lists its **Triggers**: the automations whose actions set it (with a warning when one writes the selector
+  or leaves out the source), timers in other modes, lock codes and manual. Timers that can't work are flagged.
+- Each mode runs native scripts as **Script Actions** (entering or leaving, before arming or after), and has **timers**
   (after N minutes or at a clock time, to a mode or back to the previous one). Each script it runs gets a
   "House Mode: <mode>" label and a "House Mode action: …" line in its description, so you can find them in Home
   Assistant. Name them `hm_…` to have them listed first. A script can turn on a scene if you want one.
-- Each mode's editor also lists the **automations this mode triggers** (read from their triggers), with an
+- Each mode's editor also lists its **Automation Actions**: the automations whose triggers are this mode (read from them), with an
   Enabled chip and a run button, and the tab lists the automations every change triggers.
 - A notification on every change, if you want one, saying where it came from and why.
 - `select.alarmo_house_mode`, the `alarmo.set_house_mode` service, events, two blueprints, an optional `input_select`

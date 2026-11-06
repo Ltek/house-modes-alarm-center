@@ -111,7 +111,7 @@ const SHOTS = [
       v.open = [sleep.id];
       await v.updateComplete;
       const secs = v.shadowRoot.querySelectorAll('.hm-ed details.hm-sec');
-      [0, 3, 4, 5].forEach(i => secs[i] && (secs[i].open = true));
+      [3, 4, 5].forEach(i => secs[i] && (secs[i].open = true));
       await new Promise(r => setTimeout(r, 150));
       v.shadowRoot.querySelector('.hm-ed').scrollIntoView();
       window.scrollBy(0, -60);

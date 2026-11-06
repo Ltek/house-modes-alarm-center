@@ -144,6 +144,99 @@ def reactions(config: dict | None, entities: set[str], modes: list[str]) -> dict
     return {"to": sorted(to, key=modes.index), "from": sorted(frm, key=modes.index), "any": any_change}
 
 
+SELECT_ACTIONS = ("input_select.select_option", "select.select_option")
+SET_HOUSE_MODE = "alarmo.set_house_mode"
+
+
+def house_roles(hass: HomeAssistant, ext: ExtManager) -> dict[str, set[str]]:
+    """Which entity is which: the House Mode select, the user's selector, and the current-mode helper."""
+    s = ext.house.settings
+    selector = s.get("input_select") or "input_select.house_mode_selector"
+    current = {e for e in (s.get("current_entity"), "input_select.house_mode") if e and e != selector}
+    return {"select": {"select.alarmo_house_mode"}, "selector": {selector}, "current": current}
+
+
+def _walk_actions(obj: Any):
+    """Every action dict in a sequence, including those inside choose / if / parallel / repeat / sequence."""
+    if isinstance(obj, list):
+        for x in obj:
+            yield from _walk_actions(x)
+    elif isinstance(obj, dict):
+        if obj.get("enabled") is False:
+            return
+        if "action" in obj or "service" in obj:
+            yield obj
+        for v in obj.values():
+            if isinstance(v, list | dict):
+                yield from _walk_actions(v)
+
+
+def _targets(a: dict) -> list[str]:
+    out: list[str] = []
+    for src in (a.get("target"), a.get("data"), a):
+        if isinstance(src, dict):
+            out += [str(x) for x in _as_list(src.get("entity_id"))]
+    return out
+
+
+def setters(config: dict | None, roles: dict[str, set[str]], modes: list[str]) -> list[dict[str, Any]] | None:
+    """How an automation changes the House Mode, read from its actions.
+
+    Returns None when it never does, else one entry per action: {"mode": name or None, "template": bool,
+    "via": "service" | "select" | "selector" | "current", "source": the source it passes, or None}.
+    """
+    if not config:
+        return None
+    by_lower = {m.lower(): m for m in modes}
+    out: list[dict[str, Any]] = []
+    for a in _walk_actions(config.get("actions", config.get("action"))):
+        name = a.get("action", a.get("service"))
+        data = a.get("data") if isinstance(a.get("data"), dict) else {}
+        if name == SET_HOUSE_MODE:
+            via, raw, source = "service", data.get("mode"), data.get("source")
+        elif name in SELECT_ACTIONS:
+            ents = set(_targets(a))
+            via = next((r for r in ("select", "selector", "current") if ents & roles[r]), None)
+            if via is None:
+                continue
+            raw, source = data.get("option"), None
+        else:
+            continue
+        raw = "" if raw is None else str(raw)
+        template = "{{" in raw or "{%" in raw
+        mode = None if template else by_lower.get(raw.strip().lower())
+        if not template and mode is None and raw:
+            mode = raw.strip()
+        out.append({"mode": mode, "template": template, "via": via,
+                    "source": source if isinstance(source, str) and "{{" not in source else None})
+    return out or None
+
+
+def trigger_kinds(config: dict | None) -> list[str]:
+    """Short names of an automation's triggers: time, presence, house_mode, alarm, event, sun, template, other."""
+    kinds: list[str] = []
+    for t in _as_list((config or {}).get("triggers", (config or {}).get("trigger"))):
+        if not isinstance(t, dict) or t.get("enabled") is False:
+            continue
+        k = t.get("trigger", t.get("platform"))
+        ents = [str(x) for x in _as_list(t.get("entity_id"))]
+        if k in ("time", "time_pattern"):
+            kind = "time"
+        elif k == "zone" or (k == "state" and any(e.startswith(("person.", "device_tracker.")) for e in ents)):
+            kind = "presence"
+        elif k == "state" and any(HOUSE_ENTITY_HINT.search(e) for e in ents):
+            kind = "house_mode"
+        elif k == "state" and any(e.startswith("alarm_control_panel.") for e in ents):
+            kind = "alarm"
+        elif k in ("event", "sun", "template", "state", "numeric_state"):
+            kind = k
+        else:
+            kind = "other"
+        if kind not in kinds:
+            kinds.append(kind)
+    return kinds
+
+
 def _raw_configs(hass: HomeAssistant) -> dict[str, dict]:
     """entity_id -> raw config of loaded automations and scripts."""
     out: dict[str, dict] = {}
@@ -168,6 +261,7 @@ def items_payload(hass: HomeAssistant) -> dict[str, Any]:
             mode_by_label[lab.label_id] = lab.name[len(LABEL_PREFIX) :]
     raw = _raw_configs(hass)
     ents = house_entities(hass, ext)
+    roles = house_roles(hass, ext)
     items = []
     for st in hass.states.async_all(DOMAINS):
         eid = st.entity_id
@@ -193,6 +287,8 @@ def items_payload(hass: HomeAssistant) -> dict[str, Any]:
                 "labels": labelled,
                 "detected": found,
                 "reacts": reactions(raw.get(eid), ents, modes) if domain == "automation" else None,
+                "sets": setters(raw.get(eid), roles, modes) if domain == "automation" else None,
+                "trigger_kinds": trigger_kinds(raw.get(eid)) if domain == "automation" else [],
             }
         )
     return {

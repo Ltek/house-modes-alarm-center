@@ -355,3 +355,31 @@ export const updateGroup = (s: HouseSettings, g: Omit<ActionGroup, 'modes'>, to:
 
 /** Remove the group's action from every mode. */
 export const removeGroup = (s: HouseSettings, g: Omit<ActionGroup, 'modes'>): HouseSettings => setGroupModes(s, g, []);
+
+// ------------------------------------------------------------------ timer checks (warnings, never block saving)
+
+/** Timers that can never fire, or bounce: one warning per problem, with the mode that owns the timer. */
+export const timerWarnings = (modes: HouseMode[]): { mode: string; text: string }[] => {
+  const out: { mode: string; text: string }[] = [];
+  const byId = new Map(modes.map(m => [m.id, m]));
+  for (const m of modes) {
+    if (m.timers.length && !m.leave_sources.includes('timer'))
+      out.push({ mode: m.id, text: `${m.name}: its timers never fire, because ${m.name} doesn't allow House Mode timers to exit (Allowed Sources, May Exit).` });
+    for (const t of m.timers) {
+      const to = t.then === 'previous' ? null : byId.get(t.then);
+      if (t.then === m.id) out.push({ mode: m.id, text: `${m.name}: a timer goes to ${m.name} itself.` });
+      else if (to && !to.enter_sources.includes('timer'))
+        out.push({ mode: m.id, text: `${m.name}: the timer to ${to.name} is blocked, because ${to.name} doesn't allow House Mode timers to enter (Allowed Sources, May Enter).` });
+      for (const f of t.from_modes) {
+        if (!byId.has(f)) out.push({ mode: m.id, text: `${m.name}: a timer's "only when coming from" names a mode that no longer exists (${f}).` });
+        else if (f === m.id) out.push({ mode: m.id, text: `${m.name}: a timer's "only when coming from" names ${m.name} itself, which can never come first.` });
+      }
+      if (to && to.id !== m.id && !t.window_start && !t.window_end) {
+        const back = to.timers.some(b => b.then === m.id && !b.window_start && !b.window_end);
+        if (back && m.id < to.id)
+          out.push({ mode: m.id, text: `${m.name} and ${to.name} have timers that go to each other, so the mode can keep switching between them.` });
+      }
+    }
+  }
+  return out;
+};

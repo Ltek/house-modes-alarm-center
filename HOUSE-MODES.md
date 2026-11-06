@@ -22,7 +22,7 @@ Or create them by hand:
 House Modes tab → **Add starter modes** (Disarmed, Stay, Sleep, Away, Vacation, Guest, Local,
 Spa), add **Late Night** (Arm Mode Home), then adjust:
 
-| Mode | Partitions | Into this mode | Out of this mode | Other |
+| Mode | Partitions | May Enter | May Exit | Other |
 |---|---|---|---|---|
 | Disarmed | Disarm | all | all | timers below |
 | Stay | Home (Stay) | all | all | |
@@ -48,7 +48,7 @@ On the **House Modes** tab choose **Shadow** (instead of Off or Live) and save. 
 automations and change nothing:
 
 - every request (your input_select, `select.alarmo_house_mode`, a lock code, a timer) is checked the way Live would
-  handle it: who may change the mode, readiness, which partitions it would set, which scripts would run;
+  handle it: its Allowed Sources, readiness, which partitions it would set, which scripts would run;
 - then it is compared with what your automations really did to the partitions within 3 minutes: **✓** they ended
   where House Modes would have, **✗** they differ (blocked or not ready but changed anyway, or never got there);
 - partitions changed outside House Modes (keypad, alarm card) show which House Mode that would be;
@@ -98,7 +98,7 @@ Blueprints are in `blueprints/automation/alarmo/` in the ZIP: copy them to
   *Automatic* picks one from the name: Disarmed green, Away red, Stay orange, Sleep blue (93,93,244), Late Night deep
   sky blue, Vacation crimson, Spa teal (0,168,168), Guest purple (153,0,153), Local green (123,179,20), anything else gray.
 - **Timers** can run *after* N minutes or *at* a clock time: the next time that time comes round after the mode
-  began. Example **Late Night**: partitions Home; under *Who may change it* untick **Schedule** in *Out of this mode*
+  began. Example **Late Night**: partitions Home; under *Allowed Sources* untick **Schedule** in *May Exit*
   (the 23:30 Sleep schedule is then blocked); timer *at 01:00 → Sleep*.
 
 ## Sources
@@ -117,7 +117,7 @@ collapsible card per Z-Wave lock with one row per code slot.
   partition targets (Away / Home / Night / … / Disarm), or both. Partition targets win over the House Mode for those
   partitions.
   - A House Mode only needs the user to be enabled. Whether a lock keypad may change the House Mode is decided per
-    House Mode, in its "Who may change it" table (source *Lock keypad*).
+    House Mode, in its *Allowed Sources* (source *Lock keypad*).
   - Partition targets need *Can arm* / *Can disarm* and the user's partition limit.
 - **Lock-only users.** Codes imported from a lock become lock-only users: they cannot arm or disarm the alarm itself
   until you turn on Can arm / Can disarm. They still switch House Modes from the lock.

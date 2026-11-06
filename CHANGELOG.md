@@ -3,6 +3,30 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.06.68 — 2026-11-06
+
+Restart Home Assistant after the update.
+
+- **Triggers** (new, in each mode's editor): what can start the mode.
+  - *Automations that set this mode*, read from the automations' actions (calls to `alarmo.set_house_mode`, or
+    writes to the House Mode select or your selector), with what triggers them (a time, presence, …), the Enabled
+    chip and a run button.
+  - A warning under an automation that writes the selector or calls `alarmo.set_house_mode` without a source (its
+    request then arrives as "automation"), that targets a mode whose Allowed Sources refuse its source, or that
+    writes the current-mode helper directly (House Modes never sees it: nothing is armed and no script runs).
+  - *Built in*: timers in other modes that go to this one, lock codes mapped to it, and manual.
+  - Automations that pick the mode with a template are listed under the modes.
+- **Timer checks** (warnings; saving is never blocked): a timer whose target mode doesn't let timers enter, a mode
+  that doesn't let its own timers exit, a timer to the mode itself, an "only when coming from" mode that no longer
+  exists or is the mode itself, and two modes whose timers go to each other. Shown above the modes list, on the
+  mode's row and in its Timers section.
+- Renamed in each mode's editor: *Who may change it* → **Allowed Sources** (columns **May Enter**, **May Exit**,
+  **Wait Before Exit (min)**); *House Mode Actions* → **Script Actions**; *Automations this mode triggers* →
+  **Automation Actions**; *House Mode Actions by script* → **Script Actions by script**. New order: Partitions,
+  Allowed Sources, Readiness, Triggers, Timers, Script Actions, Automation Actions.
+- **Blueprints:** *House Mode on a schedule* gains "Only from these House Modes"; *House Mode on presence* gains
+  "Zones that count as home" (e.g. Neighborhood). Both drop "Alarmo" from their names. Re-import them to update.
+
 ## v2026.11.06.67 — 2026-11-06
 
 Card only; no Home Assistant restart needed (reload the browser).

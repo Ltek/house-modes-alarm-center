@@ -1,4 +1,4 @@
-// House Modes tab: current mode, mode editor (partitions, who may change it, readiness,
+// House Modes tab: current mode, mode editor (partitions, allowed sources, readiness,
 // failure handling, timers), input_select mirror, lock keypads, history.
 import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -28,6 +28,7 @@ import {
   setHouseMode,
   actionChoices,
   describeTimer,
+  timerWarnings,
   ActionGroup,
   actionGroups,
   setGroupModes,
@@ -35,7 +36,18 @@ import {
   removeGroup,
 } from '../../data/house';
 import { extStyles } from './ext-styles';
-import { HouseActionItem, HouseActionsInfo, editorPath, fetchHouseActions, reactingTo, reactingToAny } from '../../data/house-actions';
+import {
+  HouseActionItem,
+  HouseActionsInfo,
+  editorPath,
+  fetchHouseActions,
+  reactingTo,
+  reactingToAny,
+  settingMode,
+  settingFromTemplate,
+  setterWarnings,
+  describeSetter,
+} from '../../data/house-actions';
 
 /** HA editor path for a scene/script entity (scenes need their config id). */
 const editorPathFor = (entityId: string, hass: HomeAssistant): string | null => {
@@ -83,7 +95,7 @@ export class AlarmViewHouse extends LitElement {
   @state() private detect?: DetectResult;
   @state() private detectPick: string[] = [];
   @state() private detecting = false;
-  /** script rows added on "House Mode Actions by script" that no mode runs yet */
+  /** script rows added on "Script Actions by script" that no mode runs yet */
   @state() private pendingGroups: Omit<ActionGroup, 'modes'>[] = [];
 
   firstUpdated() {
@@ -157,7 +169,7 @@ export class AlarmViewHouse extends LitElement {
           <p>A House Mode says what is going on at home — Away, Stay, Guest, Spa, … Each mode:</p>
           <ul>
             <li>sets the partitions to an Arm Mode (or leaves them alone);</li>
-            <li>decides <strong>who may change it</strong>: you, schedules, presence, a lock code, the keypad;</li>
+            <li>has <strong>Allowed Sources</strong>: whether you, schedules, presence, a lock code or the keypad may enter or exit it;</li>
             <li>can check that zones are closed, and can change itself back after a while.</li>
           </ul>
           <p>Each mode can run your scripts as its <em>actions</em> (lock up, lights, …). Automations can also
@@ -232,8 +244,9 @@ export class AlarmViewHouse extends LitElement {
     return this.tabSec('modes', `Modes (${d.modes.length})`, '', true, html`
         <div class="card-content desc hm-desc">
           <p><ha-icon icon="mdi:play-circle-outline" style="--mdc-icon-size:18px"></ha-icon> switches to a mode now.
-            The pencil edits it: which partitions it arms, who may switch into or out of it, readiness checks, what happens
-            if arming fails, timers, the scripts it runs (House Mode Actions) and the automations it triggers. Save at the
+            The pencil edits it: which partitions it arms, its Allowed Sources, readiness checks, what happens
+            if arming fails, what starts it (Triggers), timers, the scripts it runs (Script Actions) and the automations it
+            starts (Automation Actions). Save at the
             bottom of the page.</p>
         </div>
         <div class="toolbar">
@@ -243,6 +256,10 @@ export class AlarmViewHouse extends LitElement {
           ${this.dirty ? html`<span class="secondary" style="display:inline">Save before switching modes.</span>` : nothing}
         </div>
         ${this.detect ? this.renderDetect() : nothing}
+        ${timerWarnings(d.modes).length
+          ? html`<div class="notice warn" style="margin:0 16px 12px"><strong>Timers that can't work:</strong>
+              ${timerWarnings(d.modes).map(w => html`<div>${w.text}</div>`)}</div>`
+          : nothing}
         ${d.modes.length
           ? html`<div class="table-wrap"><table class="full">
               <thead><tr><th class="icon"></th><th>House Mode</th><th>Partitions</th><th></th></tr></thead>
@@ -254,7 +271,7 @@ export class AlarmViewHouse extends LitElement {
                     <tr>
                       <td class="icon"><ha-icon icon=${m.icon} style=${`color:${m.color || defaultModeColor(m.name)}`}></ha-icon></td>
                       <td class="name">${m.name}${m.id === cur ? html`<span class="secondary">${shadow ? 'current (would be)' : 'current'}</span>` : nothing}
-                        <span class="secondary hm-counts">${this.modeCounts(m)}</span></td>
+                        <span class="secondary hm-counts">${timerWarnings(d.modes).some(w => w.mode === m.id) ? html`<ha-icon class="hm-warn-icon" icon="mdi:alert" title="A timer can't work: open Timers"></ha-icon>` : nothing}${this.modeCounts(m)}</span></td>
                       <td>${describeTargets(m, names, s => STATE_LABEL[s] || s) || html`<span class="secondary" style="display:inline">leaves the partitions alone</span>`}</td>
                       <td class="row-actions">
                         ${m.id === cur || !enabled
@@ -277,6 +294,7 @@ export class AlarmViewHouse extends LitElement {
           : nothing}
         ${this.renderByScript()}
         ${this.renderEveryChange()}
+        ${this.renderTemplated()}
     `);
   }
 
@@ -435,6 +453,7 @@ export class AlarmViewHouse extends LitElement {
     const r = this.actions ? reactingTo(this.actions.items, m.name) : { enter: [], leave: [] };
     const nAuto = r.enter.length + r.leave.length;
     const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+    const tWarn = timerWarnings(this.draft!.modes).filter(w => w.mode === m.id);
     return html`
       <div class="hm-ed">
         <div class="hm-fields">
@@ -465,15 +484,15 @@ export class AlarmViewHouse extends LitElement {
               </select></label>`)}
           </div>
           <div class="secondary hm-hint">Leave everything unchanged for a mode that only tells your automations what is going on.</div>`)}
-        ${this.sec(m, 'sources', 'Who may change it', `${nIn} of ${SOURCES.length} may switch in · ${nOut} may switch out`, html`
+        ${this.sec(m, 'sources', 'Allowed Sources', `${nIn} of ${SOURCES.length} may enter · ${nOut} may exit`, html`
           <div class="table-wrap"><table>
-            <thead><tr><th>Source</th><th class="c" title="May switch INTO this mode">Into this mode</th><th class="c" title="May change the mode while this mode is active">Out of this mode</th><th title="Instead of blocking, wait this many minutes">Delay out (min)</th></tr></thead>
+            <thead><tr><th>Source</th><th class="c" title="This source may switch into this mode">May Enter</th><th class="c" title="This source may change the mode while this mode is on">May Exit</th><th title="Instead of blocking an exit, wait this many minutes">Wait Before Exit (min)</th></tr></thead>
             <tbody>${SOURCES.map(src => html`<tr>
               <td>${SOURCE_LABELS[src]}</td>
               <td class="c"><input type="checkbox" .checked=${m.enter_sources.includes(src)} @change=${(e: any) => upd(x => (x.enter_sources = e.target.checked ? [...x.enter_sources, src] : x.enter_sources.filter(s => s !== src)))} /></td>
               <td class="c"><input type="checkbox" .checked=${m.leave_sources.includes(src)} @change=${(e: any) => upd(x => (x.leave_sources = e.target.checked ? [...x.leave_sources, src] : x.leave_sources.filter(s => s !== src)))} /></td>
-              <td><alarmo-ext-slider compact optional .label=${`${SOURCE_LABELS[src]}: delay out`} .min=${1} .max=${120} .onValue=${10}
-                unit="min" offText="no delay" .value=${m.delay_sources[src] || null}
+              <td><alarmo-ext-slider compact optional .label=${`${SOURCE_LABELS[src]}: wait before exit`} .min=${1} .max=${120} .onValue=${10}
+                unit="min" offText="no wait" .value=${m.delay_sources[src] || null}
                 @value-changed=${(e: CustomEvent) => upd(x => {
                   if (e.detail.value) x.delay_sources[src] = e.detail.value;
                   else delete x.delay_sources[src];
@@ -492,10 +511,53 @@ export class AlarmViewHouse extends LitElement {
                 <option value="block" ?selected=${m.readiness.action === 'block'}>do not change the mode</option>
               </select></label>
           </div>`)}
-        ${this.sec(m, 'timers', 'Timers', m.timers.length ? m.timers.map(t => describeTimer(t, this.nameOf)).join(' · ') : 'none', this.renderTimers(m, other))}
-        ${this.sec(m, 'actions', 'House Mode Actions', plural((m.steps || []).length, 'script'), this.renderSteps(m, other))}
-        ${this.sec(m, 'automations', 'Automations this mode triggers', this.actions ? plural(nAuto, 'automation') : 'loading…', this.renderRelated(m))}
+        ${this.sec(m, 'triggers', 'Triggers', this.triggerSummary(m), this.renderTriggers(m))}
+        ${this.sec(m, 'timers', 'Timers', html`${tWarn.length ? html`<ha-icon class="hm-warn-icon" icon="mdi:alert"></ha-icon>` : nothing}${m.timers.length ? m.timers.map(t => describeTimer(t, this.nameOf)).join(' · ') : 'none'}`, this.renderTimers(m, other))}
+        ${this.sec(m, 'actions', 'Script Actions', plural((m.steps || []).length, 'script'), this.renderSteps(m, other))}
+        ${this.sec(m, 'automations', 'Automation Actions', this.actions ? plural(nAuto, 'automation') : 'loading…', this.renderRelated(m))}
       </div>
+    `;
+  }
+
+  /** "2 automations · 1 timer · lock code" for the closed Triggers section. */
+  private triggerSummary(m: HouseMode) {
+    const d = this.draft!;
+    const autos = this.actions ? settingMode(this.actions.items, m.name) : [];
+    const timers = d.modes.filter(o => o.id !== m.id && o.timers.some(t => t.then === m.id)).length;
+    const codes = d.lock_keypads.reduce((n, k) => n + Object.values(k.slots).filter(v => v === m.id).length, 0);
+    const warn = autos.some(a => a.sets.some(x => setterWarnings(x, m.name, m.enter_sources).length));
+    const n = (k: number, w: string) => `${k} ${w}${k === 1 ? '' : 's'}`;
+    const parts = [this.actions ? n(autos.length, 'automation') : 'loading…', timers ? n(timers, 'timer') : '', codes ? n(codes, 'lock code') : '', 'manual'];
+    return html`${warn ? html`<ha-icon class="hm-warn-icon" icon="mdi:alert"></ha-icon>` : nothing}${parts.filter(Boolean).join(' · ')}`;
+  }
+
+  /** What can start this mode: automations that set it, timers in other modes, lock codes, the panel, manual. */
+  private renderTriggers(m: HouseMode) {
+    const d = this.draft!;
+    const autos = this.actions ? settingMode(this.actions.items, m.name) : [];
+    const timers = d.modes.reduce((acc, o) => (o.id === m.id ? acc : acc.concat(o.timers.filter(t => t.then === m.id).map(t => ({ o, t })))), [] as { o: HouseMode; t: HouseMode['timers'][number] }[]);
+    const codes = d.lock_keypads
+      .map(k => ({ k, slots: Object.entries(k.slots).filter(([, v]) => v === m.id).map(([sl]) => sl) }))
+      .filter(x => x.slots.length);
+    return html`
+      <div class="hm-group">Automations that set ${m.name}</div>
+      ${!this.actions
+        ? html`<div class="secondary hm-hint">Loading…</div>`
+        : autos.length
+          ? autos.map(({ item, sets }) => html`${this.autoLine(item, sets.map(x => describeSetter(item, x)).join('; '))}
+              ${sets.reduce((acc, x) => acc.concat(setterWarnings(x, m.name, m.enter_sources)), [] as string[]).map(w => html`<div class="hm-line-warn"><ha-icon icon="mdi:alert"></ha-icon>${w}</div>`)}`)
+          : html`<div class="secondary hm-hint">None: no automation's actions set ${m.name}.</div>`}
+      <div class="hm-group">Built in</div>
+      ${timers.map(({ o, t }) => html`<div class="hm-line"><ha-icon class="hm-item-icon" icon="mdi:timer-outline"></ha-icon>
+        <div class="hm-line-name"><span>Timer in ${o.name}</span><span class="secondary">${describeTimer(t, this.nameOf)}</span></div></div>`)}
+      ${codes.map(({ k, slots }) => html`<div class="hm-line"><ha-icon class="hm-item-icon" icon="mdi:lock-smart"></ha-icon>
+        <div class="hm-line-name"><span>${k.name || (k.entity_id ? this.hass.states[k.entity_id]?.attributes.friendly_name || k.entity_id : `Lock ${k.node_id}`)}</span>
+          <span class="secondary">code slot${slots.length === 1 ? '' : 's'} ${slots.join(', ')}</span></div></div>`)}
+      <div class="hm-line"><ha-icon class="hm-item-icon" icon="mdi:gesture-tap"></ha-icon>
+        <div class="hm-line-name"><span>Manual</span><span class="secondary">the mode buttons, the dashboard card, ${d.input_select ? d.input_select : 'your selector'}</span></div></div>
+      <div class="secondary hm-hint">Read from the automations' actions. Each one's request still has to pass this mode's
+        Allowed Sources. Partitions armed from the panel keypad or another alarm card also set the House Mode whose
+        partitions match.</div>
     `;
   }
 
@@ -503,7 +565,9 @@ export class AlarmViewHouse extends LitElement {
 
   private renderTimers(m: HouseMode, other: HouseMode[]) {
     const upd = (fn: (x: HouseMode) => void) => this.setMode(m.id, fn);
+    const warn = timerWarnings(this.draft!.modes).filter(w => w.mode === m.id);
     return html`
+      ${warn.length ? html`<div class="notice warn hm-warn">${warn.map(w => html`<div>${w.text}</div>`)}</div>` : nothing}
       <button class="hm-add" @click=${() => upd(x => x.timers.push({ after_minutes: 10, then: 'previous', from_modes: [], window_start: null, window_end: null, notify: true }))}>
         <ha-icon icon="mdi:plus"></ha-icon>Timer</button>
       ${m.timers.map((t, i) => html`<div class="hm-item">
@@ -663,7 +727,7 @@ export class AlarmViewHouse extends LitElement {
     `;
   }
 
-  /** House Mode Actions grouped by script: one row per script and timing, with a chip per mode. */
+  /** Script Actions grouped by script: one row per script and timing, with a chip per mode. */
   private renderByScript() {
     const d = this.draft!;
     if (!d.modes.length) return nothing;
@@ -697,7 +761,7 @@ export class AlarmViewHouse extends LitElement {
         @toggle=${(e: Event) => (SEC_OPEN['*:byscript'] = (e.target as HTMLDetailsElement).open)}>
       <summary>
         <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
-        <span class="collapse-title">House Mode Actions by script</span>
+        <span class="collapse-title">Script Actions by script</span>
         <span class="secondary" style="display:inline">${nScripts} script${nScripts === 1 ? '' : 's'} · used ${nActions} time${nActions === 1 ? '' : 's'}</span>
       </summary>
       <div class="collapse-body">
@@ -742,8 +806,30 @@ export class AlarmViewHouse extends LitElement {
         ${!rows.length ? html`<div class="secondary hm-hint">None yet. Add a script, then tick the modes that run it.</div>` : nothing}
         <div class="secondary hm-hint">One row per script and timing: tick every mode that runs it, and set entering or leaving
           and before arming or after the change once. A script that runs differently in some modes has a row for each timing.
-          "Only when coming from" and "wait for it" are set per mode, in the mode's <em>House Mode Actions</em>. Save at the
+          "Only when coming from" and "wait for it" are set per mode, in the mode's <em>Script Actions</em>. Save at the
           bottom of the page.</div>
+      </div>
+    </details>`;
+  }
+
+  /** Automations that set the House Mode from a template: which mode is only known when they run. */
+  private renderTemplated() {
+    const list = this.actions ? settingFromTemplate(this.actions.items) : [];
+    if (!list.length) return nothing;
+    return html`<details class="collapse sub hm-sec hm-every" ?open=${!!SEC_OPEN['*:templated']}
+        @toggle=${(e: Event) => (SEC_OPEN['*:templated'] = (e.target as HTMLDetailsElement).open)}>
+      <summary>
+        <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
+        <span class="collapse-title">Automations that set the mode from a template</span>
+        <span class="secondary" style="display:inline">${list.length} automation${list.length === 1 ? '' : 's'}</span>
+      </summary>
+      <div class="collapse-body">
+        ${list.map(i => {
+          const sets = (i.sets || []).filter(x => x.template);
+          return html`${this.autoLine(i, sets.map(x => describeSetter(i, x)).join('; '))}
+            ${sets.reduce((acc, x) => acc.concat(setterWarnings(x, 'the mode', [...SOURCES])), [] as string[]).map(w => html`<div class="hm-line-warn"><ha-icon icon="mdi:alert"></ha-icon>${w}</div>`)}`;
+        })}
+        <div class="secondary hm-hint">Which mode these set is only known when they run, so they are not listed under a mode's Triggers.</div>
       </div>
     </details>`;
   }
@@ -1055,6 +1141,36 @@ export class AlarmViewHouse extends LitElement {
         align-items: flex-start;
         flex: 1 1 auto;
         min-width: 0;
+      }
+      .hm-group {
+        color: var(--accent-color);
+        font-weight: 500;
+        font-size: 14px;
+        margin: 8px 0 2px;
+      }
+      .hm-group:first-child {
+        margin-top: 0;
+      }
+      .hm-warn-icon {
+        --mdc-icon-size: 16px;
+        color: var(--warning-color, #ff9800);
+        margin-right: 4px;
+        vertical-align: -2px;
+      }
+      .hm-line-warn {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        color: var(--warning-color, #ff9800);
+        font-size: 13px;
+        padding: 0 0 6px 44px;
+      }
+      .hm-line-warn ha-icon {
+        --mdc-icon-size: 16px;
+        flex: none;
+      }
+      .hm-warn {
+        margin: 0 0 8px !important;
       }
       .hm-modes {
         display: flex;

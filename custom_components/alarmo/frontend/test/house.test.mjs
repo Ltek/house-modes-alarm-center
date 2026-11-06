@@ -106,3 +106,25 @@ test('actions by script: one group per script and timing, across modes', () => {
   s = removeGroup(s, { entity_id: 'script.lights', when: 'enter', phase: 'after' });
   assert.equal(actionGroups(s).some(g => g.entity_id === 'script.lights'), false);
 });
+
+import { timerWarnings } from '../src/data/house.ts';
+
+test('timer checks: blocked in or out, itself, unknown or own from-mode, ping-pong', () => {
+  const all = ['manual', 'automation', 'schedule', 'presence_away', 'presence_home', 'lock', 'panel_keypad', 'timer'];
+  const mode = (id, extra = {}) => ({ id, name: id[0].toUpperCase() + id.slice(1), enter_sources: [...all], leave_sources: [...all], timers: [], ...extra });
+  const t = (then, extra = {}) => ({ after_minutes: 10, then, from_modes: [], window_start: null, window_end: null, notify: true, ...extra });
+  assert.deepEqual(timerWarnings([mode('stay'), mode('spa', { timers: [t('stay')] })]), []);
+  const w = timerWarnings([
+    mode('stay', { enter_sources: all.filter(s => s !== 'timer') }),
+    mode('spa', { timers: [t('stay'), t('spa'), t('previous', { from_modes: ['gone', 'spa'] })] }),
+    mode('lock', { leave_sources: ['manual'], timers: [t('previous')] }),
+    mode('a', { timers: [t('b')] }),
+    mode('b', { timers: [t('a')] }),
+  ]).map(x => x.text);
+  assert.ok(w.some(x => x.startsWith('Spa: the timer to Stay is blocked')));
+  assert.ok(w.some(x => x === 'Spa: a timer goes to Spa itself.'));
+  assert.ok(w.some(x => x.includes('no longer exists (gone)')));
+  assert.ok(w.some(x => x.includes('names Spa itself')));
+  assert.ok(w.some(x => x.startsWith('Lock: its timers never fire')));
+  assert.equal(w.filter(x => x.includes('go to each other')).length, 1);
+});

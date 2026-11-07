@@ -100,7 +100,7 @@ export class AlarmViewCodes extends SubscribeMixin(LitElement) {
                 ${localize(`panels.codes.cards.codes.fields.code_format.code_format_${f}`, lang)}</button>`)}
             </span>
           </div>`)}
-        ${this.sec('users', 'Users', this.usersSummary(), true, this.usersPanel())}
+        ${this.sec('users', 'Users', this.usersSummary(), false, this.usersPanel())}
         ${this.editing
           ? nothing
           : this.sec('keypads', 'Keypads', 'Z-Wave lock code slots and keypad actions', false,

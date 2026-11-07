@@ -39,6 +39,19 @@ export const extStyles = css`
     flex: 1 1 auto;
   }
   select,
+  .list-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 16px;
+    padding: 0 16px 8px;
+  }
+  .list-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
   /* checkboxes, never toggle switches (user rule 2026-11-06) */
   input[type='checkbox'] {
     accent-color: var(--primary-color);

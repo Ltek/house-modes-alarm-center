@@ -31,7 +31,14 @@ if (!chromium) {
 
 // page path, file name, optional action before the shot
 const SHOTS = [
-  ['/alarmo/house', '01-house-modes'],
+  ['/alarmo/house', '01-house-modes', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');
+      for (let i = 0; i < 30 && !v.shadowRoot.querySelector('details.hm-tabsec'); i++) await new Promise(r => setTimeout(r, 100));
+      v.shadowRoot.querySelector('details.hm-tabsec').open = true;
+      await new Promise(r => setTimeout(r, 100));
+    });
+  }],
   ['/alarmo/actions', '02-alarm-events'],
   ['/alarmo/actions', '19-alarm-event-editor', async (p) => {
     await p.evaluate(() => {
@@ -80,8 +87,10 @@ const SHOTS = [
   }],
   ['/alarmo/activity/arm_check', '08-arm-check'],
   ['/alarmo/activity', '09-activity', async (p) => {
-    await p.evaluate(() => {
+    await p.evaluate(async () => {
       const a = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-activity');
+      a.seqOpen = true;
+      await a.updateComplete;
       const d = a && a.shadowRoot.querySelector('details.collapse.seq');
       if (d) d.open = true;
     });
@@ -90,6 +99,9 @@ const SHOTS = [
   ['/alarmo/house', '12-house-modes-shadow', async (p) => {
     await p.evaluate(async () => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');
+      for (let i = 0; i < 30 && !v.shadowRoot.querySelector('details.hm-tabsec'); i++) await new Promise(r => setTimeout(r, 100));
+      v.shadowRoot.querySelector('details.hm-tabsec').open = true;
+      await new Promise(r => setTimeout(r, 100));
       v.info = { ...v.info, settings: { ...v.info.settings, run_mode: 'shadow', compare_entity: 'input_select.house_mode' } };
       v.draft = JSON.parse(JSON.stringify(v.info.settings));
       await v.updateComplete;
@@ -120,6 +132,9 @@ const SHOTS = [
   ['/alarmo/house', '14-house-mode-editor', async (p) => {
     await p.evaluate(async () => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');
+      for (let i = 0; i < 30 && !v.shadowRoot.querySelector('details.hm-tabsec'); i++) await new Promise(r => setTimeout(r, 100));
+      v.shadowRoot.querySelector('details.hm-tabsec').open = true;
+      await new Promise(r => setTimeout(r, 100));
       const sleep = v.draft.modes.find(m => /sleep/i.test(m.name)) || v.draft.modes[1];
       v.draft.modes.forEach(m => { if (/sleep/i.test(m.name)) m.icon = 'mdi:bed'; });
       v.info.settings.modes.forEach(m => { if (/sleep/i.test(m.name)) m.icon = 'mdi:bed'; });
@@ -136,7 +151,7 @@ const SHOTS = [
   ['/alarmo/house', '20-house-mode-actions-by-script', async (p) => {
     await p.evaluate(async () => {
       const v = document.querySelector('alarm-panel').shadowRoot.querySelector('alarm-view-house');
-      const d = v.shadowRoot.querySelectorAll('details.hm-every')[0];
+      const d = [...v.shadowRoot.querySelectorAll('details.hm-tabsec')].find(x => x.textContent.includes('by script'));
       d.open = true;
       await new Promise(r => setTimeout(r, 150));
       d.scrollIntoView();

@@ -21,7 +21,10 @@ import { getAreaOptions, computeAreaDisplay, computeEventDisplay, computeArmMode
 import { css } from 'lit';
 import { extStyles } from '../ext/ext-styles';
 import { exportPath, Path } from '../../common/navigation';
-import { roleChip, sectionHead } from '../ext/page-intro';
+import { roleChip, sectionHead, filterChecks } from '../ext/page-intro';
+
+/** Which notifications / Alarm Events are shown (module-level: kept across re-renders and tab changes). */
+const SHOWN: Record<string, Set<string>> = { notifications: new Set(['on', 'off', 'warning']), events: new Set(['on', 'off', 'warning', 'legacy']) };
 import { isLegacyEvent, eventTargets } from '../../data/alarm-events';
 import '../ext/event-migrate';
 import '../ext/smart-alerts';
@@ -140,6 +143,26 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
   // ext: the Alarm Events tab as rows (CARD_DESIGN_SYSTEM), like Notifications: grouped by event; icon, name,
   // where and what it runs, on/off chip, edit and delete. Old-style events get a "migrate" hint and the Migrate box.
   private renderAlarmEvents(editor: unknown, data: (AlarmoAutomation & { area: string | number; warning: boolean })[]) {
+    const all = data;
+    const tagsOf = (n: AlarmoAutomation & { warning: boolean }) =>
+      [n.enabled ? 'on' : 'off', n.warning ? 'warning' : '', isLegacyEvent(n) ? 'legacy' : ''].filter(Boolean);
+    const cnt = (t: string) => all.filter(n => tagsOf(n).includes(t)).length;
+    data = all.filter(n => tagsOf(n).every(t => SHOWN.events.has(t)));
+    const hiddenN = all.length - data.length;
+    const filters = all.length
+      ? filterChecks(
+          [
+            { key: 'on', label: 'Enabled', count: cnt('on') },
+            { key: 'off', label: 'Disabled', count: cnt('off') },
+            { key: 'warning', label: 'No partition (warning)', count: cnt('warning') }, { key: 'legacy', label: 'Old list of actions', count: cnt('legacy') },
+          ],
+          SHOWN.events,
+          next => {
+            SHOWN.events = next;
+            this.requestUpdate();
+          }
+        )
+      : nothing;
     const hass = this.hass!;
     const lang = hass.language;
     const events = Object.values(EAlarmEvent) as string[];
@@ -184,9 +207,10 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
         <div class="toolbar">
           <ha-button ?disabled=${!!editor} @click=${this.addActionClick}>
             <ha-icon slot="start" icon="mdi:plus"></ha-icon>${localize('panels.actions.cards.actions.actions.new_action', lang)}</ha-button>
-          <span class="secondary" style="display:inline">${data.length} Alarm Event${data.length === 1 ? '' : 's'} ·
-            ${data.filter(n => n.enabled).length} enabled</span>
+          <span class="secondary" style="display:inline">${all.length} Alarm Event${all.length === 1 ? '' : 's'} ·
+            ${cnt('on')} enabled</span>
         </div>
+        ${editor ? nothing : filters}
         ${editor
           ? html`<div class="nt-editor">${editor}</div>`
           : html`<alarmo-ext-event-migrate
@@ -199,7 +223,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
                     ${groups.map(g => html`<div class="nt-group">${computeEventDisplay(g.ev as EAlarmEvent, hass)?.name || g.ev}</div>${g.items.map(row)}`)}
                     ${other.length ? html`<div class="nt-group">Other</div>${other.map(row)}` : nothing}
                   </div>`
-                : html`<div class="empty">${localize('panels.actions.cards.actions.table.no_items', lang)}</div>`}`}
+                : html`<div class="empty">${hiddenN ? `All ${hiddenN} hidden by the filters above.` : localize('panels.actions.cards.actions.table.no_items', lang)}</div>`}`}
       </ha-card>
     `;
   }
@@ -213,6 +237,26 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
 
   // ext: the Notifications tab as rows (CARD_DESIGN_SYSTEM): icon, name, what it does, on/off chip, edit and delete
   private renderNotifications(editor: unknown, data: (AlarmoAutomation & { area: string | number; warning: boolean })[]) {
+    const all = data;
+    const tagsOf = (n: AlarmoAutomation & { warning: boolean }) =>
+      [n.enabled ? 'on' : 'off', n.warning ? 'warning' : ''].filter(Boolean);
+    const cnt = (t: string) => all.filter(n => tagsOf(n).includes(t)).length;
+    data = all.filter(n => tagsOf(n).every(t => SHOWN.notifications.has(t)));
+    const hiddenN = all.length - data.length;
+    const filters = all.length
+      ? filterChecks(
+          [
+            { key: 'on', label: 'Enabled', count: cnt('on') },
+            { key: 'off', label: 'Disabled', count: cnt('off') },
+            { key: 'warning', label: 'No partition (warning)', count: cnt('warning') },
+          ],
+          SHOWN.notifications,
+          next => {
+            SHOWN.notifications = next;
+            this.requestUpdate();
+          }
+        )
+      : nothing;
     const hass = this.hass!;
     const lang = hass.language;
     const events = Object.values(EAlarmEvent) as string[];
@@ -255,9 +299,10 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
         <div class="toolbar">
           <ha-button ?disabled=${!!editor} @click=${this.addNotificationClick}>
             <ha-icon slot="start" icon="mdi:plus"></ha-icon>${localize('panels.actions.cards.notifications.actions.new_notification', lang)}</ha-button>
-          <span class="secondary" style="display:inline">${data.length} notification${data.length === 1 ? '' : 's'} ·
-            ${data.filter(n => n.enabled).length} enabled</span>
+          <span class="secondary" style="display:inline">${all.length} notification${all.length === 1 ? '' : 's'} ·
+            ${cnt('on')} enabled</span>
         </div>
+        ${editor ? nothing : filters}
         ${editor ? html`<div class="nt-editor">${editor}</div>` : nothing}
         ${editor
           ? nothing
@@ -266,7 +311,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
                 ${groups.map(g => html`<div class="nt-group">${computeEventDisplay(g.ev as EAlarmEvent, hass)?.name || g.ev}</div>${g.items.map(row)}`)}
                 ${other.length ? html`<div class="nt-group">Other</div>${other.map(row)}` : nothing}
               </div>`
-            : html`<div class="empty">${localize('panels.actions.cards.notifications.table.no_items', lang)}</div>`}
+            : html`<div class="empty">${hiddenN ? `All ${hiddenN} hidden by the filters above.` : localize('panels.actions.cards.notifications.table.no_items', lang)}</div>`}
       </ha-card>
     `;
   }

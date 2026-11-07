@@ -60,7 +60,7 @@ export class AlarmViewActivity extends LitElement {
   @state() private shadow?: { log: ShadowEntry[]; summary: ShadowSummary };
   @state() private shadowAll = false;
   @state() private shadowOpen = false;
-  @state() private seqOpen = true;
+  @state() private seqOpen = false;
   private timer?: number;
 
   connectedCallback() {

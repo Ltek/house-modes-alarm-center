@@ -204,6 +204,9 @@ export class AlarmViewHouse extends LitElement {
             })}</div>`
           : nothing}
         ${this.renderModes()}
+        ${this.renderByScript()}
+        ${this.renderEveryChange()}
+        ${this.renderTemplated()}
         ${this.renderSettingsRow()}
       </ha-card>
     `;
@@ -241,7 +244,7 @@ export class AlarmViewHouse extends LitElement {
     const enabled = st.enabled;
     const shadow = runState(st) === 'shadow';
     const saved = new Set(st.modes.map(m => m.id));
-    return this.tabSec('modes', `Modes (${d.modes.length})`, '', true, html`
+    return this.tabSec('modes', `Modes (${d.modes.length})`, '', false, html`
         <div class="card-content desc hm-desc">
           <p><ha-icon icon="mdi:play-circle-outline" style="--mdc-icon-size:18px"></ha-icon> switches to a mode now.
             The pencil edits it: which partitions it arms, its Allowed Sources, readiness checks, what happens
@@ -292,9 +295,6 @@ export class AlarmViewHouse extends LitElement {
               </tbody>
             </table></div>`
           : nothing}
-        ${this.renderByScript()}
-        ${this.renderEveryChange()}
-        ${this.renderTemplated()}
     `);
   }
 
@@ -757,7 +757,7 @@ export class AlarmViewHouse extends LitElement {
       const eid = choices.find(c => !used.has(c)) || choices[0];
       if (eid) this.pendingGroups = [...this.pendingGroups, { entity_id: eid, when: 'enter', phase: 'after' }];
     };
-    return html`<details class="collapse sub hm-sec hm-every" ?open=${!!SEC_OPEN['*:byscript']}
+    return html`<details class="collapse hm-tabsec" ?open=${!!SEC_OPEN['*:byscript']}
         @toggle=${(e: Event) => (SEC_OPEN['*:byscript'] = (e.target as HTMLDetailsElement).open)}>
       <summary>
         <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
@@ -816,20 +816,27 @@ export class AlarmViewHouse extends LitElement {
   private renderTemplated() {
     const list = this.actions ? settingFromTemplate(this.actions.items) : [];
     if (!list.length) return nothing;
-    return html`<details class="collapse sub hm-sec hm-every" ?open=${!!SEC_OPEN['*:templated']}
+    const warnOf = (i: HouseActionItem) =>
+      (i.sets || []).filter(x => x.template).reduce((acc, x) => acc.concat(setterWarnings(x, 'the mode', [...SOURCES])), [] as string[]);
+    const nWarn = list.filter(i => warnOf(i).length).length;
+    return html`<details class="collapse hm-tabsec" ?open=${!!SEC_OPEN['*:templated']}
         @toggle=${(e: Event) => (SEC_OPEN['*:templated'] = (e.target as HTMLDetailsElement).open)}>
       <summary>
         <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
         <span class="collapse-title">Automations that set the mode from a template</span>
-        <span class="secondary" style="display:inline">${list.length} automation${list.length === 1 ? '' : 's'}</span>
+        <span class="secondary" style="display:inline">${nWarn
+          ? html`<ha-icon class="hm-warn-icon" icon="mdi:alert"></ha-icon>${nWarn} of ${list.length} need a look`
+          : `${list.length} automation${list.length === 1 ? '' : 's'} · no problems found`}</span>
       </summary>
       <div class="collapse-body">
         ${list.map(i => {
           const sets = (i.sets || []).filter(x => x.template);
           return html`${this.autoLine(i, sets.map(x => describeSetter(i, x)).join('; '))}
-            ${sets.reduce((acc, x) => acc.concat(setterWarnings(x, 'the mode', [...SOURCES])), [] as string[]).map(w => html`<div class="hm-line-warn"><ha-icon icon="mdi:alert"></ha-icon>${w}</div>`)}`;
+            ${warnOf(i).map(w => html`<div class="hm-line-warn"><ha-icon icon="mdi:alert"></ha-icon>${w}</div>`)}`;
         })}
-        <div class="secondary hm-hint">Which mode these set is only known when they run, so they are not listed under a mode's Triggers.</div>
+        <div class="secondary hm-hint">Which mode these set is only known when they run, so they are not listed under a mode's
+          Triggers and their mode's Allowed Sources can't be checked here. A warning means the request bypasses House Modes or
+          arrives without its source.</div>
       </div>
     </details>`;
   }
@@ -838,7 +845,7 @@ export class AlarmViewHouse extends LitElement {
   private renderEveryChange() {
     const any = this.actions ? reactingToAny(this.actions.items) : [];
     if (!any.length) return nothing;
-    return html`<details class="collapse sub hm-sec hm-every" ?open=${!!SEC_OPEN['*:every']}
+    return html`<details class="collapse hm-tabsec" ?open=${!!SEC_OPEN['*:every']}
         @toggle=${(e: Event) => (SEC_OPEN['*:every'] = (e.target as HTMLDetailsElement).open)}>
       <summary>
         <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>

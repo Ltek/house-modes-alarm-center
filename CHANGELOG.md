@@ -3,6 +3,21 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.07.77 — 2026-11-07
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **Notifications tab:** show / hide checkboxes above each list, with counts.
+  - Smart Repeating Alerts: Enabled, Disabled, Cameras, Test mode, On old blueprints.
+  - Alarm notifications (and the Alarm Events tab): Enabled, Disabled, No partition (warning), and on Alarm Events
+    Old list of actions.
+- **House Modes tab:** *Script Actions by script*, *Automations every change triggers* and *Automations that set the
+  mode from a template* are now sections at the same level as *Modes*, not inside it.
+- **Every panel starts collapsed** (Modes on House Modes, Users on Users, Codes, Keypads, Sequences on Activity).
+  A panel you open stays open while you work; Arm Check still opens when you come from *Why won't it arm?*.
+- *Automations that set the mode from a template* shows a warning in its summary ("2 of 3 need a look") when one of
+  them bypasses House Modes or sends no source, and "no problems found" otherwise.
+
 ## v2026.11.06.76 — 2026-11-06
 
 Restart Home Assistant after the update.

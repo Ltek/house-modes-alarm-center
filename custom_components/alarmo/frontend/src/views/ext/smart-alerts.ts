@@ -8,7 +8,10 @@ import { navigate } from '../../helpers';
 import { toast, wsErrorMessage } from '../../data/ext-websockets';
 import { AlertItem, AlertsInfo, createAlert, deleteAlert, describeAlert, fetchAlerts, installAlertsBlueprint } from '../../data/alerts';
 import { extStyles } from './ext-styles';
-import { collapsibleCard } from './page-intro';
+import { collapsibleCard, filterChecks } from './page-intro';
+
+/** Which kinds of alert are shown (module-level: kept across re-renders and tab changes). */
+const SHOWN = { keys: new Set(['on', 'off', 'camera', 'test', 'old']) };
 
 @customElement('alarmo-ext-smart-alerts')
 export class ExtSmartAlerts extends LitElement {
@@ -104,11 +107,32 @@ export class ExtSmartAlerts extends LitElement {
   render() {
     const i = this.info;
     const items = i?.items || [];
-    const current = items.filter(a => !a.old);
-    const old = items.filter(a => a.old);
+    const tags = (a: AlertItem) =>
+      [a.state === 'on' ? 'on' : 'off', a.summary.camera ? 'camera' : '', a.summary.test_mode ? 'test' : '', a.old ? 'old' : ''].filter(Boolean);
+    const visible = (a: AlertItem) => tags(a).every(t => SHOWN.keys.has(t));
+    const count = (t: string) => items.filter(a => tags(a).includes(t)).length;
+    const filters = filterChecks(
+      [
+        { key: 'on', label: 'Enabled', count: count('on') },
+        { key: 'off', label: 'Disabled', count: count('off') },
+        { key: 'camera', label: 'Cameras', count: count('camera') },
+        { key: 'test', label: 'Test mode', count: count('test') },
+        { key: 'old', label: 'On old blueprints', count: count('old') },
+      ],
+      SHOWN.keys,
+      next => {
+        SHOWN.keys = next;
+        this.requestUpdate();
+      }
+    );
+    const current = items.filter(a => !a.old && visible(a));
+    const old = items.filter(a => a.old && visible(a));
+    const hidden = items.length - current.length - old.length;
     const bp = i?.blueprint;
+    const nCur = items.filter(a => !a.old).length;
+    const nOld = items.length - nCur;
     const summary = i
-      ? `${current.length} alert${current.length === 1 ? '' : 's'}${old.length ? ` · ${old.length} on old blueprints` : ''} · ${current.filter(a => a.state === 'on').length} enabled`
+      ? `${nCur} alert${nCur === 1 ? '' : 's'}${nOld ? ` · ${nOld} on old blueprints` : ''} · ${count('on')} enabled`
       : 'loading…';
     return collapsibleCard('smart-alerts', 'mdi:bell-ring-outline', 'Smart Repeating Alerts', summary, 'settings', html`
       <div class="card-content desc">
@@ -137,9 +161,11 @@ export class ExtSmartAlerts extends LitElement {
         <ha-button appearance="plain" @click=${() => navigate(this, '/config/blueprint/dashboard')}><ha-icon slot="start" icon="mdi:file-document-outline"></ha-icon>Blueprints</ha-button>
         <ha-button appearance="plain" @click=${() => this.load()}><ha-icon slot="start" icon="mdi:refresh"></ha-icon>Refresh</ha-button>
       </div>
+      ${items.length ? filters : nothing}
       <div class="sa-list">
         ${current.map(a => this.row(a))}
         ${old.length ? html`<div class="sa-group">Still on the old blueprints</div>${old.map(a => this.row(a))}` : nothing}
+        ${hidden ? html`<div class="secondary sa-hidden">${hidden} hidden by the filters above.</div>` : nothing}
         ${i && !items.length ? html`<div class="empty">No Smart Repeating Alerts yet. <em>New alert</em> makes one and opens it in Home Assistant's editor.</div>` : nothing}
       </div>
     `);
@@ -217,6 +243,10 @@ export class ExtSmartAlerts extends LitElement {
       .sa-chip.on {
         border-color: var(--primary-color);
         color: var(--primary-color);
+      }
+      .sa-hidden {
+        display: block;
+        padding: 6px 0 0;
       }
       .sa-del:hover {
         color: var(--error-color);

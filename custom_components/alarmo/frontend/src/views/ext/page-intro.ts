@@ -135,3 +135,19 @@ export class AlarmoExtPageIntro extends LitElement {
 
   static styles = extStyles;
 }
+
+/** Show/hide checkboxes for a list (e.g. Enabled, Disabled). ``shown`` is the set of checked keys. */
+export const filterChecks = (
+  options: { key: string; label: string; count: number }[],
+  shown: Set<string>,
+  onChange: (next: Set<string>) => void
+) => html`<div class="list-filters">
+  <span class="secondary" style="display:inline">Show</span>
+  ${options.filter(o => o.count).map(o => html`<label class="list-filter"><input type="checkbox" .checked=${shown.has(o.key)}
+      @change=${(e: Event) => {
+        const next = new Set(shown);
+        if ((e.target as HTMLInputElement).checked) next.add(o.key);
+        else next.delete(o.key);
+        onChange(next);
+      }} />${o.label} <span class="secondary" style="display:inline">(${o.count})</span></label>`)}
+</div>`;

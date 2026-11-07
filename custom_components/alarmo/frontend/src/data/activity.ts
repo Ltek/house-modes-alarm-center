@@ -39,3 +39,28 @@ export const sequenceMatches = (s: ActivitySequence, kinds: string[], onlyProble
     return false;
   return true;
 };
+
+/** The days from ``from`` to ``to`` (both included, any order), newest first, out of ``days`` (newest first). */
+export const daysInRange = (days: string[], from: string, to: string): string[] => {
+  const [lo, hi] = from <= to ? [from, to] : [to, from];
+  return days.filter(d => d >= lo && d <= hi);
+};
+
+/** Several days' summaries as one (sums; panel latency averaged by count, max of maxes). */
+export const mergeSummaries = (list: ActivitySummary[]): ActivitySummary => {
+  const out: ActivitySummary = { sequences: 0, starters: {}, failures: 0, panel_latency: {} };
+  for (const s of list) {
+    out.sequences += s.sequences;
+    out.failures += s.failures;
+    for (const [k, n] of Object.entries(s.starters)) out.starters[k] = (out.starters[k] || 0) + n;
+    for (const [k, l] of Object.entries(s.panel_latency)) {
+      const o = out.panel_latency[k];
+      if (!o) out.panel_latency[k] = { ...l };
+      else {
+        const n = o.n + l.n;
+        out.panel_latency[k] = { n, avg: Math.round(((o.avg * o.n + l.avg * l.n) / n) * 10) / 10, max: Math.max(o.max, l.max) };
+      }
+    }
+  }
+  return out;
+};

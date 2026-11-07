@@ -3,6 +3,16 @@
 Private build on top of upstream [nielsfaber/alarmo](https://github.com/nielsfaber/alarmo)
 v1.10.19 (main @ `47b31a6`). Upstream's own history is in its GitHub releases.
 
+## v2026.11.07.78 — 2026-11-07
+
+Card only; no Home Assistant restart needed (reload the browser).
+
+- **Activity → Sequences** shows a range of days: *From* and *to*, plus *Latest day*, *Last 7 days* and *All days*.
+  With more than one day, each sequence shows its date.
+- **Reset filters** goes back to all days, all kinds, no search and not only problems.
+- **Download days displayed** saves every sequence of the days shown as one JSONL file (oldest first);
+  *Download all days* stays.
+
 ## v2026.11.07.77 — 2026-11-07
 
 Card only; no Home Assistant restart needed (reload the browser).

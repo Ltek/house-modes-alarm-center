@@ -13,6 +13,8 @@ import {
   fetchActivityDay,
   saveActivitySettings,
   sequenceMatches,
+  daysInRange,
+  mergeSummaries,
 } from '../../data/activity';
 import { fetchPanelLog, formatTime, LogEntry } from '../../data/panel';
 import { fetchHouse, fetchShadow, HouseInfo, runState, ShadowEntry, ShadowSummary } from '../../data/house';
@@ -47,7 +49,10 @@ export class AlarmViewActivity extends LitElement {
   @property({ attribute: false }) path?: Path;
 
   @state() private info?: ActivityInfo;
+  /** the days shown: from and to (YYYY-MM-DD, either order) */
   @state() private day = '';
+  @state() private dayTo = '';
+  @state() private loadingDays = false;
   @state() private seqs: ActivitySequence[] = [];
   @state() private summary?: ActivitySummary;
   @state() private kinds: string[] = [];
@@ -83,7 +88,7 @@ export class AlarmViewActivity extends LitElement {
       this.draft = JSON.parse(JSON.stringify(this.info.settings));
       const today = new Date();
       const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      if (!this.day) this.day = this.info.days[0] || iso;
+      if (!this.day) this.day = this.dayTo = this.info.days[0] || iso;
       await this.loadDay();
       const [log, house] = await Promise.all([fetchPanelLog(this.hass).catch(() => ({ log: [] })), fetchHouse(this.hass).catch(() => undefined)]);
       this.panelLog = [...log.log].reverse();
@@ -107,10 +112,36 @@ export class AlarmViewActivity extends LitElement {
     }
   }
 
+  /** The saved days currently shown (newest first). */
+  private get shownDays(): string[] {
+    const days = this.info?.days || [];
+    const r = daysInRange(days, this.day, this.dayTo || this.day);
+    return r.length ? r : [this.day];
+  }
+
   private async loadDay() {
-    const res = await fetchActivityDay(this.hass, this.day);
-    this.seqs = res.sequences;
-    this.summary = res.summary;
+    this.loadingDays = true;
+    try {
+      const res = await Promise.all(this.shownDays.map(d => fetchActivityDay(this.hass, d)));
+      this.seqs = ([] as ActivitySequence[]).concat(...res.map(r => r.sequences));
+      this.summary = mergeSummaries(res.map(r => r.summary));
+    } finally {
+      this.loadingDays = false;
+    }
+  }
+
+  private async setDays(from: string, to: string) {
+    this.day = from;
+    this.dayTo = to;
+    await this.loadDay();
+  }
+
+  private resetFilters() {
+    const days = this.info?.days || [];
+    this.kinds = [];
+    this.search = '';
+    this.onlyProblems = false;
+    if (days.length) this.setDays(days[days.length - 1], days[0]);
   }
 
   private get dirty() {
@@ -245,24 +276,47 @@ export class AlarmViewActivity extends LitElement {
     const filt = (s: ActivitySequence) => sequenceMatches(s, this.kinds, this.onlyProblems, this.search);
     const shown = this.seqs.filter(filt);
     const kindsSeen = Object.keys(i.kinds);
+    const dayOpts = i.days.length ? i.days : [this.day];
+    const [lo, hi] = this.day <= (this.dayTo || this.day) ? [this.day, this.dayTo || this.day] : [this.dayTo, this.day];
+    const quick = (label: string, from: string, to: string) => {
+      const on = lo === from && hi === to;
+      return html`<button class="chip-cell kind-chip ${on ? 'on' : ''}" style="--chip:var(--primary-color)" aria-pressed=${on}
+        @click=${() => this.setDays(from, to)}>${label}</button>`;
+    };
+    const allDays = dayOpts.length > 0 && lo === dayOpts[dayOpts.length - 1] && hi === dayOpts[0];
+    const filtered = !allDays || this.kinds.length > 0 || !!this.search || this.onlyProblems;
     return html`
         <details class="collapse act-sec" ?open=${this.seqOpen} @toggle=${(e: Event) => (this.seqOpen = (e.target as HTMLDetailsElement).open)}>
           <summary>
             <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
             <span class="collapse-title">Sequences</span>
-            <span class="secondary" style="display:inline">${this.day} · ${shown.length} sequence${shown.length === 1 ? '' : 's'}${i.open ? ' · one open now' : ''}</span>
+            <span class="secondary" style="display:inline">${this.rangeLabel()} · ${shown.length} sequence${shown.length === 1 ? '' : 's'}${i.open ? ' · one open now' : ''}</span>
           </summary>
           <div class="collapse-body">
         <div class="toolbar">
-          <label>Day
-            <select @change=${async (e: any) => { this.day = e.target.value; await this.loadDay(); }}>
-              ${(i.days.length ? i.days : [this.day]).map(d => html`<option value=${d} ?selected=${d === this.day}>${d}</option>`)}
-            </select>
-          </label>
+          <label>From
+            <select aria-label="From day" @change=${(e: any) => this.setDays(e.target.value, this.dayTo)}>
+              ${dayOpts.map(d => html`<option value=${d} ?selected=${d === lo}>${d}</option>`)}
+            </select></label>
+          <label>to
+            <select aria-label="To day" @change=${(e: any) => this.setDays(this.day, e.target.value)}>
+              ${dayOpts.map(d => html`<option value=${d} ?selected=${d === hi}>${d}</option>`)}
+            </select></label>
+          <span class="act-quick">
+            ${quick('Latest day', dayOpts[0], dayOpts[0])}
+            ${dayOpts.length > 1 ? quick('Last 7 days', dayOpts[Math.min(6, dayOpts.length - 1)], dayOpts[0]) : nothing}
+            ${dayOpts.length > 1 ? quick('All days', dayOpts[dayOpts.length - 1], dayOpts[0]) : nothing}
+          </span>
+          ${this.loadingDays ? html`<span class="secondary" style="display:inline">loading…</span>` : nothing}
+        </div>
+        <div class="toolbar" style="padding-top:0">
           <input type="search" placeholder="Search" aria-label="Search" .value=${this.search} @input=${(e: any) => (this.search = e.target.value)} />
           <label><input type="checkbox" .checked=${this.onlyProblems} @change=${(e: any) => (this.onlyProblems = e.target.checked)} /> Only problems</label>
+          <button class="link" ?disabled=${!filtered} title="All days, all kinds, no search" @click=${() => this.resetFilters()}>Reset filters</button>
+          <span class="grow"></span>
           <ha-button appearance="plain" @click=${() => this.load()}><ha-icon slot="start" icon="mdi:refresh"></ha-icon>Refresh</ha-button>
-          <ha-button appearance="plain" ?disabled=${!i.days.length} @click=${this.downloadAll}><ha-icon slot="start" icon="mdi:download"></ha-icon>Download all days</ha-button>
+          <ha-button appearance="plain" ?disabled=${!i.days.length} @click=${this.downloadShown}><ha-icon slot="start" icon="mdi:download"></ha-icon>Download days displayed</ha-button>
+          <ha-button appearance="plain" ?disabled=${!i.days.length} @click=${this.downloadAll}><ha-icon slot="start" icon="mdi:download-multiple"></ha-icon>Download all days</ha-button>
         </div>
         <div class="toolbar" style="padding-top:0">
           ${kindsSeen.map(k => {
@@ -287,7 +341,7 @@ export class AlarmViewActivity extends LitElement {
           : nothing}
         ${i.open && filt(i.open) ? this.renderSequence(i.open, true) : nothing}
         ${shown.map(s => this.renderSequence(s, false))}
-        ${!shown.length && !i.open ? html`<div class="empty">Nothing recorded${this.seqs.length ? ' that matches the filters' : ' this day yet'}.</div>` : nothing}
+        ${!shown.length && !i.open ? html`<div class="empty">Nothing recorded${this.seqs.length ? ' that matches the filters' : this.shownDays.length > 1 ? ' on these days' : ' this day yet'}.</div>` : nothing}
           </div>
         </details>
     `;
@@ -299,7 +353,7 @@ export class AlarmViewActivity extends LitElement {
       <details class="collapse sub seq" ?open=${live}>
         <summary>
           <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
-          <span class="seq-time">${clock(s.start)}</span>
+          <span class="seq-time">${this.shownDays.length > 1 ? html`<span class="secondary" style="display:inline">${new Date(s.start * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span> ` : nothing}${clock(s.start)}</span>
           <span class="seq-title">${s.title}</span>
           ${live ? html`<span class="role">recording…</span>` : html`<span class="secondary" style="display:inline">${s.duration ?? 0} s · ${s.entries.length} entries</span>`}
           ${problem ? html`<ha-icon icon="mdi:alert-circle" style="color:var(--error-color,#f44336)" title="Something failed or differs"></ha-icon>` : nothing}
@@ -317,6 +371,24 @@ export class AlarmViewActivity extends LitElement {
       </details>
     `;
   }
+
+  private rangeLabel() {
+    const d = this.shownDays;
+    return d.length > 1 ? `${d[d.length - 1]} – ${d[0]} (${d.length} days)` : d[0];
+  }
+
+  /** the days displayed (all their sequences, not only the ones the filters show) as one JSONL file, oldest first */
+  private downloadShown = async () => {
+    const days = this.shownDays;
+    const lines: string[] = [];
+    for (const day of [...days].reverse()) {
+      const res = await fetchActivityDay(this.hass, day);
+      [...res.sequences].reverse().forEach(sq => lines.push(JSON.stringify(sq)));
+    }
+    const name = days.length > 1 ? `${days[days.length - 1]}_to_${days[0]}` : days[0];
+    downloadText(`alarmo_activity_${name}.jsonl`, lines.join('\n') + '\n', 'application/x-ndjson');
+    toast(this, `${lines.length} sequence(s) from ${days.length} day(s) downloaded.`);
+  };
 
   /** every saved day as one JSONL file (one sequence per line), oldest first */
   private downloadAll = async () => {
@@ -422,6 +494,11 @@ export class AlarmViewActivity extends LitElement {
         font-weight: 700;
         letter-spacing: 0.04em;
         --mdc-icon-size: 16px;
+      }
+      .act-quick {
+        display: inline-flex;
+        gap: 6px;
+        flex-wrap: wrap;
       }
       details.collapse.act-sec {
         margin: 0 16px 12px;

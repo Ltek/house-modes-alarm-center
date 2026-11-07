@@ -143,6 +143,14 @@ physical panel; House Modes and a physical panel). Each shows its steps and make
 - A notification on every change, if you want one, saying where it came from and why.
 - `select.alarmo_house_mode`, the `alarmo.set_house_mode` service, events, two blueprints, an optional `input_select`
   kept in step.
+- **Shadow** runs House Modes next to the automations you already have, without arming anything or running scripts:
+  each request (your selector, the House Mode select, a lock code, a timer) is checked as Live would handle it and
+  compared with what your automations did to the partitions within 3 minutes (✓ / ✗, on the Activity tab). It works
+  for any setup, but is only useful when you have such automations to compare with:
+  - **New setup, no House Mode automations:** start in Live; Shadow would only show ✗ "never got there".
+  - **Your automations arm only the physical panel:** the comparison reads the alarm's partitions, so set up the
+    panel link (its own Shadow) as well.
+  - **No selector `input_select`:** your automations' changes appear only as "partitions changed outside House Modes".
 
 **Alarm Events** — scripts that run when the alarm arms, disarms, triggers, fails to arm and more, per partition, in
 one list grouped by event. Old-style events (Alarmo's own list of actions) can be migrated to scripts, with a backup

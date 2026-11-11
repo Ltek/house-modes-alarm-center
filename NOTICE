@@ -18,3 +18,8 @@ rules, lock codes, the activity recorder, the dashboard card, backups,
 import/export) was added. The changes are listed in CHANGELOG.md.
 
 This is not Alarmo and is not supported by Alarmo's authors.
+
+The images in custom_components/house_modes/brand/ (icon and logo) are
+Copyright 2026 Ltek. All rights reserved. They are not covered by the Apache
+License: they may be shown with this integration (in Home Assistant, HACS and
+this repository) but not reused for other projects.

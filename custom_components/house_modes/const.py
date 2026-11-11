@@ -16,7 +16,7 @@ from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntityFeature,
 )
 
-VERSION = "2026.11.11.94"
+VERSION = "2026.11.11.95"
 NAME = "House Modes & Alarm Center"
 MANUFACTURER = "@Ltek"
 

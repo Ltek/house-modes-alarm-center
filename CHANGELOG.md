@@ -4,6 +4,14 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.11.95 — 2026-11-11
+
+Restart Home Assistant after the update.
+
+- **Icon and logo** for the integration (`custom_components/house_modes/brand/`: `icon.png`, `logo.png` and their
+  `@2x` versions), shown by Home Assistant versions that read a custom integration's brand folder. The images are
+  © Ltek and not under the Apache License (see NOTICE).
+
 ## v2026.11.11.94 — 2026-11-11
 
 Own domain: `house_modes`. A new integration that installs next to Alarmo; nothing of Alarmo is changed. Restart Home

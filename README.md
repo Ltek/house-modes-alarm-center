@@ -1,17 +1,15 @@
 <h1 align="center">House Modes & Alarm Center (Ltek)</h1>
 
 <p align="center">
-  <strong>House Modes, an alarm and your physical alarm panel in one Home Assistant integration</strong><br>
-  Away, Stay, Sleep, Guest and your own modes, an alarm with partitions and zones, a two-way link to a Honeywell/Ademco Vista or DSC panel through Envisalink, users and Z-Wave lock codes, a dashboard card, and an activity log of everything that happens. Set up in its own panel, no YAML required.
+  <strong>Fully Customizable House Modes, Virtual Alarm and Physical Alarm Panel all in one Home Assistant integration</strong><br>
+  Any House Mode you want, as many as you want. Alarm with partitions and zones, a two-way link to a Honeywell/Ademco Vista or DSC panel through Envisalink, users and Z-Wave lock codes, a dashboard card, and an activity log of everything that happens. NO YAML required.
 </p>
 
 <p align="center">
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=Ltek&repository=house-modes-alarm-center&category=integration"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open your Home Assistant instance and open this repository in HACS."></a>
 </p>
 
-Moving from [Alarmo](https://github.com/nielsfaber/alarmo)? See [Moving from Alarmo](#-moving-from-alarmo).
-
-A huge thank you to Niels Faber, whose Alarmo this integration is based on. It has its own domain (`house_modes`), so the two can be installed side by side.
+Moving from [Alarmo](https://github.com/nielsfaber/alarmo)? See [Moving from Alarmo](#-moving-from-alarmo). Disable Alarmo before installing. User choice for automatic Alarmo import on first run.
 
 ---
 
@@ -22,10 +20,12 @@ A huge thank you to Niels Faber, whose Alarmo this integration is based on. It h
 - 🛡️ **Alarm with partitions and zones** — doors, windows, motion, locks and garage doors; assign zones from labels, areas and floors
 - 🔗 **Physical panel link** — Vista or DSC through Envisalink, kept in step in both directions, with one exit delay and arming from the keypad followed
 - 👥 **Users, codes and keypads** — one user per person, Z-Wave lock code slots linked to users, keypad actions per user; codes are stored only hashed
-- 🧪 **Shadow mode** — House Modes and the panel link first only log what they would do next to your own automations; go Live when the log matches
+- 🔎 **Finds your existing House Mode setup** — already run House Modes with your own helpers, automations and scripts? It finds them: suggests House Modes from your mode `input_select` and what your partitions did after each change, lists every automation and script that sets or reacts to a House Mode, and flags the ones that bypass House Modes
+- 🧪 **Shadow mode** — House Modes and the panel link first only log what they would do, next to your own automations, and compare it with what your automations did; go Live when the log matches
+- 🔁 **Moving from Alarmo** — a one-time import on first run (your choice), and a scan that lists every Alarmo service, event and entity in your automations, scripts and dashboards and rewrites them when you confirm (with Undo)
 - 🔍 **Arm Check** — *Why won't it arm?*, live per partition and Arm Mode, plus a walk test
 - 📋 **Activity log** — every House Mode change, alarm and panel event, lock, bypass and automation that ran, grouped into sequences
-- 🖼️ **Dashboard card included** — House Mode buttons, arm / disarm with code entry and the panel keypad; no separate download
+- 🖼️ **Dashboard card included** — Very customizable Card can show you and do almost anything you can ever need. House Mode buttons, arm / disarm with code entry and the panel keypad. Show/hide anything and Includes User Permissions!
 - 💾 **Backups** — date-stamped backups with retention, YAML export and import with a preview
 
 ---
@@ -236,7 +236,7 @@ Rendered from a demo house with made-up names (see [Development](#development)).
 
 ## 🏠 House Modes
 
-Away, Stay, Sleep, Guest, Spa, … on the **House Modes** tab and in `select.house_mode`. Full guide: [HOUSE-MODES.md](HOUSE-MODES.md).
+Away, Stay, Sleep, Guest, Spa, whatever you can imagine… on the **House Modes** tab and in `select.house_mode`. Full guide: [HOUSE-MODES.md](HOUSE-MODES.md).
 
 - Each mode sets partitions to an Arm Mode (or leaves them), has **Allowed Sources**, can check zones are closed, and can change itself back on a timer.
 - Each mode lists its **Triggers**: the automations whose actions set it (with a warning when one writes the selector or leaves out the source), timers in other modes, lock codes and manual. Timers that can't work are flagged.
@@ -419,5 +419,7 @@ Report problems at [Ltek/house-modes-alarm-center issues](https://github.com/Lte
 ## License
 
 Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). House Modes & Alarm Center is based on [Alarmo](https://github.com/nielsfaber/alarmo) by Niels Faber and contributors (v1.10.19, commit `47b31a6`), modified extensively; the changes are listed in [CHANGELOG.md](CHANGELOG.md). The dashboard card's alarm section is based on [alarmo-card](https://github.com/nielsfaber/alarmo-card) by Niels Faber (Apache License 2.0, `custom_components/house_modes/frontend/card/LICENSE-alarmo-card`).
+
+A huge thank you to Niels Faber, whose Alarmo this integration is based on.
 
 This integration is not Alarmo and is not supported by its authors. Report problems at [Ltek/house-modes-alarm-center issues](https://github.com/Ltek/house-modes-alarm-center/issues), not on Alarmo's tracker.

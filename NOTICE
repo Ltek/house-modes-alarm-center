@@ -1,0 +1,20 @@
+House Modes & Alarm Center
+Copyright 2026 Ltek (github.com/Ltek)
+
+This product is based on Alarmo by Niels Faber
+(https://github.com/nielsfaber/alarmo, version 1.10.19, commit 47b31a6),
+Copyright Niels Faber and contributors, licensed under the Apache License,
+Version 2.0 (see LICENSE).
+
+The dashboard card's alarm section is based on Alarmo Card by Niels Faber
+(https://github.com/nielsfaber/alarmo-card, version 1.6.9), licensed under the
+Apache License, Version 2.0
+(see custom_components/house_modes/frontend/card/LICENSE-alarmo-card).
+
+Changes: the Alarmo code was modified extensively and moved to its own domain
+(house_modes); files taken from Alarmo or Alarmo Card carry a "Modified from"
+line at the top. Everything else (House Modes, the physical panel link, zone
+rules, lock codes, the activity recorder, the dashboard card, backups,
+import/export) was added. The changes are listed in CHANGELOG.md.
+
+This is not Alarmo and is not supported by Alarmo's authors.

@@ -1,0 +1,328 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1500" viewBox="0 0 1760 1500" font-family="Segoe UI, Roboto, Arial, sans-serif">
+<defs><marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#333"/></marker></defs>
+<rect width="100%" height="100%" fill="#fff"/>
+<text x="30" y="34" font-size="17" fill="#c2185b" font-weight="bold" font-style="normal" text-anchor="start">A REAL HOUSE (names removed) — what changes the House Mode, and what it drives</text>
+<rect x="22" y="56" width="290" height="60" rx="6" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<text x="167.0" y="76" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">DASHBOARD CARD</text>
+<text x="167.0" y="93" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">House Mode buttons · arm buttons</text>
+<text x="167.0" y="109" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Button Menu: keypad / History popups</text>
+<rect x="22" y="126" width="290" height="60" rx="6" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<text x="167.0" y="146" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">SCHEDULE</text>
+<text x="167.0" y="163" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">House Modes Trigger - Time</text>
+<text x="167.0" y="179" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">06:00 · 06:50 · 20:30 · 23:30 → Disarmed / Stay / Sleep</text>
+<rect x="22" y="196" width="290" height="90" rx="6" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<text x="167.0" y="216" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">PRESENCE</text>
+<text x="167.0" y="233" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">every family member</text>
+<text x="167.0" y="249" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">(home or Neighborhood zone = home)</text>
+<text x="167.0" y="265" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">All Away → Away · Returning Home → Disarmed</text>
+<text x="167.0" y="281" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Guest to Disarmed when Home</text>
+<rect x="22" y="296" width="290" height="60" rx="6" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<text x="167.0" y="316" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">ASK ON THE PHONES</text>
+<text x="167.0" y="333" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">both parents away → &quot;Set Away Mode?&quot;</text>
+<text x="167.0" y="349" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">button on the parents' phones → Away</text>
+<rect x="22" y="366" width="290" height="75" rx="6" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<text x="167.0" y="386" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">LOCK CODES</text>
+<text x="167.0" y="403" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Front Door &amp; Mudroom deadbolts</text>
+<text x="167.0" y="419" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">family codes → Disarmed</text>
+<text x="167.0" y="435" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">guest / cleaner codes → Guest; lock → Away</text>
+<rect x="22" y="451" width="290" height="45" rx="6" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<text x="167.0" y="471" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">AIRSCAPE</text>
+<text x="167.0" y="488" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">whole-house fan mode on → Disarmed</text>
+<rect x="22" y="506" width="290" height="60" rx="6" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<text x="167.0" y="526" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">HOUSE MODE SELECTOR</text>
+<text x="167.0" y="543" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">input_select.house_mode_selector</text>
+<text x="167.0" y="559" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">kept in step both ways</text>
+<rect x="22" y="576" width="290" height="45" rx="6" fill="#fff" stroke="#e65100" stroke-width="2"/>
+<text x="167.0" y="596" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">VISTA KEYPADS</text>
+<text x="167.0" y="613" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">arm / disarm at the panel → House Mode follows</text>
+<rect x="410" y="56" width="320" height="470" rx="6" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<text x="570.0" y="76" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">HOUSE MODES</text>
+<text x="570.0" y="91" font-size="11" fill="#555" font-weight="normal" font-style="italic" text-anchor="middle">Live · one source of truth</text>
+<text x="424" y="118" font-size="12" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">1  Allowed Sources</text>
+<text x="424" y="137" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">   may this source enter / exit the mode?</text>
+<text x="424" y="156" font-size="12" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">2  Ready?  zones closed (block or warn)</text>
+<text x="424" y="175" font-size="12" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">3  Script Actions &quot;before arming&quot;</text>
+<text x="424" y="194" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">   e.g. Lock up, waited for</text>
+<text x="424" y="213" font-size="12" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">4  Set the Master partition</text>
+<text x="424" y="232" font-size="12" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">5  Did it arm?  on failure: retry / undo</text>
+<text x="424" y="251" font-size="12" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">6  Record: current · previous · source</text>
+<text x="424" y="270" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">   writes House Mode and House Mode - Last</text>
+<text x="424" y="289" font-size="12" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">7  Script Actions &quot;after the change&quot;</text>
+<text x="424" y="308" font-size="12" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">8  Timers</text>
+<text x="424" y="327" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">   10 min re-arm · Spa 45 min · 01:00 Sleep</text>
+<text x="424" y="346" font-size="12" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">9  Notify every change</text>
+<text x="424" y="365" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">   the parents' phones</text>
+<path d="M312,86.0 L410,86.0" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="343.0" y="70.0" width="36" height="16" fill="#fff" opacity="0.9"/>
+<text x="361.0" y="82.0" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">card</text>
+<path d="M312,156.0 L410,156.0" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="329.0" y="140.0" width="64" height="16" fill="#fff" opacity="0.9"/>
+<text x="361.0" y="152.0" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">schedule</text>
+<path d="M312,241.0 L410,241.0" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="329.0" y="225.0" width="64" height="16" fill="#fff" opacity="0.9"/>
+<text x="361.0" y="237.0" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">presence</text>
+<path d="M312,326.0 L410,326.0" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="336.0" y="310.0" width="50" height="16" fill="#fff" opacity="0.9"/>
+<text x="361.0" y="322.0" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">manual</text>
+<path d="M312,403.5 L410,403.5" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="343.0" y="387.5" width="36" height="16" fill="#fff" opacity="0.9"/>
+<text x="361.0" y="399.5" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">lock</text>
+<path d="M312,473.5 L410,473.5" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="322.0" y="457.5" width="78" height="16" fill="#fff" opacity="0.9"/>
+<text x="361.0" y="469.5" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">automation</text>
+<path d="M312,536.0 L410,506" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="329.0" y="520.0" width="64" height="16" fill="#fff" opacity="0.9"/>
+<text x="361.0" y="532.0" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">selector</text>
+<path d="M312,598.5 L360,598.5 L360,496 L410,496" fill="none" stroke="#e65100" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="340.5" y="578.5" width="43" height="16" fill="#fff" opacity="0.9"/>
+<text x="362" y="590.5" font-size="11" fill="#e65100" font-weight="bold" font-style="normal" text-anchor="middle">panel</text>
+<rect x="780" y="56" width="250" height="150" rx="6" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<text x="905.0" y="76" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">ALARM · MASTER PARTITION</text>
+<text x="905.0" y="91" font-size="11" fill="#555" font-weight="normal" font-style="italic" text-anchor="middle">alarm_control_panel.master</text>
+<text x="905" y="116" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Arm Modes: Home · Away · Night</text>
+<text x="905" y="132" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Vacation · Custom bypass</text>
+<text x="905" y="148" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">exit / entry delay, ready to arm</text>
+<text x="905" y="164" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">open zones → bypass or block</text>
+<path d="M730,120 L780,120" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="740.5" y="102" width="29" height="16" fill="#fff" opacity="0.9"/>
+<text x="755" y="114" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">arm</text>
+<rect x="780" y="226" width="250" height="166" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<line x1="780" y1="256" x2="1030" y2="256" stroke="#1a3fb5" stroke-width="1.5"/>
+<text x="905.0" y="245" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">ZONES</text>
+<text x="790" y="273" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">Vista zones 1–5 (doors)</text>
+<text x="790" y="291" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">Vista zones 9–32 as mirrors (bypassable)</text>
+<text x="790" y="309" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">motion: living room, front entry,</text>
+<text x="790" y="327" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">  mudroom, garage, theater, office,</text>
+<text x="790" y="345" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">  bedrooms, playroom</text>
+<text x="790" y="363" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">garage doors GDO 1 · GDO 2</text>
+<text x="790" y="381" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">smoke · carbon monoxide (always on)</text>
+<path d="M905,226 L905,206" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1090" y="56" width="250" height="170" rx="6" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<text x="1215.0" y="76" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">PANEL LINK</text>
+<text x="1215.0" y="91" font-size="11" fill="#555" font-weight="normal" font-style="italic" text-anchor="middle">Live · the panel leads</text>
+<text x="1215" y="116" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">alarm arming → keys sent at once</text>
+<text x="1215" y="132" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">(one exit delay: the panel&#x27;s)</text>
+<text x="1215" y="148" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">retries; failure → disarm + notify</text>
+<text x="1215" y="164" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">keypad arm / disarm → followed</text>
+<text x="1215" y="180" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">bypasses re-sent before arming</text>
+<text x="1215" y="196" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">start-up check after a restart</text>
+<path d="M1030,110 L1090,110" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1038.5" y="94.0" width="43" height="16" fill="#fff" opacity="0.9"/>
+<text x="1060.0" y="106.0" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">state</text>
+<path d="M1090,180 L1030,180" fill="none" stroke="#e65100" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1035.0" y="162" width="50" height="16" fill="#fff" opacity="0.9"/>
+<text x="1060" y="174" font-size="11" fill="#e65100" font-weight="bold" font-style="normal" text-anchor="middle">follow</text>
+<ellipse cx="1600" cy="140" rx="145" ry="64" fill="#fff" stroke="#222" stroke-width="2"/>
+<text x="1600" y="140" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">ENVISALINK</text>
+<text x="1600" y="157" font-size="11" fill="#e65100" font-weight="bold" font-style="normal" text-anchor="middle">Vista 20P · Partition 1</text>
+<text x="1600" y="178" font-size="10" fill="#555" font-weight="normal" font-style="normal" text-anchor="middle">alarm_control_panel.alarm_partition_1</text>
+<path d="M1340,120 L1455,120" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1380.0" y="102" width="36" height="16" fill="#fff" opacity="0.9"/>
+<text x="1398" y="114" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">keys</text>
+<path d="M1455,160 L1340,160" fill="none" stroke="#e65100" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1341.5" y="164" width="113" height="16" fill="#fff" opacity="0.9"/>
+<text x="1398" y="176" font-size="11" fill="#e65100" font-weight="bold" font-style="normal" text-anchor="middle">state · display</text>
+<rect x="410" y="548" width="160" height="94" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<line x1="410" y1="578" x2="570" y2="578" stroke="#1a3fb5" stroke-width="1.5"/>
+<text x="490.0" y="567" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">House Mode select</text>
+<text x="420" y="595" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">current · previous</text>
+<text x="420" y="613" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">changing_to · source</text>
+<text x="420" y="631" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">last_result · since</text>
+<rect x="580" y="548" width="160" height="90" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<line x1="580" y1="592" x2="740" y2="592" stroke="#2e7d32" stroke-width="1.5"/>
+<text x="660.0" y="567" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">Your helpers</text>
+<text x="660.0" y="582" font-size="11" fill="#555" font-weight="normal" font-style="normal" text-anchor="middle">input_selects, written</text>
+<text x="590" y="609" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">House Mode</text>
+<text x="590" y="627" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">House Mode - Last</text>
+<path d="M490,526 L490,548" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<path d="M660,526 L660,548" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="780" y="400" width="250" height="159" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<line x1="780" y1="430" x2="1030" y2="430" stroke="#2e7d32" stroke-width="1.5"/>
+<text x="905.0" y="419" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">SCRIPTS (Script Actions)</text>
+<text x="790" y="447" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">hm_lock_up (before arming)</text>
+<text x="790" y="464" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">hm_cameras_on · hm_night_lights</text>
+<text x="790" y="481" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">hm_pinball_off · hm_gdo_lockout</text>
+<text x="790" y="498" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">hm_motion_bypass_check</text>
+<text x="790" y="515" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">hm_people_not_home · hm_vacation</text>
+<text x="790" y="532" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">hm_late_night_rgb · hm_spa / _end</text>
+<text x="790" y="549" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">hm_kitchen_light_home · hm_airscape_off</text>
+<path d="M730,470 L780,470" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="730.5" y="452" width="29" height="16" fill="#fff" opacity="0.9"/>
+<text x="745" y="464" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">run</text>
+<path d="M1090,246 h250 v106 q-62.5,-14 -125.0,0 t-125.0,0 z" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<text x="1215.0" y="265" font-size="12" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">NOTIFICATIONS</text>
+<text x="1215.0" y="282" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">every House Mode change → parents' phones</text>
+<text x="1215.0" y="298" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">alarm armed / disarmed / triggered</text>
+<text x="1215.0" y="314" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Smart Repeating Alerts (25):</text>
+<text x="1215.0" y="330" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">doors, windows, fire, CO, cold, doorbell</text>
+<path d="M1030,100 L1065,100 L1065,290 L1090,290" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1090" y="376" width="250" height="132" rx="6" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<text x="1215.0" y="396" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">DASHBOARD CARD</text>
+<text x="1215.0" y="411" font-size="11" fill="#555" font-weight="normal" font-style="italic" text-anchor="middle">House Modes &amp; Alarm Center Card</text>
+<text x="1215" y="430" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Status: House Mode + panel display</text>
+<text x="1215" y="446" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">buttons beside it: keypad · History</text>
+<text x="1215" y="462" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">House Mode buttons · History</text>
+<text x="1215" y="478" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">keypad keys → panel (admins)</text>
+<path d="M1600,204 L1600,440 L1340,440" fill="none" stroke="#e65100" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1601.5" y="318" width="57" height="16" fill="#fff" opacity="0.9"/>
+<text x="1630" y="330" font-size="11" fill="#e65100" font-weight="bold" font-style="normal" text-anchor="middle">display</text>
+<path d="M1090,530 h250 v86 q-62.5,-14 -125.0,0 t-125.0,0 z" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<text x="1215.0" y="549" font-size="12" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">ACTIVITY</text>
+<text x="1215.0" y="566" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">every sequence: House Mode, alarm,</text>
+<text x="1215.0" y="582" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">panel, locks, scripts, notifications</text>
+<text x="1215.0" y="598" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Arm Check: why won&#x27;t it arm?</text>
+<rect x="1430" y="520" width="300" height="100" fill="#fff" stroke="#999" stroke-width="1.5"/>
+<text x="1580" y="540" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">KEY</text>
+<text x="1442" y="562" font-size="11" fill="#2e7d32" font-weight="bold" font-style="normal" text-anchor="start">GREEN  Home Assistant (automations, scripts, card)</text>
+<text x="1442" y="580" font-size="11" fill="#1a3fb5" font-weight="bold" font-style="normal" text-anchor="start">BLUE   House Modes &amp; Alarm Center</text>
+<text x="1442" y="598" font-size="11" fill="#e65100" font-weight="bold" font-style="normal" text-anchor="start">ORANGE the physical panel</text>
+<text x="1442" y="616" font-size="11" fill="#555" font-weight="normal" font-style="normal" text-anchor="start">arrow labels = the source the change comes with</text>
+<text x="30" y="690" font-size="17" fill="#c2185b" font-weight="bold" font-style="normal" text-anchor="start">A REAL HOUSE: ITS HOUSE MODES — partition, Script Actions and timers</text>
+<rect x="22" y="704" width="1716" height="26" fill="#eef1fb"/>
+<text x="30" y="719" font-size="11.5" fill="#111" font-weight="bold" font-style="normal" text-anchor="start">Mode</text>
+<text x="140" y="719" font-size="11.5" fill="#111" font-weight="bold" font-style="normal" text-anchor="start">Master</text>
+<text x="260" y="719" font-size="11.5" fill="#111" font-weight="bold" font-style="normal" text-anchor="start">Entering (* = before arming, waited for)</text>
+<text x="950" y="719" font-size="11.5" fill="#111" font-weight="bold" font-style="normal" text-anchor="start">Leaving</text>
+<text x="1150" y="719" font-size="11.5" fill="#111" font-weight="bold" font-style="normal" text-anchor="start">Timers</text>
+<text x="30" y="744" font-size="11.5" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">Disarmed</text>
+<text x="140" y="744" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">disarmed</text>
+<text x="260" y="744" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">kitchen light (from Away) · Airscape off (from Sleep, Stay)</text>
+<text x="950" y="744" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<text x="1150" y="744" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">10 min → Stay (from Away, Stay, 20:30–05:00) · 10 min → previous (from Sleep, Late Night)</text>
+<rect x="22" y="752" width="1716" height="22" fill="#f7f7f7"/>
+<text x="30" y="766" font-size="11.5" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">Stay</text>
+<text x="140" y="766" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">Home</text>
+<text x="260" y="766" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">lock up* · cameras on · motion bypass check</text>
+<text x="950" y="766" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<text x="1150" y="766" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">10 min → previous (from Sleep, 23:30–06:00)</text>
+<text x="30" y="788" font-size="11.5" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">Late Night</text>
+<text x="140" y="788" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">Home</text>
+<text x="260" y="788" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">night lights · late-night RGB</text>
+<text x="950" y="788" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">late-night RGB</text>
+<text x="1150" y="788" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">at 01:00 → Sleep · the schedule may not leave it</text>
+<rect x="22" y="796" width="1716" height="22" fill="#f7f7f7"/>
+<text x="30" y="810" font-size="11.5" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">Sleep</text>
+<text x="140" y="810" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">Home</text>
+<text x="260" y="810" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">lock up* · night lights · pinball off · GDO lockout · motion bypass check</text>
+<text x="950" y="810" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">GDO lockout</text>
+<text x="1150" y="810" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<text x="30" y="832" font-size="11.5" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">Away</text>
+<text x="140" y="832" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">Away</text>
+<text x="260" y="832" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">lock up* · cameras on · night lights · pinball off · people not home · motion bypass check</text>
+<text x="950" y="832" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<text x="1150" y="832" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<rect x="22" y="840" width="1716" height="22" fill="#f7f7f7"/>
+<text x="30" y="854" font-size="11.5" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">Vacation</text>
+<text x="140" y="854" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">Vacation</text>
+<text x="260" y="854" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">lock up* · cameras on · vacation · night lights · pinball off · people not home · GDO lockout</text>
+<text x="950" y="854" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">vacation · GDO lockout</text>
+<text x="1150" y="854" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<text x="30" y="876" font-size="11.5" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">Spa</text>
+<text x="140" y="876" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">Custom bypass</text>
+<text x="260" y="876" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">spa</text>
+<text x="950" y="876" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">spa end</text>
+<text x="1150" y="876" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">45 min → Stay (from Stay) · 45 min → previous (from Disarmed, Guest, Local)</text>
+<rect x="22" y="884" width="1716" height="22" fill="#f7f7f7"/>
+<text x="30" y="898" font-size="11.5" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">Local</text>
+<text x="140" y="898" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">disarmed</text>
+<text x="260" y="898" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">cameras on</text>
+<text x="950" y="898" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<text x="1150" y="898" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<text x="30" y="920" font-size="11.5" fill="#222" font-weight="bold" font-style="normal" text-anchor="start">Guest</text>
+<text x="140" y="920" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start">disarmed</text>
+<text x="260" y="920" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<text x="950" y="920" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<text x="1150" y="920" font-size="11.5" fill="#222" font-weight="normal" font-style="normal" text-anchor="start"></text>
+<rect x="22" y="704" width="1716" height="224" fill="none" stroke="#1a3fb5" stroke-width="2"/>
+<text x="30" y="960" font-size="17" fill="#c2185b" font-weight="bold" font-style="normal" text-anchor="start">HOUSE MODE CHANGE — what happens to one request</text>
+<ellipse cx="110" cy="1030" rx="86" ry="32" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+<text x="110" y="1035" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">REQUEST</text>
+<text x="110" y="1052" font-size="11" fill="#555" font-weight="normal" font-style="normal" text-anchor="middle">mode + source</text>
+<polygon points="310,990.0 395.0,1030 310,1070.0 225.0,1030" fill="#fff" stroke="#333" stroke-width="2"/>
+<text x="310" y="1027" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Same as the</text>
+<text x="310" y="1043" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">current mode?</text>
+<ellipse cx="1640" cy="1030" rx="70" ry="28" fill="#fff" stroke="#333" stroke-width="2"/>
+<text x="1640" y="1035" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">DONE</text>
+<path d="M196,1030 L225,1030" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<path d="M310,990 L310,974 L1640,974 L1640,1002" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="829.5" y="958" width="141" height="16" fill="#fff" opacity="0.9"/>
+<text x="900" y="970" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">YES — nothing to do</text>
+<polygon points="310,1125.0 395.0,1170 310,1215.0 225.0,1170" fill="#fff" stroke="#333" stroke-width="2"/>
+<text x="310" y="1167" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">May this source</text>
+<text x="310" y="1183" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">change it?</text>
+<path d="M310,1070 L310,1125" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="319.0" y="1090" width="22" height="16" fill="#fff" opacity="0.9"/>
+<text x="330" y="1102" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">NO</text>
+<rect x="470" y="1140" width="200" height="60" rx="6" fill="#fff" stroke="#c62828" stroke-width="2"/>
+<text x="570.0" y="1160" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">BLOCKED</text>
+<text x="570.0" y="1177" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">card says why · logged</text>
+<text x="570.0" y="1193" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">mode unchanged → done</text>
+<path d="M395,1170 L470,1170" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="421.5" y="1154.0" width="22" height="16" fill="#fff" opacity="0.9"/>
+<text x="432.5" y="1166.0" font-size="11" fill="#c62828" font-weight="bold" font-style="normal" text-anchor="middle">no</text>
+<rect x="470" y="1222" width="200" height="60" rx="6" fill="#fff" stroke="#7b3fa0" stroke-width="2"/>
+<text x="570.0" y="1242" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">DELAYED</text>
+<text x="570.0" y="1259" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">waits N min, then the request</text>
+<text x="570.0" y="1275" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">starts again</text>
+<path d="M330,1205 L330,1252 L470,1252" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="358.5" y="1236" width="43" height="16" fill="#fff" opacity="0.9"/>
+<text x="380" y="1248" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">delay</text>
+<polygon points="860,1125.0 940.0,1170 860,1215.0 780.0,1170" fill="#fff" stroke="#333" stroke-width="2"/>
+<text x="860" y="1167" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Ready</text>
+<text x="860" y="1183" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">zones closed?</text>
+<path d="M310,1215 L310,1230 L450,1230 L450,1210 L720,1210 L720,1170 L780,1170" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="725.5" y="1153" width="29" height="16" fill="#fff" opacity="0.9"/>
+<text x="740" y="1165" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">yes</text>
+<rect x="780" y="1250" width="160" height="56" rx="6" fill="#fff" stroke="#c62828" stroke-width="2"/>
+<text x="860.0" y="1270" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">NOT READY</text>
+<text x="860.0" y="1287" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">&quot;block&quot;: stop, notify</text>
+<text x="860.0" y="1303" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">mode unchanged → done</text>
+<path d="M860,1215 L860,1250" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="867.0" y="1226" width="36" height="16" fill="#fff" opacity="0.9"/>
+<text x="885" y="1238" font-size="11" fill="#c62828" font-weight="bold" font-style="normal" text-anchor="middle">open</text>
+<rect x="1000" y="1130" width="190" height="80" rx="6" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<text x="1095.0" y="1150" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">&quot;BEFORE&quot; SCRIPTS</text>
+<text x="1095.0" y="1167" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">e.g. hm_lock_up</text>
+<text x="1095.0" y="1183" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">(waited for)</text>
+<path d="M940,1170 L1000,1170" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="934.5" y="1152" width="71" height="16" fill="#fff" opacity="0.9"/>
+<text x="970" y="1164" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">ok / warn</text>
+<rect x="1230" y="1130" width="200" height="80" rx="6" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<text x="1330.0" y="1150" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">SET MASTER</text>
+<text x="1330.0" y="1167" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">the alarm arms / disarms</text>
+<text x="1330.0" y="1183" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">panel link → Vista (retries)</text>
+<path d="M1190,1170 L1230,1170" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<polygon points="1530,1215.0 1615.0,1260 1530,1305.0 1445.0,1260" fill="#fff" stroke="#333" stroke-width="2"/>
+<text x="1530" y="1257" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">Master reached</text>
+<text x="1530" y="1273" font-size="12" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">the mode?</text>
+<path d="M1430,1170 L1530,1170 L1530,1215" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1190" y="1360" width="230" height="100" rx="6" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<text x="1305.0" y="1380" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">RECORD</text>
+<text x="1305.0" y="1397" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">previous = current, current = new</text>
+<text x="1305.0" y="1413" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">write House Mode / - Last</text>
+<text x="1305.0" y="1429" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">card · notify · Activity</text>
+<path d="M1530,1305 L1530,1410 L1420,1410" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1540.5" y="1358" width="29" height="16" fill="#fff" opacity="0.9"/>
+<text x="1555" y="1370" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">YES</text>
+<rect x="900" y="1360" width="230" height="100" rx="6" fill="#fff" stroke="#1a3fb5" stroke-width="2"/>
+<text x="1015.0" y="1380" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">AFTER THE CHANGE</text>
+<text x="1015.0" y="1397" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">&quot;after&quot; scripts</text>
+<text x="1015.0" y="1413" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">timers start (e.g. 01:00 Sleep)</text>
+<text x="1015.0" y="1429" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">→ done</text>
+<path d="M1190,1410 L1130,1410" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1630" y="1210" width="120" height="100" rx="6" fill="#fff" stroke="#c62828" stroke-width="2"/>
+<text x="1690.0" y="1230" font-size="13" fill="#111" font-weight="bold" font-style="normal" text-anchor="middle">FAILED</text>
+<text x="1690.0" y="1247" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">retry, then</text>
+<text x="1690.0" y="1263" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">undo · keep ·</text>
+<text x="1690.0" y="1279" font-size="11" fill="#222" font-weight="normal" font-style="normal" text-anchor="middle">previous + notify</text>
+<path d="M1615,1260 L1630,1260" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1611.0" y="1240" width="22" height="16" fill="#fff" opacity="0.9"/>
+<text x="1622" y="1252" font-size="11" fill="#c62828" font-weight="bold" font-style="normal" text-anchor="middle">NO</text>
+<path d="M1690,1210 L1690,1050 L1700,1045" fill="none" stroke="#333" stroke-width="1.6"  marker-end="url(#ah)"/>
+<rect x="1695.0" y="1128" width="50" height="16" fill="#fff" opacity="0.9"/>
+<text x="1720" y="1140" font-size="11" fill="#333" font-weight="bold" font-style="normal" text-anchor="middle">→ done</text>
+<rect x="30" y="1340" width="520" height="82" rx="12" fill="#f1e6f7" stroke="#7b3fa0" stroke-width="1.2"/>
+<text x="290.0" y="1357" font-size="11" fill="#4a2560" font-weight="normal" font-style="normal" text-anchor="middle">Every source takes this path: card, selector, schedule, presence, the phone</text>
+<text x="290.0" y="1373" font-size="11" fill="#4a2560" font-weight="normal" font-style="normal" text-anchor="middle">button, lock codes, Airscape, timers, the Vista keypad. Allowed Sources are</text>
+<text x="290.0" y="1389" font-size="11" fill="#4a2560" font-weight="normal" font-style="normal" text-anchor="middle">per mode: e.g. the 23:30 schedule may not leave Late Night.</text>
+</svg>

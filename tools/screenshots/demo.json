@@ -1,0 +1,4767 @@
+{
+ "ws": {
+  "house_modes/config": {
+   "code_arm_required": true,
+   "code_mode_change_required": true,
+   "code_disarm_required": true,
+   "code_format": "number",
+   "disarm_after_trigger": false,
+   "ignore_blocking_sensors_after_trigger": false,
+   "master": {
+    "enabled": true,
+    "name": "House"
+   },
+   "mqtt": {
+    "enabled": false,
+    "state_topic": "alarmo/state",
+    "state_payload": {},
+    "command_topic": "alarmo/command",
+    "command_payload": {},
+    "require_code": true,
+    "event_topic": "alarmo/event"
+   }
+  },
+  "house_modes/areas": {
+   "1700000001": {
+    "area_id": "1700000001",
+    "name": "Ground Floor",
+    "modes": {
+     "armed_away": {
+      "enabled": true,
+      "exit_time": 60,
+      "entry_time": 30,
+      "trigger_time": 1800
+     },
+     "armed_home": {
+      "enabled": true,
+      "exit_time": 0,
+      "entry_time": 0,
+      "trigger_time": 900
+     },
+     "armed_night": {
+      "enabled": true,
+      "exit_time": 0,
+      "entry_time": 15,
+      "trigger_time": 900
+     },
+     "armed_vacation": {
+      "enabled": true,
+      "exit_time": 90,
+      "entry_time": 30,
+      "trigger_time": 1800
+     },
+     "armed_custom_bypass": {
+      "enabled": true,
+      "exit_time": 0,
+      "entry_time": 0,
+      "trigger_time": 600
+     }
+    }
+   },
+   "1700000002": {
+    "area_id": "1700000002",
+    "name": "Upstairs",
+    "modes": {
+     "armed_away": {
+      "enabled": true,
+      "exit_time": 60,
+      "entry_time": 30,
+      "trigger_time": 1800
+     },
+     "armed_home": {
+      "enabled": true,
+      "exit_time": 0,
+      "entry_time": 0,
+      "trigger_time": 600
+     },
+     "armed_night": {
+      "enabled": true,
+      "exit_time": 0,
+      "entry_time": 0,
+      "trigger_time": 900
+     },
+     "armed_vacation": {
+      "enabled": true,
+      "exit_time": 90,
+      "entry_time": 30,
+      "trigger_time": 1800
+     },
+     "armed_custom_bypass": {
+      "enabled": true,
+      "exit_time": 0,
+      "entry_time": 0,
+      "trigger_time": 600
+     }
+    }
+   },
+   "1700000003": {
+    "area_id": "1700000003",
+    "name": "Garage & Outbuildings",
+    "modes": {
+     "armed_away": {
+      "enabled": true,
+      "exit_time": 120,
+      "entry_time": 45,
+      "trigger_time": 600
+     },
+     "armed_home": {
+      "enabled": true,
+      "exit_time": 0,
+      "entry_time": 30,
+      "trigger_time": 600
+     },
+     "armed_night": {
+      "enabled": true,
+      "exit_time": 0,
+      "entry_time": 30,
+      "trigger_time": 600
+     },
+     "armed_vacation": {
+      "enabled": true,
+      "exit_time": 120,
+      "entry_time": 45,
+      "trigger_time": 600
+     },
+     "armed_custom_bypass": {
+      "enabled": true,
+      "exit_time": 30,
+      "entry_time": 30,
+      "trigger_time": 600
+     }
+    }
+   }
+  },
+  "house_modes/sensors": {
+   "binary_sensor.front_door": {
+    "entity_id": "binary_sensor.front_door",
+    "type": "door",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.back_door": {
+    "entity_id": "binary_sensor.back_door",
+    "type": "door",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.patio_door": {
+    "entity_id": "binary_sensor.patio_door",
+    "type": "door",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.side_door": {
+    "entity_id": "binary_sensor.side_door",
+    "type": "door",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.gf_window_1": {
+    "entity_id": "binary_sensor.gf_window_1",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.gf_window_2": {
+    "entity_id": "binary_sensor.gf_window_2",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.gf_window_3": {
+    "entity_id": "binary_sensor.gf_window_3",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.gf_window_4": {
+    "entity_id": "binary_sensor.gf_window_4",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.gf_window_5": {
+    "entity_id": "binary_sensor.gf_window_5",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.gf_window_6": {
+    "entity_id": "binary_sensor.gf_window_6",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.hall_motion": {
+    "entity_id": "binary_sensor.hall_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.living_motion": {
+    "entity_id": "binary_sensor.living_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.kitchen_motion": {
+    "entity_id": "binary_sensor.kitchen_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": true,
+    "auto_bypass_modes": [
+     "armed_away"
+    ],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.dining_motion": {
+    "entity_id": "binary_sensor.dining_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.up_window_1": {
+    "entity_id": "binary_sensor.up_window_1",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.up_window_2": {
+    "entity_id": "binary_sensor.up_window_2",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.up_window_3": {
+    "entity_id": "binary_sensor.up_window_3",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.up_window_4": {
+    "entity_id": "binary_sensor.up_window_4",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.up_window_5": {
+    "entity_id": "binary_sensor.up_window_5",
+    "type": "window",
+    "modes": [
+     "armed_away",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.landing_motion": {
+    "entity_id": "binary_sensor.landing_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.bed_1_motion": {
+    "entity_id": "binary_sensor.bed_1_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.bed_2_motion": {
+    "entity_id": "binary_sensor.bed_2_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.bed_3_motion": {
+    "entity_id": "binary_sensor.bed_3_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.office_motion": {
+    "entity_id": "binary_sensor.office_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": false,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.garage_door": {
+    "entity_id": "binary_sensor.garage_door",
+    "type": "door",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation",
+     "armed_custom_bypass"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": true,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000003",
+    "enabled": true,
+    "entry_delay": 60,
+    "delay_on": null
+   },
+   "binary_sensor.shed_door": {
+    "entity_id": "binary_sensor.shed_door",
+    "type": "door",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000003",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": 5
+   },
+   "binary_sensor.garage_motion": {
+    "entity_id": "binary_sensor.garage_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_vacation",
+     "armed_custom_bypass"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": true,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000003",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.driveway_motion": {
+    "entity_id": "binary_sensor.driveway_motion",
+    "type": "motion",
+    "modes": [
+     "armed_away",
+     "armed_night"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": true,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000003",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": 3
+   },
+   "binary_sensor.kitchen_smoke": {
+    "entity_id": "binary_sensor.kitchen_smoke",
+    "type": "environmental",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation",
+     "armed_custom_bypass"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": true,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.hall_smoke": {
+    "entity_id": "binary_sensor.hall_smoke",
+    "type": "environmental",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation",
+     "armed_custom_bypass"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": true,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.landing_smoke": {
+    "entity_id": "binary_sensor.landing_smoke",
+    "type": "environmental",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation",
+     "armed_custom_bypass"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": true,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000002",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.boiler_co": {
+    "entity_id": "binary_sensor.boiler_co",
+    "type": "environmental",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation",
+     "armed_custom_bypass"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": true,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.utility_leak": {
+    "entity_id": "binary_sensor.utility_leak",
+    "type": "environmental",
+    "modes": [],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": true,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "binary_sensor.keypad_tamper": {
+    "entity_id": "binary_sensor.keypad_tamper",
+    "type": "tamper",
+    "modes": [
+     "armed_away",
+     "armed_home",
+     "armed_night",
+     "armed_vacation"
+    ],
+    "use_exit_delay": false,
+    "use_entry_delay": false,
+    "always_on": true,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   },
+   "lock.front_door": {
+    "entity_id": "lock.front_door",
+    "type": "door",
+    "modes": [
+     "armed_away",
+     "armed_vacation"
+    ],
+    "use_exit_delay": true,
+    "use_entry_delay": true,
+    "always_on": false,
+    "arm_on_close": false,
+    "allow_open": false,
+    "trigger_unavailable": false,
+    "auto_bypass": false,
+    "auto_bypass_modes": [],
+    "area": "1700000001",
+    "enabled": true,
+    "entry_delay": null,
+    "delay_on": null
+   }
+  },
+  "house_modes/users": {
+   "1700000101": {
+    "user_id": "1700000101",
+    "name": "Alex",
+    "enabled": true,
+    "code": "x",
+    "can_arm": true,
+    "can_disarm": true,
+    "is_override_code": false,
+    "code_format": "number",
+    "code_length": 4,
+    "area_limit": []
+   },
+   "1700000102": {
+    "user_id": "1700000102",
+    "name": "Sam",
+    "enabled": true,
+    "code": "x",
+    "can_arm": true,
+    "can_disarm": true,
+    "is_override_code": true,
+    "code_format": "number",
+    "code_length": 4,
+    "area_limit": []
+   },
+   "1700000103": {
+    "user_id": "1700000103",
+    "name": "Guest",
+    "enabled": true,
+    "code": "x",
+    "can_arm": true,
+    "can_disarm": false,
+    "is_override_code": false,
+    "code_format": "text",
+    "code_length": 7,
+    "area_limit": [
+     "1700000001"
+    ]
+   },
+   "1794426413": {
+    "user_id": "1794426413",
+    "name": "Dog Walker",
+    "enabled": true,
+    "code": "x",
+    "can_arm": false,
+    "can_disarm": false,
+    "is_override_code": false,
+    "code_format": "number",
+    "code_length": 4,
+    "area_limit": []
+   },
+   "1794426414": {
+    "user_id": "1794426414",
+    "name": "Cleaner",
+    "enabled": true,
+    "code": "x",
+    "can_arm": false,
+    "can_disarm": false,
+    "is_override_code": false,
+    "code_format": "number",
+    "code_length": 4,
+    "area_limit": []
+   }
+  },
+  "house_modes/automations": {
+   "1700000201": {
+    "automation_id": "1700000201",
+    "type": "notification",
+    "name": "Notify on trigger",
+    "triggers": [
+     {
+      "event": "triggered",
+      "area": null,
+      "modes": []
+     }
+    ],
+    "actions": [
+     {
+      "service": "notify.mobile_app_phone",
+      "entity_id": null,
+      "data": {
+       "title": "Alarm!",
+       "message": "{{open_sensors}}"
+      }
+     }
+    ],
+    "enabled": true
+   },
+   "1700000202": {
+    "automation_id": "1700000202",
+    "type": "action",
+    "name": "Siren on trigger (ground floor)",
+    "triggers": [
+     {
+      "event": "triggered",
+      "area": "1700000001",
+      "modes": [
+       "armed_away"
+      ]
+     }
+    ],
+    "actions": [
+     {
+      "service": "switch.turn_on",
+      "entity_id": "switch.siren",
+      "data": {}
+     }
+    ],
+    "enabled": true
+   },
+   "1700000203": {
+    "automation_id": "1700000203",
+    "type": "action",
+    "name": "Lights off when armed away",
+    "triggers": [
+     {
+      "event": "armed",
+      "area": "1700000002",
+      "modes": [
+       "armed_away"
+      ]
+     }
+    ],
+    "actions": [
+     {
+      "service": "light.turn_off",
+      "entity_id": "light.upstairs",
+      "data": {}
+     }
+    ],
+    "enabled": false
+   }
+  },
+  "house_modes/sensor_groups": {
+   "1700000301": {
+    "group_id": "1700000301",
+    "name": "Ground floor motion",
+    "entities": [
+     "binary_sensor.hall_motion",
+     "binary_sensor.living_motion"
+    ],
+    "timeout": 120,
+    "event_count": 2
+   },
+   "1700000302": {
+    "group_id": "1700000302",
+    "name": "Bedrooms",
+    "entities": [
+     "binary_sensor.bed_1_motion",
+     "binary_sensor.bed_2_motion",
+     "binary_sensor.bed_3_motion"
+    ],
+    "timeout": 60,
+    "event_count": 2
+   }
+  },
+  "house_modes/entities": [
+   {
+    "entity_id": "alarm_control_panel.ground_floor",
+    "area_id": "1700000001"
+   },
+   {
+    "entity_id": "alarm_control_panel.upstairs",
+    "area_id": "1700000002"
+   },
+   {
+    "entity_id": "alarm_control_panel.garage_outbuildings",
+    "area_id": "1700000003"
+   }
+  ],
+  "house_modes/ext/info": {
+   "version": "2026.11.11.94",
+   "export_version": 1,
+   "backup_dir": "/config/house_modes/backups",
+   "settings": {
+    "retention_days": 30
+   },
+   "blocked_by": [],
+   "ui": {}
+  },
+  "house_modes/ext/status": {
+   "house": {
+    "enabled": true,
+    "shadow": false,
+    "current": "disarmed",
+    "name": "Disarmed",
+    "icon": "mdi:shield-lock-open-outline",
+    "source": "manual"
+   },
+   "alarms": [
+    {
+     "key": "1700000001",
+     "entity_id": "alarm_control_panel.ground_floor",
+     "name": "Ground Floor"
+    },
+    {
+     "key": "1700000002",
+     "entity_id": "alarm_control_panel.upstairs",
+     "name": "Upstairs"
+    },
+    {
+     "key": "1700000003",
+     "entity_id": "alarm_control_panel.garage_outbuildings",
+     "name": "Garage & Outbuildings"
+    },
+    {
+     "key": "master",
+     "entity_id": "alarm_control_panel.house",
+     "name": "House"
+    }
+   ],
+   "links": [
+    {
+     "key": "1700000001",
+     "panel_entity": "alarm_control_panel.vista_partition_1",
+     "mode": "shadow",
+     "running": true,
+     "ready_entity": "binary_sensor.vista_partition_1_ready"
+    }
+   ],
+   "rules_pending": 0,
+   "alarmo_enabled": false
+  },
+  "house_modes/ext/why": {
+   "areas": [
+    {
+     "area_id": "1700000001",
+     "entity_id": "alarm_control_panel.ground_floor",
+     "name": "Ground Floor",
+     "state": "disarmed",
+     "modes": [
+      {
+       "mode": "armed_away",
+       "ready": false,
+       "blocking": [
+        {
+         "entity_id": "binary_sensor.gf_window_3",
+         "state": "open",
+         "reason": "open",
+         "motion": false,
+         "exit_delay": false
+        }
+       ],
+       "exit_time": 60,
+       "bypassed": [
+        "binary_sensor.kitchen_motion"
+       ]
+      },
+      {
+       "mode": "armed_home",
+       "ready": false,
+       "blocking": [
+        {
+         "entity_id": "binary_sensor.gf_window_3",
+         "state": "open",
+         "reason": "open",
+         "motion": false,
+         "exit_delay": false
+        }
+       ],
+       "exit_time": 0,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_night",
+       "ready": false,
+       "blocking": [
+        {
+         "entity_id": "binary_sensor.gf_window_3",
+         "state": "open",
+         "reason": "open",
+         "motion": false,
+         "exit_delay": false
+        }
+       ],
+       "exit_time": 0,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_vacation",
+       "ready": false,
+       "blocking": [
+        {
+         "entity_id": "binary_sensor.gf_window_3",
+         "state": "open",
+         "reason": "open",
+         "motion": false,
+         "exit_delay": false
+        }
+       ],
+       "exit_time": 90,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_custom_bypass",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 0,
+       "bypassed": []
+      }
+     ]
+    },
+    {
+     "area_id": "1700000002",
+     "entity_id": "alarm_control_panel.upstairs",
+     "name": "Upstairs",
+     "state": "disarmed",
+     "modes": [
+      {
+       "mode": "armed_away",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 60,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_home",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 0,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_night",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 0,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_vacation",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 90,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_custom_bypass",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 0,
+       "bypassed": []
+      }
+     ]
+    },
+    {
+     "area_id": "1700000003",
+     "entity_id": "alarm_control_panel.garage_outbuildings",
+     "name": "Garage & Outbuildings",
+     "state": "disarmed",
+     "modes": [
+      {
+       "mode": "armed_away",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 120,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_home",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 0,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_night",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 0,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_vacation",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 120,
+       "bypassed": []
+      },
+      {
+       "mode": "armed_custom_bypass",
+       "ready": true,
+       "blocking": [],
+       "exit_time": 30,
+       "bypassed": []
+      }
+     ]
+    }
+   ],
+   "panels": [
+    {
+     "key": "1700000001",
+     "panel_entity": "alarm_control_panel.vista_partition_1",
+     "mode": "shadow",
+     "ready_entity": "binary_sensor.vista_partition_1_ready",
+     "ready": false
+    }
+   ],
+   "house_modes": [
+    {
+     "id": "sleep",
+     "name": "Sleep",
+     "action": "block",
+     "open": []
+    }
+   ]
+  },
+  "house_modes/ext/house/get": {
+   "settings": {
+    "enabled": true,
+    "modes": [
+     {
+      "id": "disarmed",
+      "name": "Disarmed",
+      "icon": "mdi:shield-lock-open-outline",
+      "targets": {
+       "1700000001": "disarmed",
+       "1700000002": "disarmed",
+       "1700000003": "disarmed"
+      },
+      "delay_sources": {},
+      "readiness": {
+       "action": "warn",
+       "labels": [],
+       "entities": []
+      },
+      "on_failure": "undo",
+      "leave_sources": [
+       "manual",
+       "automation",
+       "schedule",
+       "presence_away",
+       "presence_home",
+       "lock",
+       "panel_keypad",
+       "timer"
+      ],
+      "steps": [],
+      "color": "",
+      "timers": [],
+      "enter_sources": [
+       "manual",
+       "automation",
+       "schedule",
+       "presence_away",
+       "presence_home",
+       "lock",
+       "panel_keypad",
+       "timer"
+      ]
+     },
+     {
+      "id": "stay",
+      "name": "Stay",
+      "icon": "mdi:shield-home",
+      "targets": {
+       "1700000001": "armed_home",
+       "1700000002": "disarmed",
+       "1700000003": "armed_away"
+      },
+      "delay_sources": {},
+      "readiness": {
+       "action": "warn",
+       "labels": [],
+       "entities": []
+      },
+      "on_failure": "undo",
+      "leave_sources": [
+       "manual",
+       "automation",
+       "schedule",
+       "presence_away",
+       "presence_home",
+       "lock",
+       "panel_keypad",
+       "timer"
+      ],
+      "steps": [],
+      "color": "",
+      "timers": [],
+      "enter_sources": [
+       "manual",
+       "automation",
+       "schedule",
+       "presence_away",
+       "presence_home",
+       "lock",
+       "panel_keypad",
+       "timer"
+      ]
+     },
+     {
+      "id": "sleep",
+      "name": "Sleep",
+      "icon": "mdi:bed",
+      "targets": {
+       "1700000001": "armed_night",
+       "1700000002": "armed_night",
+       "1700000003": "armed_away"
+      },
+      "readiness": {
+       "entities": [
+        "binary_sensor.front_door",
+        "binary_sensor.back_door"
+       ],
+       "action": "block",
+       "labels": []
+      },
+      "steps": [
+       {
+        "entity_id": "script.lock_up",
+        "when": "enter",
+        "phase": "before",
+        "modes": [],
+        "wait": false
+       }
+      ],
+      "timers": [
+       {
+        "after_minutes": 10,
+        "then": "previous",
+        "from_modes": [
+         "stay"
+        ],
+        "window_start": "23:30",
+        "window_end": "06:00",
+        "notify": true
+       }
+      ],
+      "delay_sources": {},
+      "on_failure": "undo",
+      "leave_sources": [
+       "manual",
+       "automation",
+       "schedule",
+       "presence_away",
+       "presence_home",
+       "lock",
+       "panel_keypad",
+       "timer"
+      ],
+      "color": "",
+      "enter_sources": [
+       "manual",
+       "automation",
+       "schedule",
+       "presence_away",
+       "presence_home",
+       "lock",
+       "panel_keypad",
+       "timer"
+      ]
+     },
+     {
+      "id": "away",
+      "name": "Away",
+      "icon": "mdi:shield-lock",
+      "targets": {
+       "1700000001": "armed_away",
+       "1700000002": "armed_away",
+       "1700000003": "armed_away"
+      },
+      "enter_sources": [
+       "manual",
+       "automation",
+       "presence_away",
+       "lock",
+       "timer",
+       "schedule"
+      ],
+      "steps": [
+       {
+        "entity_id": "script.lock_up",
+        "when": "enter",
+        "phase": "before",
+        "modes": [],
+        "wait": false
+       },
+       {
+        "entity_id": "script.spa_evening",
+        "when": "leave",
+        "phase": "after",
+        "modes": [],
+        "wait": false
+       }
+      ],
+      "delay_sources": {},
+      "readiness": {
+       "action": "warn",
+       "labels": [],
+       "entities": []
+      },
+      "on_failure": "undo",
+      "leave_sources": [
+       "manual",
+       "automation",
+       "schedule",
+       "presence_away",
+       "presence_home",
+       "lock",
+       "panel_keypad",
+       "timer"
+      ],
+      "color": "",
+      "timers": []
+     },
+     {
+      "id": "guest",
+      "name": "Guest",
+      "icon": "mdi:account-group",
+      "targets": {
+       "1700000001": "disarmed",
+       "1700000002": "disarmed",
+       "1700000003": "armed_away"
+      },
+      "timers": [
+       {
+        "after_minutes": 240,
+        "then": "previous",
+        "notify": true,
+        "from_modes": []
+       }
+      ],
+      "delay_sources": {},
+      "readiness": {
+       "action": "warn",
+       "labels": [],
+       "entities": []
+      },
+      "on_failure": "undo",
+      "leave_sources": [
+       "manual",
+       "automation",
+       "schedule",
+       "presence_away",
+       "presence_home",
+       "lock",
+       "panel_keypad",
+       "timer"
+      ],
+      "steps": [],
+      "color": "",
+      "enter_sources": [
+       "manual",
+       "automation",
+       "schedule",
+       "presence_away",
+       "presence_home",
+       "lock",
+       "panel_keypad",
+       "timer"
+      ]
+     }
+    ],
+    "notify_services": [],
+    "notify_changes": false,
+    "run_mode": "live",
+    "notify_skip_sources": [],
+    "lock_keypads": [],
+    "current": "disarmed",
+    "previous": null,
+    "history": [
+     {
+      "at": "2026-11-11T19:46:53.412716+00:00",
+      "from": null,
+      "to": "disarmed",
+      "source": "manual",
+      "result": "changed"
+     }
+    ],
+    "pending": [],
+    "source": "manual",
+    "changed_at": "2026-11-11T19:46:53.412716+00:00"
+   },
+   "targets": [
+    {
+     "key": "master",
+     "entity_id": "alarm_control_panel.house",
+     "name": "All partitions"
+    },
+    {
+     "key": "1700000001",
+     "entity_id": "alarm_control_panel.ground_floor",
+     "name": "Ground Floor"
+    },
+    {
+     "key": "1700000002",
+     "entity_id": "alarm_control_panel.upstairs",
+     "name": "Upstairs"
+    },
+    {
+     "key": "1700000003",
+     "entity_id": "alarm_control_panel.garage_outbuildings",
+     "name": "Garage & Outbuildings"
+    }
+   ],
+   "sources": [
+    "manual",
+    "automation",
+    "schedule",
+    "presence_away",
+    "presence_home",
+    "lock",
+    "panel_keypad",
+    "timer"
+   ],
+   "shadow": {
+    "matched": 0,
+    "differed": 0,
+    "since": null,
+    "watching": false
+   }
+  },
+  "house_modes/ext/house/locks": {
+   "locks": [
+    {
+     "entity_id": "lock.back_door_lock",
+     "name": "Back Door Lock",
+     "node_id": 14,
+     "slots": null,
+     "configured": false
+    },
+    {
+     "entity_id": "lock.front_door_lock",
+     "name": "Front Door Lock",
+     "node_id": 12,
+     "slots": null,
+     "configured": false
+    }
+   ]
+  },
+  "house_modes/ext/panel/get": {
+   "settings": {
+    "links": {
+     "1700000001": {
+      "panel_entity": "alarm_control_panel.vista_partition_1",
+      "panel_type": "envisalink",
+      "mode": "shadow",
+      "learned_exit_delay": {
+       "armed_home": 29,
+       "armed_away": 30
+      },
+      "arm_order": "panel_leads",
+      "confirm_margin": 10,
+      "retries": 3,
+      "retry_delay": 5,
+      "commands": {
+       "armed_away": {
+        "method": "service",
+        "keys": "",
+        "accept": [
+         "armed_away"
+        ],
+        "timeout": 20
+       },
+       "armed_home": {
+        "method": "service",
+        "keys": "",
+        "accept": [
+         "armed_home",
+         "armed_night",
+         "armed_custom_bypass"
+        ],
+        "timeout": 35
+       },
+       "armed_night": {
+        "method": "service",
+        "keys": "",
+        "accept": [
+         "armed_night",
+         "armed_custom_bypass"
+        ],
+        "timeout": 35
+       },
+       "armed_vacation": {
+        "method": "keypress",
+        "keys": "{code}4",
+        "accept": [
+         "armed_vacation",
+         "armed_away"
+        ],
+        "timeout": 20
+       },
+       "armed_custom_bypass": {
+        "method": "keypress",
+        "keys": "{code}7",
+        "accept": [
+         "armed_custom_bypass",
+         "armed_home"
+        ],
+        "timeout": 35
+       },
+       "disarmed": {
+        "method": "service",
+        "keys": "",
+        "accept": [
+         "disarmed"
+        ],
+        "timeout": 20
+       }
+      },
+      "follow_map": {},
+      "failure_policy": "disarm",
+      "bypass_keys": "{code}6{zone}",
+      "follow_panel": true,
+      "delays": {}
+     }
+    },
+    "mirrors": {
+     "binary_sensor.vista_zone_9": {
+      "hold": "last"
+     },
+     "binary_sensor.vista_zone_10": {
+      "hold": "last"
+     },
+     "binary_sensor.vista_zone_11": {
+      "hold": "last"
+     },
+     "binary_sensor.vista_zone_12": {
+      "hold": "last"
+     },
+     "binary_sensor.vista_zone_13": {
+      "hold": "last"
+     },
+     "binary_sensor.vista_zone_14": {
+      "hold": "last"
+     }
+    },
+    "monitored": false,
+    "trip": {
+     "method": "none",
+     "panic_keys": "",
+     "panic_method": "service"
+    },
+    "ignored_zones": [],
+    "keypad_input": {
+     "users": [],
+     "mode": "admins",
+     "blocked_keys": ""
+    },
+    "zone_trip": {},
+    "bypass_entity": null
+   },
+   "panels": [
+    {
+     "entity_id": "alarm_control_panel.vista_partition_1",
+     "platform": "envisalink_new",
+     "name": "Vista Partition 1",
+     "state": "disarmed",
+     "code_set": true,
+     "zones": [
+      {
+       "entity_id": "binary_sensor.vista_zone_1",
+       "zone": 1,
+       "partition": 1,
+       "name": "Front Door",
+       "device_class": "door",
+       "state": "off",
+       "configured": false,
+       "mirror": null,
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_2",
+       "zone": 2,
+       "partition": 1,
+       "name": "Hall Motion",
+       "device_class": "motion",
+       "state": "off",
+       "configured": false,
+       "mirror": null,
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_3",
+       "zone": 3,
+       "partition": 1,
+       "name": "Back Door",
+       "device_class": "door",
+       "state": "off",
+       "configured": false,
+       "mirror": null,
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_4",
+       "zone": 4,
+       "partition": 1,
+       "name": "Patio Door",
+       "device_class": "door",
+       "state": "off",
+       "configured": false,
+       "mirror": null,
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_9",
+       "zone": 9,
+       "partition": 1,
+       "name": "Kitchen Window",
+       "device_class": "window",
+       "state": "off",
+       "configured": false,
+       "mirror": "binary_sensor.vista_zone_9_mirror",
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_10",
+       "zone": 10,
+       "partition": 1,
+       "name": "Dining Window",
+       "device_class": "window",
+       "state": "off",
+       "configured": false,
+       "mirror": "binary_sensor.vista_zone_10_mirror",
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_11",
+       "zone": 11,
+       "partition": 1,
+       "name": "Living Room Window 1",
+       "device_class": "window",
+       "state": "on",
+       "configured": false,
+       "mirror": "binary_sensor.vista_zone_11_mirror",
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_12",
+       "zone": 12,
+       "partition": 1,
+       "name": "Living Room Window 2",
+       "device_class": "window",
+       "state": "off",
+       "configured": false,
+       "mirror": "binary_sensor.vista_zone_12_mirror",
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_13",
+       "zone": 13,
+       "partition": 1,
+       "name": "Bedroom 1 Window",
+       "device_class": "window",
+       "state": "off",
+       "configured": false,
+       "mirror": "binary_sensor.vista_zone_13_mirror",
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_14",
+       "zone": 14,
+       "partition": 1,
+       "name": "Bedroom 2 Window",
+       "device_class": "window",
+       "state": "off",
+       "configured": false,
+       "mirror": "binary_sensor.vista_zone_14_mirror",
+       "mirror_configured": false
+      },
+      {
+       "entity_id": "binary_sensor.vista_zone_19",
+       "zone": 19,
+       "partition": 1,
+       "name": "Smoke Detector",
+       "device_class": "smoke",
+       "state": "off",
+       "configured": false,
+       "mirror": null,
+       "mirror_configured": false
+      }
+     ]
+    }
+   ],
+   "targets": [
+    {
+     "key": "master",
+     "entity_id": "alarm_control_panel.house",
+     "name": "All partitions"
+    },
+    {
+     "key": "1700000001",
+     "entity_id": "alarm_control_panel.ground_floor",
+     "name": "Ground Floor"
+    },
+    {
+     "key": "1700000002",
+     "entity_id": "alarm_control_panel.upstairs",
+     "name": "Upstairs"
+    },
+    {
+     "key": "1700000003",
+     "entity_id": "alarm_control_panel.garage_outbuildings",
+     "name": "Garage & Outbuildings"
+    }
+   ],
+   "running": [
+    "1700000001"
+   ],
+   "bypass_unreported": [],
+   "bypassed": [],
+   "log": [
+    {
+     "ts": 1794426413.3532753,
+     "link": "1700000001",
+     "level": "info",
+     "msg": "started (shadow): alarm_control_panel.ground_floor <-> alarm_control_panel.vista_partition_1"
+    },
+    {
+     "ts": 1794426413.5753436,
+     "link": "1700000001",
+     "level": "info",
+     "msg": "[shadow] start check: in step (alarm disarmed, physical panel disarmed)",
+     "ok": true
+    }
+   ]
+  },
+  "house_modes/ext/panel/log": {
+   "log": [
+    {
+     "ts": 1794426413.3532753,
+     "link": "1700000001",
+     "level": "info",
+     "msg": "started (shadow): alarm_control_panel.ground_floor <-> alarm_control_panel.vista_partition_1"
+    },
+    {
+     "ts": 1794426413.5753436,
+     "link": "1700000001",
+     "level": "info",
+     "msg": "[shadow] start check: in step (alarm disarmed, physical panel disarmed)",
+     "ok": true
+    }
+   ]
+  },
+  "house_modes/ext/house_actions/get": {
+   "modes": [
+    "Disarmed",
+    "Stay",
+    "Sleep",
+    "Away",
+    "Guest"
+   ],
+   "modes_source": "house_modes",
+   "label_prefix": "House Mode: ",
+   "items": [
+    {
+     "entity_id": "automation.bedtime_at_23_30",
+     "kind": "automation",
+     "name": "Bedtime at 23:30",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "s1",
+     "editable": true,
+     "labels": [],
+     "detected": {
+      "modes": [
+       "Sleep"
+      ],
+      "any": false
+     },
+     "reacts": null,
+     "sets": [
+      {
+       "mode": "Sleep",
+       "template": false,
+       "via": "service",
+       "source": "schedule"
+      }
+     ],
+     "trigger_kinds": [
+      "time"
+     ],
+     "asks_user": false
+    },
+    {
+     "entity_id": "automation.cameras_on_when_armed",
+     "kind": "automation",
+     "name": "Cameras on when armed",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "a4",
+     "editable": true,
+     "labels": [
+      "Away",
+      "Stay"
+     ],
+     "detected": {
+      "modes": [
+       "Stay",
+       "Away"
+      ],
+      "any": false
+     },
+     "reacts": {
+      "to": [
+       "Stay",
+       "Away"
+      ],
+      "from": [],
+      "any": false
+     },
+     "sets": null,
+     "trigger_kinds": [
+      "house_mode"
+     ],
+     "asks_user": false
+    },
+    {
+     "entity_id": "automation.entry_light_10_at_night",
+     "kind": "automation",
+     "name": "Entry light 10 % at night",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "a3",
+     "editable": true,
+     "labels": [
+      "Sleep"
+     ],
+     "detected": {
+      "modes": [
+       "Sleep"
+      ],
+      "any": false
+     },
+     "reacts": {
+      "to": [
+       "Sleep"
+      ],
+      "from": [],
+      "any": false
+     },
+     "sets": null,
+     "trigger_kinds": [
+      "house_mode"
+     ],
+     "asks_user": false
+    },
+    {
+     "entity_id": "automation.guest_wi_fi_on",
+     "kind": "automation",
+     "name": "Guest Wi-Fi on",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "a6",
+     "editable": true,
+     "labels": [],
+     "detected": {
+      "modes": [
+       "Guest"
+      ],
+      "any": false
+     },
+     "reacts": {
+      "to": [
+       "Guest"
+      ],
+      "from": [],
+      "any": false
+     },
+     "sets": null,
+     "trigger_kinds": [
+      "house_mode"
+     ],
+     "asks_user": false
+    },
+    {
+     "entity_id": "automation.kitchen_light_when_coming_home_after_dark",
+     "kind": "automation",
+     "name": "Kitchen light when coming home after dark",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "a5",
+     "editable": true,
+     "labels": [
+      "Disarmed"
+     ],
+     "detected": {
+      "modes": [
+       "Disarmed"
+      ],
+      "any": false
+     },
+     "reacts": {
+      "to": [
+       "Disarmed"
+      ],
+      "from": [],
+      "any": false
+     },
+     "sets": null,
+     "trigger_kinds": [
+      "house_mode"
+     ],
+     "asks_user": false
+    },
+    {
+     "entity_id": "automation.lights_off_when_leaving_or_going_to_bed",
+     "kind": "automation",
+     "name": "Lights off when leaving or going to bed",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "a2",
+     "editable": true,
+     "labels": [
+      "Away",
+      "Sleep"
+     ],
+     "detected": {
+      "modes": [
+       "Sleep",
+       "Away"
+      ],
+      "any": false
+     },
+     "reacts": {
+      "to": [
+       "Sleep",
+       "Away"
+      ],
+      "from": [],
+      "any": false
+     },
+     "sets": null,
+     "trigger_kinds": [
+      "house_mode"
+     ],
+     "asks_user": false
+    },
+    {
+     "entity_id": "automation.lock_up_and_close_curtains",
+     "kind": "automation",
+     "name": "Lock up and close curtains",
+     "state": "on",
+     "last_triggered": "2026-10-26T21:30:00+00:00",
+     "edit_id": "a1",
+     "editable": true,
+     "labels": [
+      "Away",
+      "Sleep",
+      "Stay"
+     ],
+     "detected": {
+      "modes": [
+       "Stay",
+       "Sleep",
+       "Away"
+      ],
+      "any": false
+     },
+     "reacts": {
+      "to": [
+       "Stay",
+       "Sleep",
+       "Away"
+      ],
+      "from": [],
+      "any": false
+     },
+     "sets": null,
+     "trigger_kinds": [
+      "house_mode"
+     ],
+     "asks_user": false
+    },
+    {
+     "entity_id": "automation.notify_on_every_house_mode_change",
+     "kind": "automation",
+     "name": "Notify on every House Mode change",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "a7",
+     "editable": true,
+     "labels": [],
+     "detected": {
+      "modes": [],
+      "any": true
+     },
+     "reacts": {
+      "to": [],
+      "from": [],
+      "any": true
+     },
+     "sets": null,
+     "trigger_kinds": [
+      "house_mode"
+     ],
+     "asks_user": false
+    },
+    {
+     "entity_id": "automation.sleep_when_the_bedroom_tv_turns_off",
+     "kind": "automation",
+     "name": "Sleep when the bedroom TV turns off",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "s2",
+     "editable": true,
+     "labels": [],
+     "detected": {
+      "modes": [
+       "Sleep"
+      ],
+      "any": false
+     },
+     "reacts": null,
+     "sets": [
+      {
+       "mode": "Sleep",
+       "template": false,
+       "via": "selector",
+       "source": null
+      }
+     ],
+     "trigger_kinds": [
+      "state"
+     ],
+     "asks_user": false
+    },
+    {
+     "entity_id": "automation.smart_repeating_alert_driveway_camera",
+     "kind": "automation",
+     "name": "Smart Repeating Alert - Driveway camera",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "sa2",
+     "editable": true,
+     "labels": [],
+     "detected": null,
+     "reacts": null,
+     "sets": null,
+     "trigger_kinds": [
+      "other"
+     ],
+     "asks_user": true
+    },
+    {
+     "entity_id": "automation.smart_repeating_alert_fridge_too_warm",
+     "kind": "automation",
+     "name": "Smart Repeating Alert - Fridge too warm",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "sa3",
+     "editable": true,
+     "labels": [],
+     "detected": null,
+     "reacts": null,
+     "sets": null,
+     "trigger_kinds": [
+      "other"
+     ],
+     "asks_user": true
+    },
+    {
+     "entity_id": "automation.smart_repeating_alert_patio_door_left_open",
+     "kind": "automation",
+     "name": "Smart Repeating Alert - Patio Door left open",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "sa1",
+     "editable": true,
+     "labels": [],
+     "detected": null,
+     "reacts": null,
+     "sets": null,
+     "trigger_kinds": [
+      "other"
+     ],
+     "asks_user": true
+    },
+    {
+     "entity_id": "script.lock_up",
+     "kind": "script",
+     "name": "Lock up",
+     "state": "off",
+     "last_triggered": null,
+     "edit_id": "lock_up",
+     "editable": true,
+     "labels": [],
+     "detected": null,
+     "reacts": null,
+     "sets": null,
+     "trigger_kinds": [],
+     "asks_user": false
+    },
+    {
+     "entity_id": "script.spa_evening",
+     "kind": "script",
+     "name": "Spa evening",
+     "state": "off",
+     "last_triggered": null,
+     "edit_id": "spa_evening",
+     "editable": true,
+     "labels": [],
+     "detected": {
+      "modes": [
+       "Guest"
+      ],
+      "any": false
+     },
+     "reacts": null,
+     "sets": null,
+     "trigger_kinds": [],
+     "asks_user": false
+    }
+   ]
+  },
+  "house_modes/ext/alerts/get": {
+   "blueprint": {
+    "path": "LTek/smart-repeating-alerts-ltek.yaml",
+    "installed": true,
+    "installed_version": "2026.11.06.43",
+    "shipped_version": "2026.11.06.43",
+    "ours": true,
+    "update": false
+   },
+   "items": [
+    {
+     "entity_id": "automation.smart_repeating_alert_driveway_camera",
+     "name": "Smart Repeating Alert - Driveway camera",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "sa2",
+     "blueprint": "LTek/smart-repeating-alerts-ltek.yaml",
+     "old": null,
+     "summary": {
+      "triggers": [
+       "binary_sensor.driveway_motion"
+      ],
+      "devices": 1,
+      "services": 0,
+      "repeat": false,
+      "repeat_every": null,
+      "max_repeats": null,
+      "camera": "camera.driveway",
+      "test_mode": true,
+      "tag": "",
+      "buttons": 0,
+      "critical": false
+     },
+     "categories": [
+      "alarm",
+      "security"
+     ]
+    },
+    {
+     "entity_id": "automation.smart_repeating_alert_fridge_too_warm",
+     "name": "Smart Repeating Alert - Fridge too warm",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "sa3",
+     "blueprint": "LTek/smart-repeating-alerts-ltek.yaml",
+     "old": null,
+     "summary": {
+      "triggers": [
+       "sensor.fridge_temperature"
+      ],
+      "devices": 1,
+      "services": 0,
+      "repeat": false,
+      "repeat_every": null,
+      "max_repeats": null,
+      "camera": null,
+      "test_mode": false,
+      "tag": "",
+      "buttons": 0,
+      "critical": false
+     },
+     "categories": [
+      "other"
+     ]
+    },
+    {
+     "entity_id": "automation.smart_repeating_alert_patio_door_left_open",
+     "name": "Smart Repeating Alert - Patio Door left open",
+     "state": "on",
+     "last_triggered": null,
+     "edit_id": "sa1",
+     "blueprint": "LTek/smart-repeating-alerts-ltek.yaml",
+     "old": null,
+     "summary": {
+      "triggers": [
+       "binary_sensor.patio_door"
+      ],
+      "devices": 2,
+      "services": 0,
+      "repeat": true,
+      "repeat_every": {
+       "minutes": 10
+      },
+      "max_repeats": 3,
+      "camera": null,
+      "test_mode": false,
+      "tag": "",
+      "buttons": 1,
+      "critical": false
+     },
+     "categories": [
+      "alarm"
+     ]
+    }
+   ]
+  },
+  "house_modes/ext/rules/list": {
+   "rules": [],
+   "overrides": {},
+   "pending": 0,
+   "list_fields": [
+    "modes",
+    "auto_bypass_modes"
+   ]
+  },
+  "house_modes/ext/rules/preview": {
+   "create": [],
+   "update": [],
+   "unmanaged": [
+    "binary_sensor.back_door",
+    "binary_sensor.bed_1_motion",
+    "binary_sensor.bed_2_motion",
+    "binary_sensor.bed_3_motion",
+    "binary_sensor.boiler_co",
+    "binary_sensor.dining_motion",
+    "binary_sensor.driveway_motion",
+    "binary_sensor.front_door",
+    "binary_sensor.garage_door",
+    "binary_sensor.garage_motion",
+    "binary_sensor.gf_window_1",
+    "binary_sensor.gf_window_2",
+    "binary_sensor.gf_window_3",
+    "binary_sensor.gf_window_4",
+    "binary_sensor.gf_window_5",
+    "binary_sensor.gf_window_6",
+    "binary_sensor.hall_motion",
+    "binary_sensor.hall_smoke",
+    "binary_sensor.keypad_tamper",
+    "binary_sensor.kitchen_motion",
+    "binary_sensor.kitchen_smoke",
+    "binary_sensor.landing_motion",
+    "binary_sensor.landing_smoke",
+    "binary_sensor.living_motion",
+    "binary_sensor.office_motion",
+    "binary_sensor.patio_door",
+    "binary_sensor.shed_door",
+    "binary_sensor.side_door",
+    "binary_sensor.up_window_1",
+    "binary_sensor.up_window_2",
+    "binary_sensor.up_window_3",
+    "binary_sensor.up_window_4",
+    "binary_sensor.up_window_5",
+    "binary_sensor.utility_leak",
+    "lock.front_door"
+   ],
+   "conflicts": [],
+   "needs_partition": [],
+   "stale": [],
+   "zones": {},
+   "rule_names": {},
+   "total_changes": 0,
+   "token": "2383fb380952680e11a36c544b4f7783"
+  },
+  "house_modes/ext/backup/list": {
+   "backups": [
+    {
+     "name": "house_modes_2026-11-11_114653-1_pre-save",
+     "label": "pre-save",
+     "created": "2026-11-11T11:46:53-08:00",
+     "files": {
+      "storage": {
+       "file": "house_modes_2026-11-11_114653-1_pre-save.storage.json",
+       "size": 57399
+      },
+      "yaml": {
+       "file": "house_modes_2026-11-11_114653-1_pre-save.yaml",
+       "size": 29655
+      }
+     }
+    },
+    {
+     "name": "house_modes_2026-11-11_114653_before-migration",
+     "label": "before-migration",
+     "created": "2026-11-11T11:46:53-08:00",
+     "files": {
+      "storage": {
+       "file": "house_modes_2026-11-11_114653_before-migration.storage.json",
+       "size": 57399
+      },
+      "yaml": {
+       "file": "house_modes_2026-11-11_114653_before-migration.yaml",
+       "size": 29655
+      }
+     }
+    }
+   ],
+   "settings": {
+    "retention_days": 30
+   }
+  },
+  "house_modes/ext/locks/get": {
+   "settings": {
+    "links": [
+     {
+      "user_id": "1700000101",
+      "entity_id": "lock.back_door_lock",
+      "slot": 1
+     },
+     {
+      "user_id": "1700000102",
+      "entity_id": "lock.back_door_lock",
+      "slot": 2
+     },
+     {
+      "user_id": "1700000101",
+      "entity_id": "lock.front_door_lock",
+      "slot": 1
+     },
+     {
+      "user_id": "1700000102",
+      "entity_id": "lock.front_door_lock",
+      "slot": 2
+     },
+     {
+      "user_id": "1794426413",
+      "entity_id": "lock.front_door_lock",
+      "slot": 3
+     },
+     {
+      "user_id": "1794426414",
+      "entity_id": "lock.front_door_lock",
+      "slot": 5
+     }
+    ],
+    "actions": {
+     "1700000101": {
+      "unlock": {
+       "house_mode": "disarmed",
+       "targets": {}
+      }
+     },
+     "1700000102": {
+      "unlock": {
+       "house_mode": "disarmed",
+       "targets": {}
+      }
+     }
+    },
+    "lock_actions": {}
+   },
+   "locks": [
+    {
+     "entity_id": "lock.back_door_lock",
+     "name": "Back Door Lock",
+     "node_id": 14
+    },
+    {
+     "entity_id": "lock.front_door_lock",
+     "name": "Front Door Lock",
+     "node_id": 12
+    }
+   ],
+   "users": [
+    {
+     "user_id": "1700000101",
+     "name": "Alex",
+     "enabled": true,
+     "can_arm": true,
+     "can_disarm": true,
+     "area_limit": []
+    },
+    {
+     "user_id": "1794426414",
+     "name": "Cleaner",
+     "enabled": true,
+     "can_arm": false,
+     "can_disarm": false,
+     "area_limit": []
+    },
+    {
+     "user_id": "1794426413",
+     "name": "Dog Walker",
+     "enabled": true,
+     "can_arm": false,
+     "can_disarm": false,
+     "area_limit": []
+    },
+    {
+     "user_id": "1700000103",
+     "name": "Guest",
+     "enabled": true,
+     "can_arm": true,
+     "can_disarm": false,
+     "area_limit": [
+      "1700000001"
+     ]
+    },
+    {
+     "user_id": "1700000102",
+     "name": "Sam",
+     "enabled": true,
+     "can_arm": true,
+     "can_disarm": true,
+     "area_limit": []
+    }
+   ],
+   "sync_labels": {
+    "in_sync": "Slot = User Code",
+    "different": "Slot \u2260 User Code",
+    "empty": "Slot Empty",
+    "unknown": "Not readable",
+    "user_disabled": "User disabled, code still in slot",
+    "no_user": "User removed"
+   }
+  },
+  "house_modes/ext/locks/legacy": {
+   "legacy": []
+  },
+  "house_modes/ext/activity/get": {
+   "settings": {
+    "window_s": 15,
+    "entities": [],
+    "retention_days": 30,
+    "enabled": true
+   },
+   "days": [
+    "2026-11-11"
+   ],
+   "open": null,
+   "kinds": {
+    "house": "House Mode",
+    "alarm": "Alarm",
+    "panel": "Physical panel",
+    "keypad": "Panel keypad",
+    "lock": "Lock",
+    "bypass": "Bypass",
+    "zone": "Zone",
+    "helper": "Helper",
+    "automation": "Automation",
+    "command": "Command",
+    "notify": "Notification",
+    "link": "Panel link",
+    "event": "Event"
+   },
+   "watched": {
+    "alarm_control_panel.ground_floor": "alarm",
+    "alarm_control_panel.upstairs": "alarm",
+    "alarm_control_panel.garage_outbuildings": "alarm",
+    "alarm_control_panel.house": "alarm",
+    "alarm_control_panel.vista_partition_1": "panel",
+    "sensor.vista_partition_1_keypad": "keypad",
+    "select.house_mode": "house",
+    "lock.back_door_lock": "lock",
+    "lock.front_door_lock": "lock"
+   },
+   "directory": "/config/house_modes/activity",
+   "running": true,
+   "last_write": 1794426413.578669,
+   "last_error": null
+  },
+  "config/area_registry/list": [],
+  "config/floor_registry/list": [],
+  "config/label_registry/list": [
+   {
+    "color": null,
+    "created_at": 1794426413.846098,
+    "description": null,
+    "icon": "mdi:home-switch",
+    "label_id": "house_mode_away",
+    "name": "House Mode: Away",
+    "modified_at": 1794426413.846101
+   },
+   {
+    "color": null,
+    "created_at": 1794426413.846202,
+    "description": null,
+    "icon": "mdi:home-switch",
+    "label_id": "house_mode_stay",
+    "name": "House Mode: Stay",
+    "modified_at": 1794426413.846203
+   },
+   {
+    "color": null,
+    "created_at": 1794426413.846241,
+    "description": null,
+    "icon": "mdi:home-switch",
+    "label_id": "house_mode_sleep",
+    "name": "House Mode: Sleep",
+    "modified_at": 1794426413.846241
+   },
+   {
+    "color": null,
+    "created_at": 1794426413.846673,
+    "description": null,
+    "icon": "mdi:home-switch",
+    "label_id": "house_mode_disarmed",
+    "name": "House Mode: Disarmed",
+    "modified_at": 1794426413.846674
+   }
+  ],
+  "house_modes/ext/card/get": {
+   "house": {
+    "enabled": true,
+    "shadow": false,
+    "select_entity": "select.house_mode",
+    "display_entity": null,
+    "current": "disarmed",
+    "previous": null,
+    "changed_at": "2026-11-11T19:46:53.412716+00:00",
+    "source": "manual",
+    "last_result": {
+     "result": "changed",
+     "mode": "disarmed",
+     "requested": "Disarmed",
+     "source": "manual",
+     "at": "2026-11-11T19:46:53.427984+00:00"
+    },
+    "changing_to": null,
+    "modes": [
+     {
+      "id": "disarmed",
+      "name": "Disarmed",
+      "icon": "mdi:shield-lock-open-outline",
+      "color": "#008000",
+      "targets": {
+       "1700000001": "disarmed",
+       "1700000002": "disarmed",
+       "1700000003": "disarmed"
+      }
+     },
+     {
+      "id": "stay",
+      "name": "Stay",
+      "icon": "mdi:shield-home",
+      "color": "#ffa500",
+      "targets": {
+       "1700000001": "armed_home",
+       "1700000002": "disarmed",
+       "1700000003": "armed_away"
+      }
+     },
+     {
+      "id": "sleep",
+      "name": "Sleep",
+      "icon": "mdi:bed",
+      "color": "#5d5df4",
+      "targets": {
+       "1700000001": "armed_night",
+       "1700000002": "armed_night",
+       "1700000003": "armed_away"
+      }
+     },
+     {
+      "id": "away",
+      "name": "Away",
+      "icon": "mdi:shield-lock",
+      "color": "#ff0000",
+      "targets": {
+       "1700000001": "armed_away",
+       "1700000002": "armed_away",
+       "1700000003": "armed_away"
+      }
+     },
+     {
+      "id": "guest",
+      "name": "Guest",
+      "icon": "mdi:account-group",
+      "color": "#990099",
+      "targets": {
+       "1700000001": "disarmed",
+       "1700000002": "disarmed",
+       "1700000003": "armed_away"
+      }
+     }
+    ],
+    "history": [
+     {
+      "at": "2026-11-11T19:46:53.412716+00:00",
+      "to": "Disarmed",
+      "source": "manual"
+     }
+    ]
+   },
+   "alarms": [
+    {
+     "key": "master",
+     "entity_id": "alarm_control_panel.house",
+     "name": "All partitions"
+    },
+    {
+     "key": "1700000001",
+     "entity_id": "alarm_control_panel.ground_floor",
+     "name": "Ground Floor"
+    },
+    {
+     "key": "1700000002",
+     "entity_id": "alarm_control_panel.upstairs",
+     "name": "Upstairs"
+    },
+    {
+     "key": "1700000003",
+     "entity_id": "alarm_control_panel.garage_outbuildings",
+     "name": "Garage & Outbuildings"
+    }
+   ],
+   "links": [
+    {
+     "key": "1700000001",
+     "alarm_entity": "alarm_control_panel.ground_floor",
+     "panel_entity": "alarm_control_panel.vista_partition_1",
+     "panel_type": "envisalink",
+     "keypad_entity": "sensor.vista_partition_1_keypad",
+     "ready_entity": "binary_sensor.vista_partition_1_ready",
+     "mode": "shadow"
+    }
+   ],
+   "keypad": {
+    "allowed": true,
+    "reason": "",
+    "blocked_keys": ""
+   }
+  },
+  "house_modes/ext/card/permissions": {
+   "keypad": {
+    "mode": "admins",
+    "users": []
+   },
+   "alarm": {
+    "arm_code": true,
+    "disarm_code": true,
+    "arm_users": [
+     "Alex",
+     "Guest",
+     "Sam"
+    ],
+    "disarm_users": [
+     "Alex",
+     "Sam"
+    ]
+   }
+  },
+  "house_modes/ext/quickstart/plan": {
+   "status": {
+    "partitions": 3,
+    "zones": 35,
+    "users": 5,
+    "house": {
+     "enabled": true,
+     "modes": 5,
+     "run_mode": "live"
+    },
+    "panel_links": [
+     {
+      "panel": "alarm_control_panel.vista_partition_1",
+      "mode": "shadow"
+     }
+    ],
+    "recording": true,
+    "alarms": [
+     "alarm_control_panel.house",
+     "alarm_control_panel.ground_floor",
+     "alarm_control_panel.upstairs",
+     "alarm_control_panel.garage_outbuildings"
+    ]
+   },
+   "plans": {
+    "house": {
+     "setup": "house",
+     "steps": [
+      {
+       "id": "partition",
+       "title": "A partition",
+       "status": "done",
+       "detail": "Ground Floor",
+       "link": "/house_modes/partitions"
+      },
+      {
+       "id": "house_modes",
+       "title": "House Modes",
+       "status": "done",
+       "detail": "5 mode(s) \u00b7 Live",
+       "link": "/house_modes/house"
+      },
+      {
+       "id": "card",
+       "title": "The dashboard card",
+       "status": "manual",
+       "detail": "add it to a dashboard:",
+       "link": null,
+       "yaml": "type: custom:house-modes-alarm-center-card"
+      }
+     ],
+     "todo": 0
+    },
+    "virtual": {
+     "setup": "virtual",
+     "steps": [
+      {
+       "id": "partition",
+       "title": "A partition",
+       "status": "done",
+       "detail": "Ground Floor",
+       "link": "/house_modes/partitions"
+      },
+      {
+       "id": "arm_modes",
+       "title": "Arm Modes Away, Home and Night",
+       "status": "done",
+       "detail": "on",
+       "link": "/house_modes/partitions"
+      },
+      {
+       "id": "zones",
+       "title": "Zones from your door, window and motion sensors",
+       "status": "todo",
+       "detail": "adds 10 zone(s)",
+       "link": "/house_modes/zones",
+       "candidates": [
+        {
+         "entity_id": "binary_sensor.vista_zone_3",
+         "name": "Back Door",
+         "device_class": "door"
+        },
+        {
+         "entity_id": "binary_sensor.vista_zone_13",
+         "name": "Bedroom 1 Window",
+         "device_class": "window"
+        },
+        {
+         "entity_id": "binary_sensor.vista_zone_14",
+         "name": "Bedroom 2 Window",
+         "device_class": "window"
+        },
+        {
+         "entity_id": "binary_sensor.vista_zone_10",
+         "name": "Dining Window",
+         "device_class": "window"
+        },
+        {
+         "entity_id": "binary_sensor.vista_zone_1",
+         "name": "Front Door",
+         "device_class": "door"
+        },
+        {
+         "entity_id": "binary_sensor.vista_zone_2",
+         "name": "Hall Motion",
+         "device_class": "motion"
+        },
+        {
+         "entity_id": "binary_sensor.vista_zone_9",
+         "name": "Kitchen Window",
+         "device_class": "window"
+        },
+        {
+         "entity_id": "binary_sensor.vista_zone_11",
+         "name": "Living Room Window 1",
+         "device_class": "window"
+        },
+        {
+         "entity_id": "binary_sensor.vista_zone_12",
+         "name": "Living Room Window 2",
+         "device_class": "window"
+        },
+        {
+         "entity_id": "binary_sensor.vista_zone_4",
+         "name": "Patio Door",
+         "device_class": "door"
+        }
+       ]
+      },
+      {
+       "id": "user",
+       "title": "A user with a code",
+       "status": "done",
+       "detail": "5 user(s)",
+       "link": "/house_modes/codes"
+      },
+      {
+       "id": "card",
+       "title": "The dashboard card",
+       "status": "manual",
+       "detail": "add it to a dashboard:",
+       "link": null,
+       "yaml": "type: custom:house-modes-alarm-center-card"
+      }
+     ],
+     "todo": 1
+    },
+    "panel": {
+     "setup": "panel",
+     "steps": [
+      {
+       "id": "partition",
+       "title": "A partition",
+       "status": "done",
+       "detail": "Ground Floor",
+       "link": "/house_modes/partitions"
+      },
+      {
+       "id": "panel_link",
+       "title": "Physical panel link",
+       "status": "done",
+       "detail": "alarm_control_panel.vista_partition_1 \u00b7 shadow",
+       "link": "/house_modes/panel"
+      },
+      {
+       "id": "panel_zones",
+       "title": "The panel's zones as zones",
+       "status": "todo",
+       "detail": "adds 11 zone(s)",
+       "link": "/house_modes/zones",
+       "entities": [
+        "binary_sensor.vista_zone_1",
+        "binary_sensor.vista_zone_2",
+        "binary_sensor.vista_zone_3",
+        "binary_sensor.vista_zone_4",
+        "binary_sensor.vista_zone_9",
+        "binary_sensor.vista_zone_10",
+        "binary_sensor.vista_zone_11",
+        "binary_sensor.vista_zone_12",
+        "binary_sensor.vista_zone_13",
+        "binary_sensor.vista_zone_14",
+        "binary_sensor.vista_zone_19"
+       ]
+      },
+      {
+       "id": "panel_code",
+       "title": "The panel's default code",
+       "status": "done",
+       "detail": "set",
+       "link": null
+      },
+      {
+       "id": "house_modes",
+       "title": "House Modes",
+       "status": "done",
+       "detail": "5 mode(s) \u00b7 Live",
+       "link": "/house_modes/house"
+      },
+      {
+       "id": "card",
+       "title": "The dashboard card",
+       "status": "manual",
+       "detail": "add it to a dashboard:",
+       "link": null,
+       "yaml": "type: custom:house-modes-alarm-center-card"
+      },
+      {
+       "id": "live",
+       "title": "Go live",
+       "status": "manual",
+       "detail": "when the Shadow logs match your automations: switch the panel link and House Modes to Live and turn off the automations they replace (HOUSE-MODES.md)",
+       "link": "/house_modes/activity"
+      }
+     ],
+     "todo": 1
+    }
+   }
+  },
+  "house_modes/ready_to_arm_modes|alarm_control_panel.ground_floor": {
+   "modes": [
+    "armed_custom_bypass"
+   ]
+  },
+  "house_modes/ready_to_arm_modes|alarm_control_panel.upstairs": {
+   "modes": [
+    "armed_away",
+    "armed_home",
+    "armed_night",
+    "armed_vacation",
+    "armed_custom_bypass"
+   ]
+  },
+  "house_modes/ready_to_arm_modes|alarm_control_panel.garage_outbuildings": {
+   "modes": [
+    "armed_away",
+    "armed_home",
+    "armed_night",
+    "armed_vacation",
+    "armed_custom_bypass"
+   ]
+  },
+  "house_modes/ext/locks/read|lock.front_door_lock": {
+   "entity_id": "lock.front_door_lock",
+   "api": "code_slots",
+   "readable": true,
+   "slots": [
+    {
+     "slot": 1,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1700000101",
+     "match_user_id": "1700000101",
+     "status": "in_sync"
+    },
+    {
+     "slot": 2,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1700000102",
+     "match_user_id": "1700000102",
+     "status": "in_sync"
+    },
+    {
+     "slot": 3,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1794426413",
+     "match_user_id": "1794426413",
+     "status": "in_sync"
+    },
+    {
+     "slot": 5,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1794426414",
+     "match_user_id": "1794426414",
+     "status": "in_sync"
+    }
+   ]
+  },
+  "house_modes/ext/locks/read|lock.back_door_lock": {
+   "entity_id": "lock.back_door_lock",
+   "api": "code_slots",
+   "readable": true,
+   "slots": [
+    {
+     "slot": 1,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1700000101",
+     "match_user_id": "1700000101",
+     "status": "in_sync"
+    },
+    {
+     "slot": 2,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1700000102",
+     "match_user_id": "1700000102",
+     "status": "in_sync"
+    }
+   ]
+  },
+  "house_modes/ext/locks/user|1700000101": {
+   "links": [
+    {
+     "entity_id": "lock.back_door_lock",
+     "slot": 1,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1700000101",
+     "match_user_id": "1700000101",
+     "status": "in_sync"
+    },
+    {
+     "entity_id": "lock.front_door_lock",
+     "slot": 1,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1700000101",
+     "match_user_id": "1700000101",
+     "status": "in_sync"
+    }
+   ],
+   "actions": {
+    "unlock": {
+     "house_mode": "disarmed",
+     "targets": {}
+    }
+   },
+   "sync_labels": {
+    "in_sync": "Slot = User Code",
+    "different": "Slot \u2260 User Code",
+    "empty": "Slot Empty",
+    "unknown": "Not readable",
+    "user_disabled": "User disabled, code still in slot",
+    "no_user": "User removed"
+   }
+  },
+  "house_modes/ext/locks/user|1700000102": {
+   "links": [
+    {
+     "entity_id": "lock.back_door_lock",
+     "slot": 2,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1700000102",
+     "match_user_id": "1700000102",
+     "status": "in_sync"
+    },
+    {
+     "entity_id": "lock.front_door_lock",
+     "slot": 2,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1700000102",
+     "match_user_id": "1700000102",
+     "status": "in_sync"
+    }
+   ],
+   "actions": {
+    "unlock": {
+     "house_mode": "disarmed",
+     "targets": {}
+    }
+   },
+   "sync_labels": {
+    "in_sync": "Slot = User Code",
+    "different": "Slot \u2260 User Code",
+    "empty": "Slot Empty",
+    "unknown": "Not readable",
+    "user_disabled": "User disabled, code still in slot",
+    "no_user": "User removed"
+   }
+  },
+  "house_modes/ext/locks/user|1700000103": {
+   "links": [],
+   "actions": {},
+   "sync_labels": {
+    "in_sync": "Slot = User Code",
+    "different": "Slot \u2260 User Code",
+    "empty": "Slot Empty",
+    "unknown": "Not readable",
+    "user_disabled": "User disabled, code still in slot",
+    "no_user": "User removed"
+   }
+  },
+  "house_modes/ext/locks/user|1794426413": {
+   "links": [
+    {
+     "entity_id": "lock.front_door_lock",
+     "slot": 3,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1794426413",
+     "match_user_id": "1794426413",
+     "status": "in_sync"
+    }
+   ],
+   "actions": {},
+   "sync_labels": {
+    "in_sync": "Slot = User Code",
+    "different": "Slot \u2260 User Code",
+    "empty": "Slot Empty",
+    "unknown": "Not readable",
+    "user_disabled": "User disabled, code still in slot",
+    "no_user": "User removed"
+   }
+  },
+  "house_modes/ext/locks/user|1794426414": {
+   "links": [
+    {
+     "entity_id": "lock.front_door_lock",
+     "slot": 5,
+     "in_use": true,
+     "readable": true,
+     "lock_name": "",
+     "user_id": "1794426414",
+     "match_user_id": "1794426414",
+     "status": "in_sync"
+    }
+   ],
+   "actions": {},
+   "sync_labels": {
+    "in_sync": "Slot = User Code",
+    "different": "Slot \u2260 User Code",
+    "empty": "Slot Empty",
+    "unknown": "Not readable",
+    "user_disabled": "User disabled, code still in slot",
+    "no_user": "User removed"
+   }
+  },
+  "house_modes/ext/activity/day|2026-11-11": {
+   "sequences": [
+    {
+     "id": "40e3ef7f90",
+     "start": 1794426413.5768106,
+     "title": "Keypad unlock operation \u00b7 Front Door Lock \u00b7 slot 1 (Alex)",
+     "kinds": [
+      "lock",
+      "automation",
+      "house",
+      "house_modes",
+      "panel",
+      "bypass"
+     ],
+     "entries": [
+      {
+       "t": 1794426413.577,
+       "dt": 0,
+       "kind": "lock",
+       "text": "Keypad unlock operation \u00b7 Front Door Lock \u00b7 slot 1 (Alex)"
+      },
+      {
+       "t": 1794426413.577,
+       "dt": 0.1,
+       "kind": "lock",
+       "text": "keypad action for Alex: House Mode disarmed"
+      },
+      {
+       "t": 1794426413.577,
+       "dt": 0.4,
+       "kind": "automation",
+       "text": "ran: Door Lock Activity"
+      },
+      {
+       "t": 1794426413.577,
+       "dt": 0.4,
+       "kind": "house",
+       "text": "House Mode Selector: Stay \u2192 Disarmed",
+       "cause": "automation: Door Lock Activity"
+      },
+      {
+       "t": 1794426413.577,
+       "dt": 1.6,
+       "kind": "house_modes",
+       "text": "The alarm Ground Floor: armed_home \u2192 disarmed"
+      },
+      {
+       "t": 1794426413.577,
+       "dt": 2.4,
+       "kind": "panel",
+       "text": "Vista Partition 1: armed_home \u2192 disarmed"
+      },
+      {
+       "t": 1794426413.577,
+       "dt": 2.5,
+       "kind": "bypass",
+       "text": "panel bypasses cleared (BYPASS indicator off)"
+      }
+     ],
+     "end": 1794426413.577,
+     "duration": 0.0
+    },
+    {
+     "id": "6ce2bc3f41",
+     "start": 1794422813.567903,
+     "title": "House Mode Selector: Disarmed \u2192 Stay",
+     "kinds": [
+      "automation",
+      "house",
+      "house_modes",
+      "link",
+      "bypass",
+      "panel",
+      "keypad"
+     ],
+     "entries": [
+      {
+       "t": 1794426413.568,
+       "dt": 0.0,
+       "kind": "automation",
+       "text": "ran: House Modes - Time"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 0.0,
+       "kind": "house",
+       "text": "House Mode Selector: Disarmed \u2192 Stay",
+       "cause": "automation: House Modes - Time"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 0.0,
+       "kind": "automation",
+       "text": "ran: House Modes 1"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 0.4,
+       "kind": "house_modes",
+       "text": "The alarm Ground Floor: disarmed \u2192 arming",
+       "cause": "automation: House Modes 1"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 0.4,
+       "kind": "link",
+       "text": "[shadow] the alarm armed_home \u2192 physical panel: service alarm_arm_home (try 1/1)"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 2.5,
+       "kind": "bypass",
+       "text": "bypassed on the panel: binary_sensor.vista_zone_11 \u00b7 mirrors holding open: binary_sensor.vista_zone_11"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 2.6,
+       "kind": "panel",
+       "text": "Vista Partition 1: disarmed \u2192 arming"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 0.4,
+       "kind": "link",
+       "text": "[shadow] physical panel started arming after 1 s"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 3.0,
+       "kind": "keypad",
+       "text": "Keypad: ARMED ***STAY*** ZONE BYPASSED"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 31.8,
+       "kind": "panel",
+       "text": "Vista Partition 1: arming \u2192 armed_home"
+      },
+      {
+       "t": 1794426413.568,
+       "dt": 31.8,
+       "kind": "link",
+       "text": "[shadow] physical panel is armed_home after 30 s"
+      }
+     ],
+     "end": 1794426413.568,
+     "duration": 3600.0
+    }
+   ],
+   "summary": {
+    "sequences": 2,
+    "starters": {
+     "lock": 1,
+     "automation": 1
+    },
+    "failures": 0,
+    "panel_latency": {}
+   }
+  },
+  "house_modes/ext/alarmo_import/status|ask": {
+   "found": true,
+   "kind": "fork",
+   "files": {
+    "alarmo.storage": true,
+    "alarmo_extras": true
+   },
+   "counts": {
+    "partitions": 3,
+    "zones": 35,
+    "users": 5,
+    "alarm_events": 3,
+    "sensor_groups": 2,
+    "house_modes": 5,
+    "panel_links": 1,
+    "mirrors": 6,
+    "zone_rules": 0,
+    "lock_links": 6
+   },
+   "folders": {
+    "activity": 1,
+    "backups": 0
+   },
+   "old_entries": [
+    {
+     "entry_id": "01M762C8Y92Z9RGNK6VD487GSC",
+     "title": "Alarmo",
+     "state": "not_loaded",
+     "disabled": true
+    }
+   ],
+   "old_active": false,
+   "choice": null,
+   "at": null,
+   "imported": null,
+   "ask": true
+  },
+  "house_modes/ext/alarmo_import/status|imported": {
+   "found": true,
+   "kind": "fork",
+   "files": {
+    "alarmo.storage": true,
+    "alarmo_extras": true
+   },
+   "counts": {
+    "partitions": 3,
+    "zones": 35,
+    "users": 5,
+    "alarm_events": 3,
+    "sensor_groups": 2,
+    "house_modes": 5,
+    "panel_links": 1,
+    "mirrors": 6,
+    "zone_rules": 0,
+    "lock_links": 6
+   },
+   "folders": {
+    "activity": 1,
+    "backups": 0
+   },
+   "old_entries": [
+    {
+     "entry_id": "01M762C8Y92Z9RGNK6VD487GSC",
+     "title": "Alarmo",
+     "state": "not_loaded",
+     "disabled": true
+    }
+   ],
+   "old_active": false,
+   "choice": "imported",
+   "at": "2026-11-11T11:46:54-08:00",
+   "imported": {
+    "kind": "fork",
+    "counts": {
+     "partitions": 3,
+     "zones": 35,
+     "users": 5,
+     "alarm_events": 3,
+     "sensor_groups": 2,
+     "house_modes": 5,
+     "panel_links": 1,
+     "mirrors": 6,
+     "zone_rules": 0,
+     "lock_links": 6
+    },
+    "copied": {
+     "activity": 1,
+     "backups": 0
+    },
+    "backup": "house_modes_2026-11-11_114654_before-alarmo-import"
+   },
+   "ask": false
+  },
+  "house_modes/ext/references/scan|imported": {
+   "files": [
+    {
+     "file": "automations.yaml",
+     "hits": [
+      {
+       "line": 7,
+       "old": "alarmo.set_house_mode",
+       "new": "house_modes.set_house_mode",
+       "kind": "service",
+       "text": "- action: alarmo.set_house_mode"
+      },
+      {
+       "line": 15,
+       "old": "alarmo_house_mode_changed",
+       "new": "house_modes_house_mode_changed",
+       "kind": "event",
+       "text": "event_type: alarmo_house_mode_changed"
+      },
+      {
+       "line": 18,
+       "old": "select.alarmo_house_mode",
+       "new": "select.house_mode",
+       "kind": "House Mode select",
+       "text": "entity_id: select.alarmo_house_mode"
+      }
+     ],
+     "other": [
+      {
+       "line": 21,
+       "text": "entity_id: input_boolean.alarmo_change_away"
+      }
+     ],
+     "cards": []
+    }
+   ],
+   "dashboards": [],
+   "total": 3,
+   "token": "47f8e09d236b7ea170a96d8f",
+   "last": null
+  },
+  "house_modes/ext/alarmo_import/status": {
+   "found": false,
+   "kind": "fork",
+   "files": {
+    "alarmo.storage": true,
+    "alarmo_extras": true
+   },
+   "counts": {
+    "partitions": 3,
+    "zones": 35,
+    "users": 5,
+    "alarm_events": 3,
+    "sensor_groups": 2,
+    "house_modes": 5,
+    "panel_links": 1,
+    "mirrors": 6,
+    "zone_rules": 0,
+    "lock_links": 6
+   },
+   "folders": {
+    "activity": 1,
+    "backups": 0
+   },
+   "old_entries": [
+    {
+     "entry_id": "01M762C8Y92Z9RGNK6VD487GSC",
+     "title": "Alarmo",
+     "state": "not_loaded",
+     "disabled": true
+    }
+   ],
+   "old_active": false,
+   "choice": null,
+   "at": null,
+   "imported": null,
+   "ask": false
+  }
+ },
+ "states": {
+  "binary_sensor.front_door": {
+   "entity_id": "binary_sensor.front_door",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Front Door",
+    "device_class": "door"
+   },
+   "last_changed": "2026-11-11T19:46:53.232829+00:00",
+   "last_updated": "2026-11-11T19:46:53.348495+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.back_door": {
+   "entity_id": "binary_sensor.back_door",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Back Door",
+    "device_class": "door"
+   },
+   "last_changed": "2026-11-11T19:46:53.232890+00:00",
+   "last_updated": "2026-11-11T19:46:53.348527+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.patio_door": {
+   "entity_id": "binary_sensor.patio_door",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Patio Door",
+    "device_class": "door"
+   },
+   "last_changed": "2026-11-11T19:46:53.232906+00:00",
+   "last_updated": "2026-11-11T19:46:53.348540+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.side_door": {
+   "entity_id": "binary_sensor.side_door",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Side Door",
+    "device_class": "door"
+   },
+   "last_changed": "2026-11-11T19:46:53.232915+00:00",
+   "last_updated": "2026-11-11T19:46:53.348549+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.gf_window_1": {
+   "entity_id": "binary_sensor.gf_window_1",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Kitchen Window",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.232921+00:00",
+   "last_updated": "2026-11-11T19:46:53.348557+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.gf_window_2": {
+   "entity_id": "binary_sensor.gf_window_2",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Dining Window",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.232928+00:00",
+   "last_updated": "2026-11-11T19:46:53.348564+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.gf_window_3": {
+   "entity_id": "binary_sensor.gf_window_3",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Living Room Window 1",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.348791+00:00",
+   "last_updated": "2026-11-11T19:46:53.348791+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.gf_window_4": {
+   "entity_id": "binary_sensor.gf_window_4",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Living Room Window 2",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.232938+00:00",
+   "last_updated": "2026-11-11T19:46:53.348578+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.gf_window_5": {
+   "entity_id": "binary_sensor.gf_window_5",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Family Room Window",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.232945+00:00",
+   "last_updated": "2026-11-11T19:46:53.348584+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.gf_window_6": {
+   "entity_id": "binary_sensor.gf_window_6",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Laundry Window",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.232950+00:00",
+   "last_updated": "2026-11-11T19:46:53.348591+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.hall_motion": {
+   "entity_id": "binary_sensor.hall_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Hall Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.232958+00:00",
+   "last_updated": "2026-11-11T19:46:53.348598+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.living_motion": {
+   "entity_id": "binary_sensor.living_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Living Room Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.232967+00:00",
+   "last_updated": "2026-11-11T19:46:53.348608+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.kitchen_motion": {
+   "entity_id": "binary_sensor.kitchen_motion",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Kitchen Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.348799+00:00",
+   "last_updated": "2026-11-11T19:46:53.348799+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.dining_motion": {
+   "entity_id": "binary_sensor.dining_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Dining Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.232977+00:00",
+   "last_updated": "2026-11-11T19:46:53.348620+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.up_window_1": {
+   "entity_id": "binary_sensor.up_window_1",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Bedroom 1 Window",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.232982+00:00",
+   "last_updated": "2026-11-11T19:46:53.348625+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.up_window_2": {
+   "entity_id": "binary_sensor.up_window_2",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Bedroom 2 Window",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.232986+00:00",
+   "last_updated": "2026-11-11T19:46:53.348632+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.up_window_3": {
+   "entity_id": "binary_sensor.up_window_3",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Bedroom 3 Window",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.232991+00:00",
+   "last_updated": "2026-11-11T19:46:53.348638+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.up_window_4": {
+   "entity_id": "binary_sensor.up_window_4",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Bathroom Window",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.232996+00:00",
+   "last_updated": "2026-11-11T19:46:53.348645+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.up_window_5": {
+   "entity_id": "binary_sensor.up_window_5",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Landing Window",
+    "device_class": "window"
+   },
+   "last_changed": "2026-11-11T19:46:53.233003+00:00",
+   "last_updated": "2026-11-11T19:46:53.348653+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.landing_motion": {
+   "entity_id": "binary_sensor.landing_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Landing Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.233008+00:00",
+   "last_updated": "2026-11-11T19:46:53.348659+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.bed_1_motion": {
+   "entity_id": "binary_sensor.bed_1_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Bedroom 1 Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.233013+00:00",
+   "last_updated": "2026-11-11T19:46:53.348665+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.bed_2_motion": {
+   "entity_id": "binary_sensor.bed_2_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Bedroom 2 Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.233020+00:00",
+   "last_updated": "2026-11-11T19:46:53.348670+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.bed_3_motion": {
+   "entity_id": "binary_sensor.bed_3_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Bedroom 3 Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.233025+00:00",
+   "last_updated": "2026-11-11T19:46:53.348675+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.office_motion": {
+   "entity_id": "binary_sensor.office_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Office Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.233032+00:00",
+   "last_updated": "2026-11-11T19:46:53.348680+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.garage_door": {
+   "entity_id": "binary_sensor.garage_door",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Garage Side Door",
+    "device_class": "door"
+   },
+   "last_changed": "2026-11-11T19:46:53.233037+00:00",
+   "last_updated": "2026-11-11T19:46:53.348685+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.shed_door": {
+   "entity_id": "binary_sensor.shed_door",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Shed Door",
+    "device_class": "door"
+   },
+   "last_changed": "2026-11-11T19:46:53.233042+00:00",
+   "last_updated": "2026-11-11T19:46:53.348691+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.garage_motion": {
+   "entity_id": "binary_sensor.garage_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Garage Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.233048+00:00",
+   "last_updated": "2026-11-11T19:46:53.348698+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.driveway_motion": {
+   "entity_id": "binary_sensor.driveway_motion",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Driveway Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.233053+00:00",
+   "last_updated": "2026-11-11T19:46:53.348703+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.kitchen_smoke": {
+   "entity_id": "binary_sensor.kitchen_smoke",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Kitchen Smoke",
+    "device_class": "smoke"
+   },
+   "last_changed": "2026-11-11T19:46:53.233058+00:00",
+   "last_updated": "2026-11-11T19:46:53.348708+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.hall_smoke": {
+   "entity_id": "binary_sensor.hall_smoke",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Hall Smoke",
+    "device_class": "smoke"
+   },
+   "last_changed": "2026-11-11T19:46:53.233062+00:00",
+   "last_updated": "2026-11-11T19:46:53.348714+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.landing_smoke": {
+   "entity_id": "binary_sensor.landing_smoke",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Landing Smoke",
+    "device_class": "smoke"
+   },
+   "last_changed": "2026-11-11T19:46:53.233067+00:00",
+   "last_updated": "2026-11-11T19:46:53.348740+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.boiler_co": {
+   "entity_id": "binary_sensor.boiler_co",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Boiler CO",
+    "device_class": "carbon_monoxide"
+   },
+   "last_changed": "2026-11-11T19:46:53.233071+00:00",
+   "last_updated": "2026-11-11T19:46:53.348720+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.utility_leak": {
+   "entity_id": "binary_sensor.utility_leak",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Utility Leak",
+    "device_class": "moisture"
+   },
+   "last_changed": "2026-11-11T19:46:53.233078+00:00",
+   "last_updated": "2026-11-11T19:46:53.348728+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.keypad_tamper": {
+   "entity_id": "binary_sensor.keypad_tamper",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Keypad Tamper",
+    "device_class": "tamper"
+   },
+   "last_changed": "2026-11-11T19:46:53.233082+00:00",
+   "last_updated": "2026-11-11T19:46:53.348734+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "lock.front_door": {
+   "entity_id": "lock.front_door",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Front Door Lock"
+   },
+   "last_changed": "2026-11-11T19:46:53.233087+00:00",
+   "last_updated": "2026-11-11T19:46:53.348746+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "alarm_control_panel.ground_floor": {
+   "entity_id": "alarm_control_panel.ground_floor",
+   "state": "disarmed",
+   "attributes": {
+    "code_format": "number",
+    "changed_by": null,
+    "code_arm_required": true,
+    "arm_mode": null,
+    "next_state": "disarmed",
+    "open_sensors": null,
+    "bypassed_sensors": null,
+    "delay": null,
+    "last_triggered": null,
+    "friendly_name": "Ground Floor",
+    "supported_features": 63
+   },
+   "last_changed": "2026-11-11T19:46:53.288646+00:00",
+   "last_updated": "2026-11-11T19:46:53.288646+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "alarm_control_panel.upstairs": {
+   "entity_id": "alarm_control_panel.upstairs",
+   "state": "disarmed",
+   "attributes": {
+    "code_format": "number",
+    "changed_by": null,
+    "code_arm_required": true,
+    "arm_mode": null,
+    "next_state": "disarmed",
+    "open_sensors": null,
+    "bypassed_sensors": null,
+    "delay": null,
+    "last_triggered": null,
+    "friendly_name": "Upstairs",
+    "supported_features": 63
+   },
+   "last_changed": "2026-11-11T19:46:53.289172+00:00",
+   "last_updated": "2026-11-11T19:46:53.289172+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "alarm_control_panel.garage_outbuildings": {
+   "entity_id": "alarm_control_panel.garage_outbuildings",
+   "state": "disarmed",
+   "attributes": {
+    "code_format": "number",
+    "changed_by": null,
+    "code_arm_required": true,
+    "arm_mode": null,
+    "next_state": "disarmed",
+    "open_sensors": null,
+    "bypassed_sensors": null,
+    "delay": null,
+    "last_triggered": null,
+    "friendly_name": "Garage & Outbuildings",
+    "supported_features": 63
+   },
+   "last_changed": "2026-11-11T19:46:53.289608+00:00",
+   "last_updated": "2026-11-11T19:46:53.289608+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "alarm_control_panel.house": {
+   "entity_id": "alarm_control_panel.house",
+   "state": "disarmed",
+   "attributes": {
+    "code_format": "number",
+    "changed_by": null,
+    "code_arm_required": true,
+    "arm_mode": null,
+    "next_state": "disarmed",
+    "open_sensors": null,
+    "bypassed_sensors": null,
+    "delay": null,
+    "last_triggered": null,
+    "friendly_name": "House",
+    "supported_features": 63
+   },
+   "last_changed": "2026-11-11T19:46:53.290136+00:00",
+   "last_updated": "2026-11-11T19:46:53.290136+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "select.house_mode": {
+   "entity_id": "select.house_mode",
+   "state": "Disarmed",
+   "attributes": {
+    "options": [
+     "Disarmed",
+     "Stay",
+     "Sleep",
+     "Away",
+     "Guest"
+    ],
+    "previous": null,
+    "previous_since": null,
+    "previous_duration": null,
+    "source": "manual",
+    "changed_at": "2026-11-11T19:46:53.412716+00:00",
+    "last_result": {
+     "result": "changed",
+     "mode": "disarmed",
+     "requested": "Disarmed",
+     "source": "manual",
+     "at": "2026-11-11T19:46:53.427984+00:00"
+    },
+    "changing_to": null,
+    "pending": [],
+    "icon": "mdi:shield-lock-open-outline",
+    "friendly_name": "House Mode"
+   },
+   "last_changed": "2026-11-11T19:46:53.417629+00:00",
+   "last_updated": "2026-11-11T19:46:53.432774+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "light.living_room": {
+   "entity_id": "light.living_room",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Living Room Lights",
+    "brightness": 153,
+    "color_mode": "color_temp",
+    "color_temp_kelvin": 2700,
+    "supported_color_modes": [
+     "color_temp",
+     "hs"
+    ],
+    "min_color_temp_kelvin": 2000,
+    "max_color_temp_kelvin": 6500
+   },
+   "last_changed": "2026-11-11T19:46:53.348759+00:00",
+   "last_updated": "2026-11-11T19:46:53.348759+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "light.kitchen": {
+   "entity_id": "light.kitchen",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Kitchen Lights",
+    "brightness": 77,
+    "color_mode": "hs",
+    "rgb_color": [
+     255,
+     170,
+     80
+    ]
+   },
+   "last_changed": "2026-11-11T19:46:53.348772+00:00",
+   "last_updated": "2026-11-11T19:46:53.348772+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "cover.living_room_blinds": {
+   "entity_id": "cover.living_room_blinds",
+   "state": "open",
+   "attributes": {
+    "friendly_name": "Living Room Blinds",
+    "current_position": 40
+   },
+   "last_changed": "2026-11-11T19:46:53.348780+00:00",
+   "last_updated": "2026-11-11T19:46:53.348780+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "alarm_control_panel.vista_partition_1": {
+   "entity_id": "alarm_control_panel.vista_partition_1",
+   "state": "disarmed",
+   "attributes": {
+    "friendly_name": "Vista Partition 1"
+   },
+   "last_changed": "2026-11-11T19:46:53.349078+00:00",
+   "last_updated": "2026-11-11T19:46:53.349078+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_1": {
+   "entity_id": "binary_sensor.vista_zone_1",
+   "state": "off",
+   "attributes": {
+    "zone": 1,
+    "partition": 1,
+    "device_class": "door",
+    "friendly_name": "Front Door"
+   },
+   "last_changed": "2026-11-11T19:46:53.349345+00:00",
+   "last_updated": "2026-11-11T19:46:53.349345+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_2": {
+   "entity_id": "binary_sensor.vista_zone_2",
+   "state": "off",
+   "attributes": {
+    "zone": 2,
+    "partition": 1,
+    "device_class": "motion",
+    "friendly_name": "Hall Motion"
+   },
+   "last_changed": "2026-11-11T19:46:53.349487+00:00",
+   "last_updated": "2026-11-11T19:46:53.349487+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_3": {
+   "entity_id": "binary_sensor.vista_zone_3",
+   "state": "off",
+   "attributes": {
+    "zone": 3,
+    "partition": 1,
+    "device_class": "door",
+    "friendly_name": "Back Door"
+   },
+   "last_changed": "2026-11-11T19:46:53.349640+00:00",
+   "last_updated": "2026-11-11T19:46:53.349640+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_4": {
+   "entity_id": "binary_sensor.vista_zone_4",
+   "state": "off",
+   "attributes": {
+    "zone": 4,
+    "partition": 1,
+    "device_class": "door",
+    "friendly_name": "Patio Door"
+   },
+   "last_changed": "2026-11-11T19:46:53.349835+00:00",
+   "last_updated": "2026-11-11T19:46:53.349835+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_9": {
+   "entity_id": "binary_sensor.vista_zone_9",
+   "state": "off",
+   "attributes": {
+    "zone": 9,
+    "partition": 1,
+    "device_class": "window",
+    "friendly_name": "Kitchen Window"
+   },
+   "last_changed": "2026-11-11T19:46:53.350001+00:00",
+   "last_updated": "2026-11-11T19:46:53.350001+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_10": {
+   "entity_id": "binary_sensor.vista_zone_10",
+   "state": "off",
+   "attributes": {
+    "zone": 10,
+    "partition": 1,
+    "device_class": "window",
+    "friendly_name": "Dining Window"
+   },
+   "last_changed": "2026-11-11T19:46:53.350151+00:00",
+   "last_updated": "2026-11-11T19:46:53.350151+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_11": {
+   "entity_id": "binary_sensor.vista_zone_11",
+   "state": "on",
+   "attributes": {
+    "zone": 11,
+    "partition": 1,
+    "device_class": "window",
+    "friendly_name": "Living Room Window 1"
+   },
+   "last_changed": "2026-11-11T19:46:53.350291+00:00",
+   "last_updated": "2026-11-11T19:46:53.350291+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_12": {
+   "entity_id": "binary_sensor.vista_zone_12",
+   "state": "off",
+   "attributes": {
+    "zone": 12,
+    "partition": 1,
+    "device_class": "window",
+    "friendly_name": "Living Room Window 2"
+   },
+   "last_changed": "2026-11-11T19:46:53.350427+00:00",
+   "last_updated": "2026-11-11T19:46:53.350427+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_13": {
+   "entity_id": "binary_sensor.vista_zone_13",
+   "state": "off",
+   "attributes": {
+    "zone": 13,
+    "partition": 1,
+    "device_class": "window",
+    "friendly_name": "Bedroom 1 Window"
+   },
+   "last_changed": "2026-11-11T19:46:53.350559+00:00",
+   "last_updated": "2026-11-11T19:46:53.350559+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_14": {
+   "entity_id": "binary_sensor.vista_zone_14",
+   "state": "off",
+   "attributes": {
+    "zone": 14,
+    "partition": 1,
+    "device_class": "window",
+    "friendly_name": "Bedroom 2 Window"
+   },
+   "last_changed": "2026-11-11T19:46:53.350741+00:00",
+   "last_updated": "2026-11-11T19:46:53.350741+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_19": {
+   "entity_id": "binary_sensor.vista_zone_19",
+   "state": "off",
+   "attributes": {
+    "zone": 19,
+    "partition": 1,
+    "device_class": "smoke",
+    "friendly_name": "Smoke Detector"
+   },
+   "last_changed": "2026-11-11T19:46:53.350927+00:00",
+   "last_updated": "2026-11-11T19:46:53.350927+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_partition_1_ready": {
+   "entity_id": "binary_sensor.vista_partition_1_ready",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Vista Ready"
+   },
+   "last_changed": "2026-11-11T19:46:53.351066+00:00",
+   "last_updated": "2026-11-11T19:46:53.351066+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "sensor.vista_partition_1_keypad": {
+   "entity_id": "sensor.vista_partition_1_keypad",
+   "state": "FAULT 11 LIVING ROOM WINDOW",
+   "attributes": {
+    "alpha": "FAULT 11 LIVING ROOM WINDOW",
+    "armed_bypass": false,
+    "ready": false
+   },
+   "last_changed": "2026-11-11T19:46:53.351236+00:00",
+   "last_updated": "2026-11-11T19:46:53.351236+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "lock.front_door_lock": {
+   "entity_id": "lock.front_door_lock",
+   "state": "locked",
+   "attributes": {
+    "friendly_name": "Front Door Lock"
+   },
+   "last_changed": "2026-11-11T19:46:53.351596+00:00",
+   "last_updated": "2026-11-11T19:46:53.351596+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "lock.back_door_lock": {
+   "entity_id": "lock.back_door_lock",
+   "state": "locked",
+   "attributes": {
+    "friendly_name": "Back Door Lock"
+   },
+   "last_changed": "2026-11-11T19:46:53.351830+00:00",
+   "last_updated": "2026-11-11T19:46:53.351830+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_9_mirror": {
+   "entity_id": "binary_sensor.vista_zone_9_mirror",
+   "state": "off",
+   "attributes": {
+    "source": "binary_sensor.vista_zone_9",
+    "bypassed": false,
+    "bypass_held": false,
+    "device_class": "window",
+    "friendly_name": "Kitchen Window"
+   },
+   "last_changed": "2026-11-11T19:46:53.355768+00:00",
+   "last_updated": "2026-11-11T19:46:53.355768+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_10_mirror": {
+   "entity_id": "binary_sensor.vista_zone_10_mirror",
+   "state": "off",
+   "attributes": {
+    "source": "binary_sensor.vista_zone_10",
+    "bypassed": false,
+    "bypass_held": false,
+    "device_class": "window",
+    "friendly_name": "Dining Window"
+   },
+   "last_changed": "2026-11-11T19:46:53.357473+00:00",
+   "last_updated": "2026-11-11T19:46:53.357473+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_11_mirror": {
+   "entity_id": "binary_sensor.vista_zone_11_mirror",
+   "state": "on",
+   "attributes": {
+    "source": "binary_sensor.vista_zone_11",
+    "bypassed": false,
+    "bypass_held": false,
+    "device_class": "window",
+    "friendly_name": "Living Room Window 1"
+   },
+   "last_changed": "2026-11-11T19:46:53.358235+00:00",
+   "last_updated": "2026-11-11T19:46:53.358235+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_12_mirror": {
+   "entity_id": "binary_sensor.vista_zone_12_mirror",
+   "state": "off",
+   "attributes": {
+    "source": "binary_sensor.vista_zone_12",
+    "bypassed": false,
+    "bypass_held": false,
+    "device_class": "window",
+    "friendly_name": "Living Room Window 2"
+   },
+   "last_changed": "2026-11-11T19:46:53.359876+00:00",
+   "last_updated": "2026-11-11T19:46:53.359876+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_13_mirror": {
+   "entity_id": "binary_sensor.vista_zone_13_mirror",
+   "state": "off",
+   "attributes": {
+    "source": "binary_sensor.vista_zone_13",
+    "bypassed": false,
+    "bypass_held": false,
+    "device_class": "window",
+    "friendly_name": "Bedroom 1 Window"
+   },
+   "last_changed": "2026-11-11T19:46:53.361570+00:00",
+   "last_updated": "2026-11-11T19:46:53.361570+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "binary_sensor.vista_zone_14_mirror": {
+   "entity_id": "binary_sensor.vista_zone_14_mirror",
+   "state": "off",
+   "attributes": {
+    "source": "binary_sensor.vista_zone_14",
+    "bypassed": false,
+    "bypass_held": false,
+    "device_class": "window",
+    "friendly_name": "Bedroom 2 Window"
+   },
+   "last_changed": "2026-11-11T19:46:53.363267+00:00",
+   "last_updated": "2026-11-11T19:46:53.363267+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.lock_up_and_close_curtains": {
+   "entity_id": "automation.lock_up_and_close_curtains",
+   "state": "on",
+   "attributes": {
+    "id": "a1",
+    "last_triggered": "2026-10-26T21:30:00+00:00",
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Lock up and close curtains"
+   },
+   "last_changed": "2026-11-11T19:46:53.836082+00:00",
+   "last_updated": "2026-11-11T19:46:53.846772+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.lights_off_when_leaving_or_going_to_bed": {
+   "entity_id": "automation.lights_off_when_leaving_or_going_to_bed",
+   "state": "on",
+   "attributes": {
+    "id": "a2",
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Lights off when leaving or going to bed"
+   },
+   "last_changed": "2026-11-11T19:46:53.836524+00:00",
+   "last_updated": "2026-11-11T19:46:53.836524+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.entry_light_10_at_night": {
+   "entity_id": "automation.entry_light_10_at_night",
+   "state": "on",
+   "attributes": {
+    "id": "a3",
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Entry light 10 % at night"
+   },
+   "last_changed": "2026-11-11T19:46:53.836898+00:00",
+   "last_updated": "2026-11-11T19:46:53.836898+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.cameras_on_when_armed": {
+   "entity_id": "automation.cameras_on_when_armed",
+   "state": "on",
+   "attributes": {
+    "id": "a4",
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Cameras on when armed"
+   },
+   "last_changed": "2026-11-11T19:46:53.837247+00:00",
+   "last_updated": "2026-11-11T19:46:53.837247+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.kitchen_light_when_coming_home_after_dark": {
+   "entity_id": "automation.kitchen_light_when_coming_home_after_dark",
+   "state": "on",
+   "attributes": {
+    "id": "a5",
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Kitchen light when coming home after dark"
+   },
+   "last_changed": "2026-11-11T19:46:53.837579+00:00",
+   "last_updated": "2026-11-11T19:46:53.837579+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.guest_wi_fi_on": {
+   "entity_id": "automation.guest_wi_fi_on",
+   "state": "on",
+   "attributes": {
+    "id": "a6",
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Guest Wi-Fi on"
+   },
+   "last_changed": "2026-11-11T19:46:53.837933+00:00",
+   "last_updated": "2026-11-11T19:46:53.837933+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.notify_on_every_house_mode_change": {
+   "entity_id": "automation.notify_on_every_house_mode_change",
+   "state": "on",
+   "attributes": {
+    "id": "a7",
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Notify on every House Mode change"
+   },
+   "last_changed": "2026-11-11T19:46:53.838269+00:00",
+   "last_updated": "2026-11-11T19:46:53.838269+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.bedtime_at_23_30": {
+   "entity_id": "automation.bedtime_at_23_30",
+   "state": "on",
+   "attributes": {
+    "id": "s1",
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Bedtime at 23:30"
+   },
+   "last_changed": "2026-11-11T19:46:53.838761+00:00",
+   "last_updated": "2026-11-11T19:46:53.838761+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.smart_repeating_alert_patio_door_left_open": {
+   "entity_id": "automation.smart_repeating_alert_patio_door_left_open",
+   "state": "on",
+   "attributes": {
+    "id": "sa1",
+    "last_triggered": null,
+    "mode": "restart",
+    "current": 0,
+    "friendly_name": "Smart Repeating Alert - Patio Door left open"
+   },
+   "last_changed": "2026-11-11T19:46:53.839636+00:00",
+   "last_updated": "2026-11-11T19:46:53.839636+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.smart_repeating_alert_driveway_camera": {
+   "entity_id": "automation.smart_repeating_alert_driveway_camera",
+   "state": "on",
+   "attributes": {
+    "id": "sa2",
+    "last_triggered": null,
+    "mode": "restart",
+    "current": 0,
+    "friendly_name": "Smart Repeating Alert - Driveway camera"
+   },
+   "last_changed": "2026-11-11T19:46:53.840049+00:00",
+   "last_updated": "2026-11-11T19:46:53.840049+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.smart_repeating_alert_fridge_too_warm": {
+   "entity_id": "automation.smart_repeating_alert_fridge_too_warm",
+   "state": "on",
+   "attributes": {
+    "id": "sa3",
+    "last_triggered": null,
+    "mode": "restart",
+    "current": 0,
+    "friendly_name": "Smart Repeating Alert - Fridge too warm"
+   },
+   "last_changed": "2026-11-11T19:46:53.841153+00:00",
+   "last_updated": "2026-11-11T19:46:53.841153+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "automation.sleep_when_the_bedroom_tv_turns_off": {
+   "entity_id": "automation.sleep_when_the_bedroom_tv_turns_off",
+   "state": "on",
+   "attributes": {
+    "id": "s2",
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Sleep when the bedroom TV turns off"
+   },
+   "last_changed": "2026-11-11T19:46:53.841546+00:00",
+   "last_updated": "2026-11-11T19:46:53.841546+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "script.spa_evening": {
+   "entity_id": "script.spa_evening",
+   "state": "off",
+   "attributes": {
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Spa evening"
+   },
+   "last_changed": "2026-11-11T19:46:53.844423+00:00",
+   "last_updated": "2026-11-11T19:46:53.844423+00:00",
+   "context": {
+    "id": "x"
+   }
+  },
+  "script.lock_up": {
+   "entity_id": "script.lock_up",
+   "state": "off",
+   "attributes": {
+    "last_triggered": null,
+    "mode": "single",
+    "current": 0,
+    "friendly_name": "Lock up"
+   },
+   "last_changed": "2026-11-11T19:46:53.844676+00:00",
+   "last_updated": "2026-11-11T19:46:53.844676+00:00",
+   "context": {
+    "id": "x"
+   }
+  }
+ }
+}

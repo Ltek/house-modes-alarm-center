@@ -1,0 +1,22 @@
+{
+  "domain": "house_modes",
+  "name": "House Modes & Alarm Center",
+  "after_dependencies": [
+    "lovelace",
+    "mqtt",
+    "notify"
+  ],
+  "codeowners": [
+    "@Ltek"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http",
+    "panel_custom"
+  ],
+  "documentation": "https://github.com/Ltek/house-modes-alarm-center",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/Ltek/house-modes-alarm-center/issues",
+  "requirements": [],
+  "version": "2026.11.11.94"
+}

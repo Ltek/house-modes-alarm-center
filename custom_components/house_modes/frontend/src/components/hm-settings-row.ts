@@ -1,0 +1,124 @@
+// Modified from Alarmo (github.com/nielsfaber/alarmo, Apache License 2.0) for House Modes & Alarm Center; see NOTICE.
+import { LitElement, html, css, CSSResultGroup, TemplateResult } from 'lit';
+import { property, customElement } from 'lit/decorators.js';
+
+@customElement('hm-settings-row')
+export class HmSettingsRow extends LitElement {
+  @property({ type: Boolean, reflect: true })
+  public narrow!: boolean;
+
+  @property({ type: Boolean, reflect: true })
+  large?: boolean;
+
+  @property({ type: Boolean, attribute: 'three-line' })
+  public threeLine = false;
+
+  @property({ type: Boolean })
+  nested?: boolean;
+
+  @property({ type: Boolean })
+  dialog?: boolean;
+
+  protected render(): TemplateResult {
+    return html`
+      <div class="info">
+        <slot name="heading"></slot>
+        <div class="secondary"><slot name="description"></slot></div>
+      </div>
+      <slot></slot>
+    `;
+  }
+
+  static get styles(): CSSResultGroup {
+    return css`
+      :host {
+        display: flex;
+        flex-direction: row;
+        padding: 0px 16px;
+        align-items: center;
+        min-height: 72px;
+        /* ext: control right beside its label (CARD_DESIGN_SYSTEM §2), not pushed to the far right */
+        justify-content: flex-start;
+        gap: 24px;
+      }
+      :host([large]) {
+        align-items: normal;
+        flex-direction: column;
+        border-top: 1px solid var(--divider-color);
+        border-bottom: 1px solid var(--divider-color);
+        padding: 16px 16px;
+      }
+      :host([narrow]) {
+        align-items: normal;
+        flex-direction: column;
+        border-bottom: none;
+        border-top: 1px solid var(--divider-color);
+        padding: 16px 16px;
+      }
+      :host([nested]) {
+        border: none;
+        padding: 8px 16px 0px 16px;
+        margin-top: -16px;
+        min-height: 40px;
+      }
+      :host([nested]:not([narrow])) {
+        padding: 16px 16px 0px 32px;
+      }
+      /* ext: compact row (Notifications editor): label and control side by side, one line per field */
+      :host([compact]) {
+        display: grid;
+        grid-template-columns: minmax(180px, 260px) minmax(0, 640px);
+        gap: 4px 16px;
+        align-items: center;
+        min-height: 0;
+        padding: 8px 0;
+        border: none;
+        border-top: 1px solid var(--divider-color);
+      }
+      :host([compact][narrow]) {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      :host([first]) {
+        border-top: none;
+      }
+      :host([last]) {
+        border-bottom: none;
+      }
+      :host([dialog]) {
+        border: none;
+        padding: 12px 0px;
+      }
+      ::slotted(input[type='checkbox']) {
+        margin: 14px 4px;
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary-color);
+        cursor: pointer;
+      }
+      .info {
+        flex: 0 1 auto;
+        min-width: 60px;
+        max-width: 640px;
+        margin-bottom: 4px;
+      }
+      :host([large]) .info,
+      :host([narrow]) .info {
+        flex: 1 0 40px;
+      }
+      :host([nested]) .info {
+        flex: 1 0 26px;
+      }
+      :host([dialog]) .info {
+        flex: 1 0 40px;
+        padding-bottom: 8px;
+      }
+      .secondary {
+        color: var(--secondary-text-color);
+        margin-top: 4px;
+      }
+      :host(:not([large]):not([narrow])):not([dialog])) ::slotted(*) {
+        max-width: 66%;
+      }
+    `;
+  }
+}

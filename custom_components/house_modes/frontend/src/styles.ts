@@ -1,0 +1,173 @@
+// Modified from Alarmo (github.com/nielsfaber/alarmo, Apache License 2.0) for House Modes & Alarm Center; see NOTICE.
+import { css } from 'lit';
+
+export const commonStyle = css`
+  ha-card {
+    display: flex;
+    flex-direction: column;
+    margin: 5px;
+    max-width: calc(100vw - 10px);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+  }
+  /* ext: role chip on every section title */
+  .sec-head {
+    display: var(--ext-sec-head, flex);
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 16px 8px;
+  }
+  .sec-head h2 {
+    margin: 0;
+    font-size: var(--ha-card-header-font-size, 24px);
+    font-weight: 400;
+    line-height: 32px;
+    color: var(--ha-card-header-color, var(--primary-text-color));
+  }
+  .sec-side {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .role {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 18px;
+    --mdc-icon-size: 14px;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    white-space: nowrap;
+  }
+  .card-header .role {
+    margin-left: auto;
+    display: var(--ext-card-name, inline-flex);
+  }
+  .card-header .name {
+    display: var(--ext-card-name, block);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  div.warning {
+    color: var(--error-color);
+    margin-top: 20px;
+  }
+
+  div.checkbox-row {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  input[type='checkbox'].cb {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+  }
+
+  div.checkbox-row input.cb,
+  div.checkbox-row ha-switch {
+    margin-right: 20px;
+  }
+
+  div.checkbox-row.right ha-switch {
+    margin-left: 20px;
+    position: absolute;
+    right: 0px;
+  }
+
+  div.entity-row {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    margin: 10px 0px;
+  }
+  div.entity-row .info {
+    margin-left: 16px;
+    flex: 1 0 60px;
+  }
+  div.entity-row .info,
+  div.entity-row .info > * {
+    color: var(--primary-text-color);
+    transition: color 0.2s ease-in-out;
+  }
+  div.entity-row .secondary {
+    display: block;
+    color: var(--secondary-text-color);
+    transition: color 0.2s ease-in-out;
+  }
+  div.entity-row state-badge {
+    flex: 0 0 40px;
+  }
+
+  ha-dialog div.wrapper {
+    margin-bottom: -20px;
+  }
+
+  ha-input {
+    min-width: 220px;
+  }
+
+  a,
+  a:visited {
+    color: var(--primary-color);
+  }
+  mwc-tab {
+    --mdc-tab-color-default: var(--secondary-text-color);
+    --mdc-tab-text-label-color-default: var(--secondary-text-color);
+  }
+  mwc-tab ha-icon {
+    --mdc-icon-size: 20px;
+  }
+  mwc-tab.disabled {
+    --mdc-theme-primary: var(--disabled-text-color);
+    --mdc-tab-color-default: var(--disabled-text-color);
+    --mdc-tab-text-label-color-default: var(--disabled-text-color);
+  }
+
+  ha-card hm-settings-row:first-child,
+  ha-card hm-settings-row:first-of-type {
+    border-top: 0px;
+  }
+
+  ha-card > ha-card {
+    margin: 10px;
+  }
+`;
+
+export const dialogStyle = css`
+  /* mwc-dialog (ha-dialog) styles */
+  ha-dialog {
+    --mdc-dialog-min-width: 400px;
+    --mdc-dialog-max-width: 600px;
+    --mdc-dialog-heading-ink-color: var(--primary-text-color);
+    --mdc-dialog-content-ink-color: var(--primary-text-color);
+    --justify-action-buttons: space-between;
+  }
+  /* make dialog fullscreen on small screens */
+  @media all and (max-width: 450px), all and (max-height: 500px) {
+    ha-dialog {
+      --mdc-dialog-min-width: calc(100vw - env(safe-area-inset-right) - env(safe-area-inset-left));
+      --mdc-dialog-max-width: calc(100vw - env(safe-area-inset-right) - env(safe-area-inset-left));
+      --mdc-dialog-min-height: 100%;
+      --mdc-dialog-max-height: 100%;
+      --vertial-align-dialog: flex-end;
+      --ha-dialog-border-radius: 0px;
+    }
+  }
+  ha-dialog div.description {
+    margin-bottom: 10px;
+  }
+`;

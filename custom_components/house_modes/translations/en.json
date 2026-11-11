@@ -1,0 +1,127 @@
+{
+  "services": {
+    "arm": {
+      "name": "Arm",
+      "description": "Arm an alarm entity of this integration with custom settings.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity ID",
+          "description": "Alarm entity (partition) that should be armed."
+        },
+        "code": {
+          "name": "Code",
+          "description": "Code to use for the arming."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Alarm panel mode to arm the partition in."
+        },
+        "skip_delay": {
+          "name": "Skip Delay",
+          "description": "Skip the exit delay."
+        },
+        "force": {
+          "name": "Force",
+          "description": "Automatically bypass all zones that prevent the arming operation."
+        }
+      }
+    },
+    "disarm": {
+      "name": "Disarm",
+      "description": "Disarm an alarm entity of this integration.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity ID",
+          "description": "Alarm entity (partition) that should be disarmed."
+        },
+        "code": {
+          "name": "Code",
+          "description": "Code to use for the disarming."
+        }
+      }
+    },
+    "skip_delay": {
+      "name": "Skip Delay",
+      "description": "Skip the remainder of the exit/entry delay and proceed directly to the next state. Only has effect whilst the alarm is in arming or pending state.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity ID",
+          "description": "Alarm entity for which the delay should be skipped."
+        }
+      }
+    },
+    "enable_user": {
+      "name": "Enable User",
+      "description": "Allow a user to arm/disarm house_modes.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Name of the user to enable."
+        }
+      }
+    },
+    "disable_user": {
+      "name": "Disable User",
+      "description": "Block a user from arming/disarming house_modes.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Name of the user to disable."
+        }
+      }
+    },
+    "create_backup": {
+      "name": "Create backup",
+      "description": "Write a date-stamped backup of the configuration (an exact copy of .storage/house_modes.storage plus a YAML export) to /config/house_modes/backups. The files contain hashed user codes.",
+      "fields": {
+        "label": {
+          "name": "Label",
+          "description": "Optional short label added to the file name, for example 'nightly'."
+        }
+      }
+    },
+    "set_house_mode": {
+      "name": "Set House Mode",
+      "description": "Change the House Mode. The integration checks the mode's Allowed Sources (pass a source), whether zones are ready, arms/disarms the partitions and runs the mode's Script Actions.",
+      "fields": {
+        "mode": {
+          "name": "Mode",
+          "description": "Name or id of the House Mode."
+        },
+        "source": {
+          "name": "Source",
+          "description": "Who is asking, for the permission table: schedule, presence_away, presence_home, lock, ... Default: manual if a user called it, else automation."
+        },
+        "force": {
+          "name": "Force",
+          "description": "Ignore the permission table and readiness checks."
+        }
+      }
+    },
+    "panel_keypress": {
+      "name": "Panel keypress",
+      "description": "Send keys to a linked physical panel (Envisalink), as typed on its keypad. Dashboard users are checked against the Physical Panel tab's keypad setting; automations are not.",
+      "fields": {
+        "keys": {
+          "name": "Keys",
+          "description": "0-9, *, # and A-D, up to 32 keys."
+        },
+        "entity_id": {
+          "name": "Panel",
+          "description": "The partition or the panel entity of the link. Default: the first linked panel."
+        }
+      }
+    }
+  },
+  "selector": {
+    "arm_mode": {
+      "options": {
+        "away": "Armed Away",
+        "night": "Armed Night",
+        "home": "Armed Home",
+        "vacation": "Armed Vacation",
+        "custom": "Armed Custom Bypass"
+      }
+    }
+  }
+}

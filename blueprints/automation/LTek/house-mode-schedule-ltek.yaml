@@ -1,0 +1,50 @@
+blueprint:
+  name: ⏰ House Mode on a Schedule (Ltek)
+  description: >-
+    At a time of day, ask House Modes to change the House Mode (source "schedule").
+    The target mode's Allowed Sources decide whether that is allowed from the current mode
+    (e.g. not while in Vacation, or a wait while in Spa) - set that on the House Modes tab.
+  domain: automation
+  input:
+    at_time:
+      name: Time
+      selector:
+        time: {}
+    mode:
+      name: House Mode
+      description: Name of the House Mode (as on the House Modes tab).
+      selector:
+        text: {}
+    from_modes:
+      name: Only from these House Modes
+      description: Leave empty for any current mode. Type each mode name and press Enter.
+      default: []
+      selector:
+        select:
+          multiple: true
+          custom_value: true
+          options: []
+    weekdays:
+      name: Days
+      default: [mon, tue, wed, thu, fri, sat, sun]
+      selector:
+        select:
+          multiple: true
+          options: [mon, tue, wed, thu, fri, sat, sun]
+triggers:
+  - trigger: time
+    at: !input at_time
+variables:
+  from_modes: !input from_modes
+conditions:
+  - condition: time
+    weekday: !input weekdays
+  - condition: template
+    value_template: >-
+      {{ not from_modes or (states('select.house_mode') | lower) in (from_modes | map('lower') | list) }}
+actions:
+  - action: house_modes.set_house_mode
+    data:
+      mode: !input mode
+      source: schedule
+mode: single

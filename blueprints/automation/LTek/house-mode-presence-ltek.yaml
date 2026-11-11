@@ -1,0 +1,69 @@
+blueprint:
+  name: 🏠 House Mode on Presence (Ltek)
+  description: >-
+    When everyone has left, ask House Modes for one House Mode (source "presence_away");
+    when someone comes home, ask for another (source "presence_home"). The target mode's
+    Allowed Sources decide whether that is allowed from the current mode (e.g. Local or Guest
+    refuse presence arming) - set that on the House Modes tab.
+  domain: automation
+  input:
+    people:
+      name: People
+      selector:
+        entity:
+          domain: person
+          multiple: true
+    home_zones:
+      name: Zones that count as home
+      description: Besides "home", e.g. a Neighborhood zone. Type each zone name as the person's state shows it.
+      default: []
+      selector:
+        select:
+          multiple: true
+          custom_value: true
+          options: []
+    away_mode:
+      name: House Mode when everyone is away
+      selector:
+        text: {}
+    home_mode:
+      name: House Mode when someone comes home
+      selector:
+        text: {}
+    away_for:
+      name: Everyone away for at least
+      default: {hours: 0, minutes: 0, seconds: 30}
+      selector:
+        duration: {}
+triggers:
+  - trigger: state
+    entity_id: !input people
+    id: changed
+variables:
+  people: !input people
+  home_zones: !input home_zones
+  home_states: "{{ ['home'] + (home_zones | list) }}"
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ people | select('is_state', home_states) | list | count == 0 }}"
+        sequence:
+          - delay: !input away_for
+          - condition: template
+            value_template: "{{ people | select('is_state', home_states) | list | count == 0 }}"
+          - action: house_modes.set_house_mode
+            data:
+              mode: !input away_mode
+              source: presence_away
+      - conditions:
+          - condition: template
+            value_template: >-
+              {{ trigger.to_state.state in home_states and trigger.from_state.state not in home_states }}
+        sequence:
+          - action: house_modes.set_house_mode
+            data:
+              mode: !input home_mode
+              source: presence_home
+mode: restart

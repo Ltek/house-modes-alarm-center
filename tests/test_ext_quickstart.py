@@ -99,3 +99,55 @@ async def test_panel_setup(hass: Any, hass_storage: Any, hass_ws_client: Any, tm
     link = next(iter(links.values()))
     assert link["panel_entity"] == PANEL and link["mode"] == "shadow"
     assert res["status"]["panel_links"] == [{"panel": PANEL, "mode": "shadow"}]
+
+
+async def test_helpers_found_and_picked(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """House Modes set up without helpers, your input_selects exist: the helpers step offers them; Apply uses them."""
+    await setup_real_house_modes(hass, hass_storage, tmp_path, _empty_env())
+    ext = hass.data["house_modes_ext"]
+    await ext.house.async_save_settings({"enabled": True, "modes": [{"id": "away", "name": "Away", "targets": {}}]})
+    assert await async_setup_component(hass, "input_select", {"input_select": {
+        "house_mode": {"options": ["Away", "Home"]},
+        "house_mode_selector": {"options": ["Away", "Home"]},
+    }})
+    client = await hass_ws_client(hass)
+    plan = (await _ws(client, 1, type="house_modes/ext/quickstart/plan", setup="house"))["plans"]["house"]
+    steps = {s["id"]: s for s in plan["steps"]}
+    assert steps["helpers"]["status"] == "todo"
+    assert steps["helpers"]["picks"] == {"input_select": "input_select.house_mode_selector",
+                                         "current_entity": "input_select.house_mode"}
+    assert steps["notify"]["status"] == "optional" and steps["automations"]["status"] == "manual"
+    assert steps["recording"]["status"] == "done"
+    res = await _ws(client, 2, type="house_modes/ext/quickstart/apply", setup="house")
+    assert res["done"] == ["helpers"]
+    assert ext.house.settings["input_select"] == "input_select.house_mode_selector"
+    assert next(s for s in res["plan"]["steps"] if s["id"] == "helpers")["status"] == "done"
+
+
+async def test_no_helpers_is_optional(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """No input_selects at all: the helpers step is optional and links to where they can be created."""
+    await setup_real_house_modes(hass, hass_storage, tmp_path, _empty_env())
+    client = await hass_ws_client(hass)
+    plan = (await _ws(client, 1, type="house_modes/ext/quickstart/plan", setup="panel"))["plans"]["panel"]
+    steps = {s["id"]: s for s in plan["steps"]}
+    assert steps["helpers"]["status"] == "optional" and steps["helpers"]["link"].endswith("/open/helpers")
+    assert {"user", "alarm_notify", "automations", "notify", "recording", "card", "live"} <= set(steps)
+
+
+async def test_alarmo_setup_only_with_alarmo(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """The "Moving from Alarmo" steps exist only when Alarmo's files or entry are there."""
+    await setup_real_house_modes(hass, hass_storage, tmp_path, _empty_env())
+    client = await hass_ws_client(hass)
+    plans = (await _ws(client, 1, type="house_modes/ext/quickstart/plan"))["plans"]
+    assert "alarmo" not in plans and {"house", "virtual", "panel"} <= set(plans)
+    hass_storage["alarmo.storage"] = {"version": 6, "minor_version": 3, "key": "alarmo.storage",
+                                      "data": load_fixture_envelope()["data"]}
+    plans = (await _ws(client, 2, type="house_modes/ext/quickstart/plan"))["plans"]
+    steps = {s["id"]: s["status"] for s in plans["alarmo"]["steps"]}
+    assert steps == {"alarmo_off": "done", "import": "manual"}
+    await _ws(client, 3, type="house_modes/ext/alarmo_import/run")
+    await hass.async_block_till_done()
+    plans = (await _ws(client, 4, type="house_modes/ext/quickstart/plan", setup="alarmo"))["plans"]
+    steps = {s["id"]: s["status"] for s in plans["alarmo"]["steps"]}
+    assert steps["import"] == "done" and steps["references"] == "done"
+    assert {"entity_ids", "check_mode", "check_cycle", "retire"} <= set(steps)

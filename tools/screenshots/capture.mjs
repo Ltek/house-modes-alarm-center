@@ -229,6 +229,15 @@ const SHOTS = [
     });
   }],
   ['/house_modes/general?demo=ask', '24-import-from-alarmo'],
+  ['/house_modes/general?demo=imported', '26-quick-start-moving-from-alarmo', async (p) => {
+    await p.evaluate(async () => {
+      const v = document.querySelector('house-modes-panel').shadowRoot.querySelector('hm-view-quick-start');
+      for (let i = 0; i < 30 && !v.shadowRoot.querySelector('hm-alarmo-import[mode="backup"]'); i++) await new Promise(r => setTimeout(r, 100));
+      const imp = v.shadowRoot.querySelector('hm-alarmo-import[mode="backup"]');
+      for (let i = 0; i < 30 && !imp.shadowRoot.querySelector('details.ref'); i++) await new Promise(r => setTimeout(r, 100));
+      imp.shadowRoot.querySelectorAll('details.ref').forEach(d => (d.open = true));
+    });
+  }],
   ['/house_modes/backup?demo=imported', '25-import-done-and-references', async (p) => {
     await p.evaluate(async () => {
       const v = document.querySelector('house-modes-panel').shadowRoot.querySelector('hm-view-backup');

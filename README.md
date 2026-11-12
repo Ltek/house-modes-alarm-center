@@ -172,7 +172,9 @@ Rendered from a demo house with made-up names (see [Development](#development)).
     <td align="center" valign="top" width="50%">
       <a href="screenshots/25-import-done-and-references.png"><img src="screenshots/25-import-done-and-references.png" width="100%" alt="Import done and references"></a><br><sub>Import done and references</sub>
     </td>
-    <td></td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/26-quick-start-moving-from-alarmo.png"><img src="screenshots/26-quick-start-moving-from-alarmo.png" width="100%" alt="Quick start moving from alarmo"></a><br><sub>Quick start moving from alarmo</sub>
+    </td>
   </tr>
 </table>
 <!-- SCREENSHOTS:END -->

@@ -29,13 +29,15 @@ enabled*.
 3. **Disable Alarmo:** Settings → Devices & services → Alarmo → ⋮ → **Disable**. (Disable, not Delete: deleting wipes
    its configuration.) Its alarm entities go away; its mirror zones become unavailable.
 4. **Add House Modes & Alarm Center** (Settings → Devices & services → Add integration) and open it from the sidebar.
-   Quick Start opens on **Import from Alarmo?** with what was found and the counts (partitions, zones, users, House
+   Quick Start opens on **Import from Alarmo?**, and afterwards its *Moving from Alarmo* section lists these steps with
+   what is done and what is left with what was found and the counts (partitions, zones, users, House
    Modes, panel links, mirrors, …).
 5. **Import.** It copies the configuration (user codes as they are: hashed), rewrites service, event and entity names
    in it, and copies `/config/alarmo/activity/` and `/config/alarmo/backups/` to `/config/house_modes/`. A backup of
    the empty start is made first. The alarm entities come back with their ids (`alarm_control_panel.master` stays
    `alarm_control_panel.master`); the mirror zones take over the old mirror ids.
-6. **Alarmo names in your own configuration:** Quick Start (or Backup tab → *Import from Alarmo*) → **Scan** lists
+6. **Alarmo names in your own configuration:** right after the import, Quick Start → *Moving from Alarmo* (also
+   Backup tab → *Import from Alarmo*) scans and lists
    every `alarmo.set_house_mode`, `alarmo.panel_keypress`, `alarmo_house_mode_changed`, `select.alarmo_house_mode`, …
    in your automations, scripts, templates, blueprints and dashboards, line by line. **Rewrite** changes exactly
    those (a copy of each file and dashboard is kept in `/config/house_modes/backups/references_<date>/`) and reloads

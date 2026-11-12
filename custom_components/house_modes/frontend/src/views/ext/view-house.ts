@@ -106,8 +106,43 @@ export class AlarmViewHouse extends LitElement {
   @state() private pendingGroups: Omit<ActionGroup, 'modes'>[] = [];
 
   firstUpdated() {
+    // /house_modes/house/open/<section>: open that section (links from Quick Start)
+    const open = this.path?.params?.open;
+    if (open) SEC_OPEN[`*:tab:${open}`] = true;
     this.refresh();
     this.loadActions();
+    if (open)
+      setTimeout(() => this.shadowRoot?.querySelector(`details[data-sec="${open}"]`)?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 400);
+  }
+
+  /** Make a House Mode helper (input_select with the mode names) and use it. Saved with the rest (Save bar). */
+  private async createHelper(key: 'input_select' | 'current_entity' | 'previous_entity') {
+    const d = this.draft!;
+    const names = d.modes.map(m => m.name);
+    if (!names.length) return;
+    const name = { input_select: 'House Mode Selector', current_entity: 'House Mode Current', previous_entity: 'House Mode Previous' }[key];
+    const icon = { input_select: 'mdi:home-switch', current_entity: 'mdi:home-outline', previous_entity: 'mdi:history' }[key];
+    if (!window.confirm(`Create the helper "${name}" (an input_select with the options ${names.join(', ')}) and use it?\n\nIt is a normal Home Assistant helper: Settings → Devices & services → Helpers. Press Save to keep the choice.`)) return;
+    try {
+      const item = await this.hass.callWS<{ id: string }>({ type: 'input_select/create', name, icon, options: names });
+      const eid = `input_select.${item.id}`;
+      this.set(x => (x[key] = eid));
+      toast(this, `Created ${eid}. Press Save to use it.`);
+    } catch (err) {
+      this.error = `Could not create the helper: ${wsErrorMessage(err)}`;
+    }
+  }
+
+  /** Add the mode names an input_select is missing (keeps its own options). */
+  private async addMissingOptions(entity: string, missing: string[]) {
+    const have = (this.hass.states[entity]?.attributes.options as string[]) || [];
+    if (!window.confirm(`Add ${missing.join(', ')} to ${entity}?\n\nIf the helper is defined in YAML, change it there too: a reload would undo this.`)) return;
+    try {
+      await this.hass.callService('input_select', 'set_options', { entity_id: entity, options: [...have, ...missing] });
+      toast(this, `Added ${missing.length} option(s) to ${entity}.`);
+    } catch (err) {
+      this.error = `Could not change ${entity}: ${wsErrorMessage(err)}`;
+    }
   }
 
   private async refresh(resetDraft = false) {
@@ -315,7 +350,7 @@ export class AlarmViewHouse extends LitElement {
   private tabSec(key: string, title: string, summary: unknown, defOpen: boolean, body: unknown) {
     const k = `*:tab:${key}`;
     const open = k in SEC_OPEN ? SEC_OPEN[k] : defOpen;
-    return html`<details class="collapse hm-tabsec" ?open=${open} @toggle=${(e: Event) => (SEC_OPEN[k] = (e.target as HTMLDetailsElement).open)}>
+    return html`<details class="collapse hm-tabsec" data-sec=${key} ?open=${open} @toggle=${(e: Event) => (SEC_OPEN[k] = (e.target as HTMLDetailsElement).open)}>
       <summary>
         <ha-icon class="chev" icon="mdi:chevron-right"></ha-icon>
         <span class="collapse-title">${title}</span>
@@ -1018,11 +1053,19 @@ export class AlarmViewHouse extends LitElement {
     const notifies = Object.keys(this.hass.services.notify || {}).map(s => ({ value: `notify.${s}`, label: `notify.${s}` }));
     const opts: string[] = d.input_select ? (this.hass.states[d.input_select]?.attributes.options as string[]) || [] : [];
     const missing = d.modes.map(m => m.name).filter(n => !opts.some(o => o.toLowerCase() === n.toLowerCase()));
-    const pick = (value: string | null | undefined, list: string[], set: (v: string | null) => void, label: string) =>
-      html`<select aria-label=${label} @change=${(e: any) => set(e.target.value || null)}>
-        <option value="" ?selected=${!value}>none</option>
-        ${list.map(x => html`<option value=${x} ?selected=${value === x}>${this.hass.states[x].attributes.friendly_name || x} (${x})</option>`)}
-      </select>`;
+    const pick = (value: string | null | undefined, list0: string[], set: (v: string | null) => void, label: string,
+      key: 'input_select' | 'current_entity' | 'previous_entity') => {
+      // a helper just created may not have a state yet
+      const list = value && !list0.includes(value) ? [value, ...list0] : list0;
+      return html`<select aria-label=${label} @change=${(e: any) => set(e.target.value || null)}>
+          <option value="" ?selected=${!value}>none</option>
+          ${list.map(x => html`<option value=${x} ?selected=${value === x}>${this.hass.states[x]?.attributes.friendly_name || x} (${x})</option>`)}
+        </select>
+        ${!value
+          ? html`<button class="link" ?disabled=${!d.modes.length} title=${d.modes.length ? '' : 'Add House Modes first'}
+              @click=${() => this.createHelper(key)}>Create a helper</button>`
+          : nothing}`;
+    };
     const row = (icon: string, title: string, hint: unknown, control: unknown) =>
       html`<div class="hm-row">
         <ha-icon class="hm-row-icon" icon=${icon}></ha-icon>
@@ -1036,17 +1079,18 @@ export class AlarmViewHouse extends LitElement {
       <div class="hm-rows">
         ${row('mdi:form-dropdown', 'House Mode selector',
           'Your input_select that people and automations change. Kept in step both ways; its options must match the mode names.',
-          html`${pick(d.input_select, selects, v => this.set(x => (x.input_select = v)), 'House Mode selector')}
-            ${d.input_select && d.modes.length
+          html`${pick(d.input_select, selects, v => this.set(x => (x.input_select = v)), 'House Mode selector', 'input_select')}
+            ${d.input_select && d.modes.length && this.hass.states[d.input_select]
               ? missing.length
-                ? html`<div class="notice warn" style="margin:6px 0 0">Missing options on ${d.input_select}: ${missing.join(', ')}.</div>`
+                ? html`<div class="notice warn" style="margin:6px 0 0">Missing options on ${d.input_select}: ${missing.join(', ')}.
+                    <button class="link" @click=${() => this.addMissingOptions(d.input_select!, missing)}>Add them</button></div>`
                 : html`<div class="secondary hm-ok"><ha-icon icon="mdi:check-circle"></ha-icon>Its options match the ${d.modes.length} modes.</div>`
               : nothing}`)}
         ${row('mdi:home-outline', 'Current House Mode',
           'Optional. Live writes the mode name here after each change; Shadow compares it with what House Modes would have set.',
-          pick(d.current_entity, compares, v => this.set(x => (x.current_entity = v)), 'Current House Mode'))}
+          pick(d.current_entity, compares, v => this.set(x => (x.current_entity = v)), 'Current House Mode', 'current_entity'))}
         ${row('mdi:history', 'Previous House Mode', 'Optional. Live writes the mode it changed from here.',
-          pick(d.previous_entity, compares, v => this.set(x => (x.previous_entity = v)), 'Previous House Mode'))}
+          pick(d.previous_entity, compares, v => this.set(x => (x.previous_entity = v)), 'Previous House Mode', 'previous_entity'))}
         ${row('mdi:bell-outline', 'Notifications', 'Where House Mode messages go: blocked, failed to arm, timers, and every change if you tick it.',
           html`<hm-multi-picker
             .placeholder=${'Add a notify service…'}

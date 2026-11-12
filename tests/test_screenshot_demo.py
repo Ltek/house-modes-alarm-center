@@ -381,6 +381,8 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
     ws["house_modes/ext/alarmo_import/status|imported"] = await _ws(client, i, type="house_modes/ext/alarmo_import/status")
     i += 1
     ws["house_modes/ext/references/scan|imported"] = await _ws(client, i, type="house_modes/ext/references/scan")
+    i += 1
+    ws["house_modes/ext/quickstart/plan|imported"] = await _ws(client, i, type="house_modes/ext/quickstart/plan")
     ws["house_modes/ext/alarmo_import/status"] = {**ws["house_modes/ext/alarmo_import/status|ask"], "found": False, "ask": False}
     text = json.dumps({"ws": ws, "states": states}, default=str, indent=1).replace(str(tmp_path), "/config")
     OUT.write_text(text)

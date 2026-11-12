@@ -12,7 +12,7 @@ import './alarmo-import';
 type Step = {
   id: string;
   title: string;
-  status: 'done' | 'todo' | 'manual' | 'skip';
+  status: 'done' | 'todo' | 'manual' | 'optional' | 'skip';
   detail: string;
   link: string | null;
   yaml?: string;
@@ -30,6 +30,12 @@ type Status = {
 };
 
 const SETUPS: { id: string; icon: string; title: string; text: string }[] = [
+  {
+    id: 'alarmo',
+    icon: 'mdi:database-import-outline',
+    title: 'Moving from Alarmo',
+    text: 'Your Alarmo configuration was found. These are the steps to move it over, in order. Alarmo\'s own files are only read, so going back stays possible: disable this integration and enable Alarmo again (MIGRATION.md).',
+  },
   {
     id: 'house',
     icon: 'mdi:home-switch-outline',
@@ -54,6 +60,7 @@ const ICON: Record<string, string> = {
   done: 'mdi:check-circle',
   todo: 'mdi:circle-outline',
   manual: 'mdi:hand-pointing-right',
+  optional: 'mdi:circle-half-full',
   skip: 'mdi:minus-circle-outline',
 };
 
@@ -150,17 +157,20 @@ export class AlarmViewQuickStart extends LitElement {
   }
 
   render() {
-    const importer = html`<hm-alarmo-import .hass=${this.hass} mode="ask"
-        @import-status=${(e: CustomEvent) => (this.askImport = !!e.detail?.ask)}></hm-alarmo-import>`;
-    if (this.askImport) return importer;
+    if (this.askImport)
+      return html`<hm-alarmo-import .hass=${this.hass} mode="ask"
+        @import-status=${(e: CustomEvent) => (this.askImport = !!e.detail?.ask)}
+        @alarmo-import-changed=${() => this.load()}></hm-alarmo-import>`;
     return html`
       ${this.error ? html`<div class="notice error" style="margin:0 0 12px">${this.error}</div>` : nothing}
-      ${importer}
-      ${tabCard('Quick Start', 'settings', html`<p>House Modes &amp; Alarm Center can be used three ways. Pick the one that fits, check
+      <hm-alarmo-import style="display:none" .hass=${this.hass} mode="ask"
+        @import-status=${(e: CustomEvent) => (this.askImport = !!e.detail?.ask)}></hm-alarmo-import>
+      ${tabCard('Quick Start', 'settings', html`<p>Coming from Alarmo? <em>Moving from Alarmo</em> lists the steps. Otherwise House Modes &amp; Alarm Center can be
+          used three ways. Pick the one that fits, check
           what it will do, and press <strong>Apply</strong>: it makes a backup first and only adds what is missing. You can run
           it again later.</p>`, html`
         ${tabSection('qs-status', "What's configured", this.statusSummary(), this.renderStatus())}
-        ${SETUPS.map(s => this.renderSetup(s))}`)}
+        ${SETUPS.filter(s => s.id !== 'alarmo' || this.plans.alarmo).map(s => this.renderSetup(s))}`)}
     `;
   }
 
@@ -191,8 +201,20 @@ export class AlarmViewQuickStart extends LitElement {
   private renderSetup(s: { id: string; icon: string; title: string; text: string }) {
     const plan = this.plans[s.id];
     const done = plan ? plan.steps.filter(x => x.status === 'done').length : 0;
+    const left = plan ? plan.steps.filter(x => x.status === 'manual').length : 0;
+    const counted = plan ? plan.steps.filter(x => x.status !== 'skip') : [];
+    const summary = plan
+      ? `${done} of ${counted.length} done${plan.todo ? ` · ${plan.todo} to apply` : ''}${left ? ` · ${left} for you` : ''}`
+      : '';
+    if (s.id === 'alarmo')
+      return tabSection(`qs-${s.id}`, html`<ha-icon icon=${s.icon} style="--mdc-icon-size:18px;vertical-align:-3px;margin-right:4px"></ha-icon>${s.title}`,
+        summary, html`
+          <p class="secondary" style="display:block;margin:4px 0 8px">${s.text}</p>
+          ${plan ? html`<ol class="steps">${plan.steps.map(st => this.renderStep(st))}</ol>` : nothing}
+          <hm-alarmo-import .hass=${this.hass} mode="backup" @alarmo-import-changed=${() => this.load()}></hm-alarmo-import>`,
+        { open: left > 0 });
     return tabSection(`qs-${s.id}`, html`<ha-icon icon=${s.icon} style="--mdc-icon-size:18px;vertical-align:-3px;margin-right:4px"></ha-icon>${s.title}`,
-      plan ? `${done} of ${plan.steps.length} done${plan.todo ? ` · ${plan.todo} to apply` : ''}` : '', html`
+      summary, html`
           <p class="secondary" style="display:block;margin:4px 0 8px">${s.text}</p>
           ${plan ? html`<ol class="steps">${plan.steps.map(st => this.renderStep(st))}</ol>` : html`<div class="empty">Loading…</div>`}
           ${plan
@@ -303,6 +325,10 @@ export class AlarmViewQuickStart extends LitElement {
       }
       .step.manual > ha-icon {
         color: var(--warning-color, #ffa600);
+      }
+      .step.optional > ha-icon,
+      .step.skip > ha-icon {
+        color: var(--secondary-text-color);
       }
       .step-body {
         flex: 1;

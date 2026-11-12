@@ -5,6 +5,11 @@ Three setups, each a list of steps with a status:
 - ``virtual``: this integration as the alarm (no physical panel): a partition, its Arm Modes, zones from door /
   window / motion sensors, a user code.
 - ``panel``: House Modes and a physical panel: the panel link in Shadow, the panel's zones, House Modes in Shadow.
+- ``alarmo``: moving over from Alarmo (shown only when Alarmo's files or entry are found, or after the import):
+  Alarmo disabled, the import, Alarmo names in your automations, entity ids, the checks. Its steps are done with the
+  buttons in that section (alarmo_import.py, references.py), never by Apply.
+
+Step status: done / todo (Apply does it) / manual (needs you) / optional (useful, not needed) / skip.
 
 ``house_modes/ext/quickstart/plan`` returns the steps; ``…/apply`` makes a backup, then does every automatic step that
 is not done yet. Steps that need the user (a code, the dashboard card) are "manual" and link to the right tab.
@@ -25,7 +30,8 @@ from .ext_panel_ws import TYPE_DEFAULTS, _discover, _link_targets
 from .house_config import SOURCES, slug
 
 DATA_EXT = "house_modes_ext"
-SETUPS = ("house", "virtual", "panel")
+SETUPS = ("alarmo", "house", "virtual", "panel")
+APPLY_SETUPS = ("house", "virtual", "panel")  # the Alarmo steps have their own buttons
 LABEL = "quick-start"
 ZONE_CLASSES = {"door", "window", "garage_door", "opening", "motion", "occupancy", "presence"}
 HOUSE_ONLY_MODES = ["Home", "Away", "Sleep", "Guest", "Vacation"]
@@ -37,7 +43,7 @@ def _ext(hass):
 
 
 def _step(sid: str, title: str, status: str, detail: str = "", link: str | None = None, **extra: Any) -> dict:
-    """status: done / todo (done by Apply) / manual (the user does it) / skip (not needed)."""
+    """status: done / todo (done by Apply) / manual (the user does it) / optional / skip (not needed)."""
     return {"id": sid, "title": title, "status": status, "detail": detail, "link": link, **extra}
 
 
@@ -124,7 +130,74 @@ def _house_settings(hass, setup: str, area_key: str | None) -> dict[str, Any]:
     return settings
 
 
-def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912
+def _helper_picks(hass, house: dict) -> dict[str, str]:
+    """Helpers found in Home Assistant that House Modes does not use yet (selector, current, previous)."""
+    ents = _detect_house(hass)["entities"]
+    out = {}
+    for key, found in (("input_select", ents["selector"]), ("current_entity", ents["current"]),
+                       ("previous_entity", ents["previous"])):
+        if found and not house.get(key) and found not in (house.get("input_select"), house.get("current_entity"),
+                                                         house.get("previous_entity")):
+            out[key] = found
+    return out
+
+
+def _helpers_step(hass, house: dict) -> dict:
+    used = [house.get(k) for k in ("input_select", "current_entity", "previous_entity") if house.get(k)]
+    picks = _helper_picks(hass, house)
+    link = "/house_modes/house/open/helpers"
+    if picks:
+        return _step("helpers", "House Mode helpers", "todo",
+                     "uses your " + ", ".join(picks.values()) + " (selector / current / previous mode)",
+                     link, picks=picks)
+    if used:
+        return _step("helpers", "House Mode helpers", "done", ", ".join(used), link)
+    return _step("helpers", "House Mode helpers", "optional",
+                 "none: House Modes works with select.house_mode alone. To have a selector, current and previous "
+                 "mode helper, create them on House Modes → Helpers and notifications", link)
+
+
+def _notify_step(house: dict) -> dict:
+    n = house.get("notify_services") or []
+    link = "/house_modes/house/open/helpers"
+    if n:
+        every = " · every change" if house.get("notify_changes") else ""
+        return _step("notify", "House Mode notifications", "done", ", ".join(n) + every, link)
+    return _step("notify", "House Mode notifications", "optional",
+                 "none: pick a notify service for blocked changes, failed arming and timers", link)
+
+
+def _automations_step(hass) -> dict:
+    """The user's own House Mode automations, found by reading them (the House Modes tab lists them per mode)."""
+    from .ext_house_actions import items_payload  # noqa: PLC0415
+
+    try:
+        items = items_payload(hass)["items"]
+    except Exception:  # never let Quick Start fail on one odd automation
+        items = []
+    sets = [i for i in items if i.get("sets")]
+    reacts = [i for i in items if i.get("reacts")]
+    bypass = [i for i in sets if any(x["via"] in ("selector", "current") for x in i["sets"])
+              or any(x["via"] == "service" and not x["source"] for x in i["sets"])]
+    link = "/house_modes/house"
+    if not sets and not reacts:
+        return _step("automations", "What changes the House Mode", "manual",
+                     "no automation sets a House Mode yet: add one with the blueprints ⏰ House Mode on a Schedule / "
+                     "🏠 House Mode on Presence, or change it from the dashboard card", link)
+    detail = f"found your automations: {len(sets)} set a House Mode, {len(reacts)} run when one starts or ends"
+    if bypass:
+        detail += f" · {len(bypass)} to check (they write the selector or leave out the source)"
+    return _step("automations", "Your House Mode automations", "manual" if bypass else "done", detail, link)
+
+
+def _recording_step(ext) -> dict:
+    on = bool(ext.recorder.settings.get("enabled"))
+    return _step("recording", "Activity recording", "done" if on else "todo",
+                 "on" if on else "turns it on (records House Modes, the alarm, the panel, locks; never codes)",
+                 "/house_modes/activity")
+
+
+def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
     """The steps of a setup and their status."""
     ext = _ext(hass)
     area_key, area = _first_area(ext)
@@ -229,14 +302,31 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912
                 candidates=cands,
             )
         )
+    if setup in ("virtual", "panel"):
         users = ext.store.async_get_users()
         steps.append(
             _step(
                 "user",
                 "A user with a code",
-                "done" if users else "manual",
-                f"{len(users)} user(s)" if users else "add one on Users, Codes, Keypads (codes are never made up)",
+                "done" if users else ("manual" if setup == "virtual" else "optional"),
+                f"{len(users)} user(s)"
+                if users
+                else ("add one on Users, Codes, Keypads (codes are never made up)" if setup == "virtual" else
+                      "to arm and disarm from the card or a lock keypad: add one on Users, Codes, Keypads"),
                 "/house_modes/codes",
+            )
+        )
+        notes = [a for a in ext.store.async_get_automations().values() if a.get("type") == "notification"]
+        triggered = [a for a in notes if any(t.get("event") == "triggered" for t in a.get("triggers") or [])]
+        steps.append(
+            _step(
+                "alarm_notify",
+                "A notification when the alarm goes off",
+                "done" if triggered else "manual",
+                f"{len(notes)} notification(s)"
+                if triggered
+                else "add one on Notifications: When Triggered → your phone",
+                "/house_modes/notifications",
             )
         )
 
@@ -260,6 +350,11 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912
                 else "starter modes " + ", ".join(m["name"] for m in s["modes"])
             )
             steps.append(_step("house_modes", "House Modes", "todo", how))
+        steps.append(_helpers_step(hass, house))
+        steps.append(_automations_step(hass))
+        steps.append(_notify_step(house))
+
+    steps.append(_recording_step(ext))
 
     steps.append(_step("card", "The dashboard card", "manual", "add it to a dashboard:", None, yaml=CARD_YAML))
     if setup == "panel":
@@ -273,7 +368,90 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912
                 "/house_modes/activity",
             )
         )
+    return _plan(setup, steps)
+
+
+def _plan(setup: str, steps: list[dict]) -> dict[str, Any]:
     return {"setup": setup, "steps": steps, "todo": sum(1 for s in steps if s["status"] == "todo")}
+
+
+async def plan_alarmo(hass) -> dict[str, Any] | None:  # noqa: PLR0912
+    """Moving over from Alarmo. None when there is nothing of Alarmo (no files, no entry, never imported)."""
+    from . import legacy, references, alarmo_import  # noqa: PLC0415
+    from .takeover import SECTION as TAKEOVER  # noqa: PLC0415
+    from .combined_store import async_get_combined  # noqa: PLC0415
+
+    st = await alarmo_import.async_status(hass)
+    if not (st["found"] or st["old_entries"] or st["choice"] == "imported"):
+        return None
+    ext = _ext(hass)
+    steps: list[dict] = []
+    link = None  # the Import / Rewrite buttons are in this section itself
+    if st["old_active"]:
+        steps.append(_step("alarmo_off", "Disable Alarmo", "manual",
+                           "Settings → Devices & services → Alarmo → ⋮ → Disable (not Delete). Never both running: "
+                           "until then the panel link stays in Shadow and the import is refused"))
+    elif st["old_entries"]:
+        steps.append(_step("alarmo_off", "Disable Alarmo", "done", "disabled"))
+    else:
+        steps.append(_step("alarmo_off", "Disable Alarmo", "done", "not installed"))
+
+    if st["choice"] == "imported":
+        imp = st["imported"] or {}
+        c = imp.get("counts") or {}
+        steps.append(_step("import", "Import from Alarmo", "done",
+                           f"{(st['at'] or '')[:16].replace('T', ' ')} · {c.get('partitions', 0)} partitions, "
+                           f"{c.get('zones', 0)} zones, {c.get('users', 0)} users, "
+                           f"{c.get('house_modes', 0)} House Modes",
+                           link))
+    elif st["found"]:
+        steps.append(_step("import", "Import from Alarmo", "manual",
+                           "press Import below (a backup is made first; the Alarmo files are only read)", link))
+    else:
+        steps.append(_step("import", "Import from Alarmo", "skip", "no Alarmo files found"))
+
+    if st["choice"] == "imported":
+        scan = await references.async_scan(hass)
+        if scan["total"]:
+            files = ", ".join(f["file"] for f in scan["files"] if f["hits"])
+            boards = [d["url_path"] or "Overview" for d in scan["dashboards"] if d["hits"]]
+            where = files + ((", dashboards " + ", ".join(boards)) if boards else "")
+            steps.append(_step("references", "Alarmo names in your automations, scripts and dashboards", "manual",
+                               f"{scan['total']} to rewrite in {where}: check the list below, then press Rewrite "
+                               "(copies are kept; Undo)",
+                               link))
+        else:
+            last = scan.get("last")
+            steps.append(_step("references", "Alarmo names in your automations, scripts and dashboards", "done",
+                               "rewritten " + last["at"][:16].replace("T", " ") if last else "none found", link))
+        combined = await async_get_combined(hass)
+        taken = combined.get(TAKEOVER) or {}
+        reg = er.async_get(hass)
+        waiting = [e for e in reg.entities.values() if e.platform == legacy.OLD_DOMAIN
+                   and str(e.unique_id).startswith("alarmo_mirror_") and e.id not in taken]
+        if taken and not waiting:
+            steps.append(_step("entity_ids", "Entity ids", "done",
+                               f"alarm entities keep their ids; {len(taken)} mirror zone(s) took over the old ids"))
+        elif waiting:
+            steps.append(_step("entity_ids", "Entity ids", "manual",
+                               "the mirror zones get the old ids once Alarmo is disabled and this integration restarts "
+                               "(Settings → Devices & services → House Modes & Alarm Center → ⋮ → Reload)"))
+        else:
+            steps.append(_step("entity_ids", "Entity ids", "done", "the alarm entities keep their ids"))
+        house = ext.house.settings
+        cur = next((m["name"] for m in house["modes"] if m["id"] == house.get("current")), None)
+        links = ext.panel.settings.get("links") or {}
+        steps.append(_step("check_mode", "Check the House Mode and the panel link", "manual",
+                           f"House Mode {cur or 'unknown'} · House Modes {house.get('run_mode', 'live')}"
+                           + (f" · panel link {next(iter(links.values()))['mode']}" if links else "")
+                           + ": the same as before the move?", "/house_modes/house"))
+        steps.append(_step("check_cycle", "One full test before any Away", "manual",
+                           "disarm and arm once with a code, arm and disarm at the panel keypad, then watch Activity "
+                           "for an hour. Way back: disable this integration, enable Alarmo (MIGRATION.md §2)",
+                           "/house_modes/activity"))
+        steps.append(_step("retire", "Remove Alarmo", "optional",
+                           "after a few stable days, with a backup of its files: MIGRATION.md §3"))
+    return _plan("alarmo", steps)
 
 
 async def apply(hass, setup: str, entities: list[str] | None = None) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
@@ -350,6 +528,16 @@ async def apply(hass, setup: str, entities: list[str] | None = None) -> dict[str
         await ext.house.async_save_settings(_house_settings(hass, setup, area_key))
         done.append("house_modes")
 
+    helpers = plan(hass, setup)["steps"]
+    hstep = next((s for s in helpers if s["id"] == "helpers"), None)
+    if hstep and hstep["status"] == "todo":
+        await ext.house.async_save_settings({**ext.house.settings, **hstep["picks"]})
+        done.append("helpers")
+
+    if steps.get("recording", {}).get("status") == "todo":
+        await ext.recorder.async_save_settings({**ext.recorder.settings, "enabled": True})
+        done.append("recording")
+
     return {"plan": plan(hass, setup), "done": done, "backup": backup}
 
 
@@ -378,13 +566,18 @@ def status(hass) -> dict[str, Any]:
 async def ws_quickstart_plan(hass, connection, msg):
     """The steps of one setup (or all three) and what is configured."""
     setups = [msg["setup"]] if msg.get("setup") else list(SETUPS)
-    connection.send_result(msg["id"], {"status": status(hass), "plans": {s: plan(hass, s) for s in setups}})
+    plans = {s: plan(hass, s) for s in setups if s != "alarmo"}
+    if "alarmo" in setups:
+        alarmo = await plan_alarmo(hass)
+        if alarmo is not None:
+            plans["alarmo"] = alarmo
+    connection.send_result(msg["id"], {"status": status(hass), "plans": plans})
 
 
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "house_modes/ext/quickstart/apply",
-        vol.Required("setup"): vol.In(SETUPS),
+        vol.Required("setup"): vol.In(APPLY_SETUPS),
         vol.Optional("entities"): [cv.entity_id],
     }
 )

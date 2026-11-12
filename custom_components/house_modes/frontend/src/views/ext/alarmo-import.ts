@@ -41,9 +41,16 @@ export class HmAlarmoImport extends LitElement {
       this.status = await fetchImportStatus(this.hass);
       this.error = '';
       this.dispatchEvent(new CustomEvent('import-status', { detail: this.status, bubbles: true, composed: true }));
+      // after the import the scan runs by itself (it only reads); Rewrite still needs a click and a confirm
+      if (this.mode === 'backup' && this.status.choice === 'imported' && !this.scan && !this.busy) await this.doScan();
     } catch (err) {
       this.error = wsErrorMessage(err);
     }
+  }
+
+  /** Quick Start re-reads its steps */
+  private changed() {
+    this.dispatchEvent(new CustomEvent('alarmo-import-changed', { bubbles: true, composed: true }));
   }
 
   private async doImport() {
@@ -63,7 +70,9 @@ export class HmAlarmoImport extends LitElement {
       toast(this, 'Imported from Alarmo. Check the House Mode, then disarm and arm once.');
       // the integration reloads after the import
       await new Promise(r => setTimeout(r, 1500));
+      this.busy = '';
       await this.load();
+      this.changed();
     } catch (err) {
       this.error = wsErrorMessage(err);
     } finally {
@@ -77,6 +86,7 @@ export class HmAlarmoImport extends LitElement {
     try {
       await startFresh(this.hass);
       await this.load();
+      this.changed();
     } catch (err) {
       this.error = wsErrorMessage(err);
     } finally {
@@ -105,7 +115,9 @@ export class HmAlarmoImport extends LitElement {
     try {
       const res = await applyReferences(this.hass, s.token);
       toast(this, res.restart.length ? `Rewritten. Restart Home Assistant for: ${res.restart.join(', ')}` : 'Rewritten and reloaded.');
+      this.busy = '';
       await this.doScan();
+      this.changed();
     } catch (err) {
       this.error = wsErrorMessage(err);
     } finally {
@@ -119,7 +131,9 @@ export class HmAlarmoImport extends LitElement {
     try {
       const res = await undoReferences(this.hass);
       toast(this, res.restart.length ? `Put back. Restart Home Assistant for: ${res.restart.join(', ')}` : 'Put back and reloaded.');
+      this.busy = '';
       await this.doScan();
+      this.changed();
     } catch (err) {
       this.error = wsErrorMessage(err);
     } finally {
@@ -192,8 +206,9 @@ export class HmAlarmoImport extends LitElement {
       <div class="import refs">
         <h4>Alarmo names in your automations, scripts and dashboards</h4>
         <p class="secondary">Automations may still call <code>alarmo.set_house_mode</code>, listen for
-          <code>alarmo_house_mode_changed</code> or read <code>select.alarmo_house_mode</code>. Scan lists them; nothing changes until
-          you press Rewrite. A copy of every file and dashboard is kept, and Undo puts them back.</p>
+          <code>alarmo_house_mode_changed</code> or read <code>select.alarmo_house_mode</code>. They are scanned right after the
+          import and listed below; nothing changes until you press Rewrite. A copy of every file and dashboard is kept, and
+          Undo puts them back.</p>
         <div class="toolbar">
           <ha-button appearance="plain" ?disabled=${!!this.busy} @click=${this.doScan}>${this.busy === 'scan' ? 'Scanning…' : s ? 'Scan again' : 'Scan'}</ha-button>
           ${s && s.total ? html`<ha-button ?disabled=${!!this.busy} @click=${this.doRewrite}>${this.busy === 'rewrite' ? 'Rewriting…' : `Rewrite ${s.total}`}</ha-button>` : nothing}

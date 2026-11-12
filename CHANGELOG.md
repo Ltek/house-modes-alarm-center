@@ -4,6 +4,26 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.12.96 — 2026-11-12
+
+Restart Home Assistant after the update.
+
+- **Quick Start → Moving from Alarmo** (shown while Alarmo's files or entry exist, or after the import): the steps in
+  order with what is done and what is left: disable Alarmo, Import, Alarmo names in your automations / scripts /
+  dashboards, entity ids, check the House Mode and panel link, one full test before any Away, remove Alarmo later. The
+  Import and Rewrite buttons are in the section itself.
+- **The scan for Alarmo names now runs right after the import** and lists every line; Rewrite still needs a click and
+  a confirm (copies kept, Undo).
+- **Quick Start steps reviewed for each setup.** New steps: *House Mode helpers* (your selector / current / previous
+  input_selects are found and Apply uses them; without them the step is optional and links to where they can be
+  created), *Your House Mode automations* (the automations that set or react to a House Mode, found by reading them,
+  with the ones to check), *House Mode notifications* (optional), *A notification when the alarm goes off* and *A user
+  with a code* (also for the physical panel setup, optional there), *Activity recording*. Steps can now be *optional*.
+- **House Modes → Helpers and notifications: Create a helper** next to each helper that is not set: makes an
+  input_select with the mode names and selects it (press Save to keep it). *Add them* adds the mode names a selector
+  is missing.
+- Links to a House Modes section open it (`/house_modes/house/open/helpers`).
+
 ## v2026.11.11.95 — 2026-11-11
 
 Restart Home Assistant after the update.

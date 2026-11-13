@@ -1073,9 +1073,7 @@ export class AlarmViewHouse extends LitElement {
         <div class="hm-row-ctl">${control}</div>
       </div>`;
     const nHelpers = [d.input_select, d.current_entity, d.previous_entity].filter(Boolean).length;
-    const nNotify = (d.notify_services || []).length;
-    return this.tabSec('helpers', 'Helpers and notifications',
-      `${nHelpers} of 3 helpers · ${nNotify} notify service${nNotify === 1 ? '' : 's'}${d.notify_changes ? ' · every change' : ''}`, false, html`
+    return this.tabSec('helpers', 'Helpers', `${nHelpers} of 3 helpers`, false, html`
       <div class="hm-rows">
         ${row('mdi:form-dropdown', 'House Mode selector',
           'Your input_select that people and automations change. Kept in step both ways; its options must match the mode names.',
@@ -1091,31 +1089,10 @@ export class AlarmViewHouse extends LitElement {
           pick(d.current_entity, compares, v => this.set(x => (x.current_entity = v)), 'Current House Mode', 'current_entity'))}
         ${row('mdi:history', 'Previous House Mode', 'Optional. Live writes the mode it changed from here.',
           pick(d.previous_entity, compares, v => this.set(x => (x.previous_entity = v)), 'Previous House Mode', 'previous_entity'))}
-        ${row('mdi:bell-outline', 'Notifications', 'Where House Mode messages go: blocked, failed to arm, timers, and every change if you tick it.',
-          html`<hm-multi-picker
-            .placeholder=${'Add a notify service…'}
-            .options=${notifies}
-            .value=${d.notify_services || []}
-            @value-changed=${(e: CustomEvent) => this.set(x => (x.notify_services = e.detail.value))}
-          ></hm-multi-picker>
-          <label class="hm-check"><input type="checkbox" .checked=${!!d.notify_changes}
-              @change=${(e: any) => this.set(x => (x.notify_changes = e.target.checked))} />
-            Notify on every change <span class="secondary" style="display:inline">e.g. "House Mode: Stay — from Disarmed · timer"</span></label>
-          ${d.notify_changes
-            ? html`<div class="hm-skip"><span class="secondary" style="display:inline">Not for changes by:</span>
-                ${[...SOURCES, 'external'].map(src => {
-                  const on = (d.notify_skip_sources || []).includes(src);
-                  return html`<button class="hm-chip ${on ? 'on' : ''}" aria-pressed=${on} title=${on ? 'Not notified' : 'Notified'}
-                    @click=${() => this.set(x => (x.notify_skip_sources = on ? (x.notify_skip_sources || []).filter(v => v !== src) : [...(x.notify_skip_sources || []), src]))}>
-                    ${src === 'external' ? 'Outside House Modes' : SOURCE_LABELS[src]}</button>`;
-                })}</div>`
-            : nothing}
-          ${(d.notify_changes || false) && !(d.notify_services || []).length
-            ? html`<div class="notice warn" style="margin:6px 0 0">Add a notify service, or nothing is sent.</div>`
-            : nothing}`)}
       </div>
-      <div class="secondary" style="margin:0 16px 12px">Lock keypads and per-user keypad actions are on the
-        <a href="/house_modes/codes">Users, Codes, Keypads</a> tab.</div>
+      <div class="secondary" style="margin:0 16px 12px">House Mode notifications are on the
+        <a href="/house_modes/notifications/open/house" @click=${(e: Event) => { e.preventDefault(); navigate(this, '/house_modes/notifications/open/house'); }}>Notifications</a>
+        tab. Lock keypads and per-user keypad actions are on the <a href="/house_modes/codes">Users, Codes, Keypads</a> tab.</div>
     `);
   }
 
@@ -1123,7 +1100,9 @@ export class AlarmViewHouse extends LitElement {
     this.busy = true;
     this.error = '';
     try {
-      await saveHouse(this.hass, this.draft!);
+      // the notifications are saved on the Notifications tab
+      const { notifications: _n, ...settings } = this.draft as any;
+      await saveHouse(this.hass, settings);
       toast(this, 'House Modes saved.');
       await this.refresh(true);
     } catch (err) {

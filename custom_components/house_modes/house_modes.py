@@ -34,6 +34,7 @@ from .house_config import (
     derive_mode,
     open_entities,
 )
+from .house_notify import EVENT_TIMER, duration_text
 from .house_shadow import HouseShadow
 
 if TYPE_CHECKING:
@@ -117,6 +118,10 @@ class HouseModeManager:
         current = self.settings
         for k in ("current", "previous", "history", "pending", "source", "changed_at"):
             raw[k] = current[k]
+        # the notifications are saved from the Notifications tab: a House Modes save leaves them as they are
+        legacy = any(k in raw for k in ("notify_services", "notify_changes", "notify_skip_sources"))
+        if "notifications" not in raw and not legacy:
+            raw["notifications"] = current.get("notifications")
         clean = normalize(raw)
         if clean["current"] and not find_mode(clean, clean["current"]):
             clean["current"] = None
@@ -185,10 +190,14 @@ class HouseModeManager:
         source: str = "manual",
         force: bool = False,
         replay_delay: bool = False,
+        bypass: bool = False,
     ) -> dict[str, Any]:
-        """Change the House Mode. Returns {"result": ...}; also kept as ``last_result`` for cards."""
+        """Change the House Mode. Returns {"result": ...}; also kept as ``last_result`` for cards.
+
+        ``bypass``: arm even with open zones (bypasses them; the Force arm button).
+        """
         try:
-            res = await self._set_mode(ref, source, force, replay_delay)
+            res = await self._set_mode(ref, source, force, replay_delay, bypass)
         except HouseModeError as err:
             self._last({"result": "error", "reason": str(err)}, ref, source)
             raise
@@ -211,6 +220,7 @@ class HouseModeManager:
         source: str = "manual",
         force: bool = False,
         replay_delay: bool = False,
+        bypass: bool = False,
     ) -> dict[str, Any]:
         """Change the House Mode (see async_set_mode)."""
         settings = self.settings
@@ -229,7 +239,8 @@ class HouseModeManager:
             if verdict == "delay" and replay_delay:
                 verdict = "allow"
             if verdict == "block":
-                self._event(EVENT_BLOCKED, target, source, reason=detail)
+                self._event(EVENT_BLOCKED, target, source, reason=detail, what="not set")
+                await self._send("blocked", target, source, reason=detail, what="not set", args={"force": target["id"]})
                 return {"result": "blocked", "reason": detail}
             if verdict == "delay":
                 await self._schedule(
@@ -250,10 +261,11 @@ class HouseModeManager:
             if opened:
                 names = ", ".join(self._name(e) for e in opened)
                 if target["readiness"]["action"] == "block":
-                    self._event(EVENT_BLOCKED, target, source, reason=f"open: {names}")
-                    await self._notify(f"{target['name']} not set", f"Open: {names}")
+                    self._event(EVENT_BLOCKED, target, source, reason=f"Open: {names}", what="not set")
+                    await self._send("blocked", target, source, reason=f"Open: {names}", what="not set",
+                                     args={"force": target["id"]})
                     return {"result": "not_ready", "open": opened}
-                await self._notify(f"{target['name']}: not ready", f"Open: {names}")
+                await self._send("blocked", target, source, reason=f"Open: {names}", what="not ready")
 
         async with self._lock:
             self._changing = target["id"]
@@ -261,7 +273,7 @@ class HouseModeManager:
             try:
                 prev = find_mode(settings, settings["current"])
                 await self._run_steps(prev, target, "before", source)
-                return await self._apply(target, source)
+                return await self._apply(target, source, bypass)
             finally:
                 self._changing = None
                 async_dispatcher_send(self.hass, SIGNAL_HOUSE)
@@ -288,12 +300,12 @@ class HouseModeManager:
         st = self.hass.states.get(entity_id)
         return (st.attributes.get("friendly_name") if st else None) or entity_id
 
-    async def _apply(self, target: dict, source: str) -> dict[str, Any]:
+    async def _apply(self, target: dict, source: str, bypass: bool = False) -> dict[str, Any]:
         settings = self.settings
         before = self._target_states(settings)
         self._applying = True
         try:
-            failed = await self._drive(target["targets"])
+            failed = await self._drive(target["targets"], bypass)
             if failed:
                 policy = target["on_failure"]
                 prev = find_mode(settings, settings["current"])
@@ -303,11 +315,10 @@ class HouseModeManager:
                     )
                 elif policy == "previous" and prev:
                     await self._drive(prev["targets"])
-                self._event(EVENT_FAILED, target, source, failed=failed, policy=policy)
-                await self._notify(
-                    f"House Mode {target['name']} failed",
-                    "Did not arm: " + ", ".join(failed) + f" (on failure: {policy})",
-                )
+                reason = "Did not arm: " + ", ".join(failed) + f" (on failure: {policy})"
+                self._event(EVENT_FAILED, target, source, failed=failed, policy=policy, reason=reason)
+                await self._send("failed", target, source, reason=reason,
+                                 args={"retry": target["id"], "force_arm": target["id"]})
                 if policy == "keep":
                     await self._record(None, source, result="failed")
                 return {"result": "failed", "failed": failed, "policy": policy}
@@ -326,7 +337,7 @@ class HouseModeManager:
         self.overrides.update({k: v for k, v in targets.items() if k not in failed})
         return failed
 
-    async def _drive(self, targets: dict[str, str]) -> list[str]:
+    async def _drive(self, targets: dict[str, str], bypass: bool = False) -> list[str]:
         """Bring each alarm entity to its target state. Returns keys that failed."""
         failed: list[str] = []
         waiting: dict[str, tuple[Any, str]] = {}
@@ -343,7 +354,10 @@ class HouseModeManager:
             else:
                 if have not in ("disarmed", None):
                     await ent.async_alarm_disarm(code=None, skip_code=True)
-                await ent.async_handle_arm_request(want, skip_code=True)
+                if bypass:
+                    await ent.async_handle_arm_request(want, skip_code=True, bypass_open_sensors=True)
+                else:
+                    await ent.async_handle_arm_request(want, skip_code=True)
             waiting[ent.entity_id] = (ent, want)
         if waiting:
             results = await self._wait(waiting)
@@ -390,6 +404,8 @@ class HouseModeManager:
     ) -> None:
         data = self.settings
         prev = data["current"]
+        started = dt_util.parse_datetime(data["changed_at"]) if data.get("changed_at") else None
+        lasted = (dt_util.utcnow() - started).total_seconds() if started else None
         if mode_id != prev:
             self.overrides = {}
         data["previous"] = prev
@@ -435,16 +451,18 @@ class HouseModeManager:
         await self._store(data)
         for p in new_pending:
             self._arm_timer(p)
-            if p["notify"] and p["target"]:
-                tgt = find_mode(data, p["target"])
-                await self._notify(
-                    f"House Mode {mode['name']}",
-                    f"Changes to {tgt['name'] if tgt else p['target']} "
-                    f"{'at ' + p['at'] if p.get('at') else 'in ' + str(p['minutes']) + ' min'}",
-                )
-        self._event(EVENT_CHANGED, mode, source, previous=prev, result=result)
+            if p["target"]:
+                await self._timer_set(p, mode, notify=p["notify"])
+        prev_mode = find_mode(data, prev)
+        _title, change = change_message(prev_mode, mode, source)
+        self._event(
+            EVENT_CHANGED, mode, source, previous=prev, result=result,
+            previous_name=prev_mode["name"] if prev_mode else None,
+            duration=round(lasted) if lasted is not None else None, change=change,
+        )
         if mode_id != prev and result in ("changed", "external"):
-            await self._notify_change(find_mode(data, prev), mode, source)
+            await self._send("changed", mode, source, previous=prev_mode, duration=lasted, change=change,
+                             args={"undo": prev or ""})
         self._mirror_to_select(mode)
         self._write_mode_entities(mode, find_mode(data, prev) if mode_id != prev else None)
         if mode_id != prev and result in ("changed", "external"):
@@ -486,7 +504,7 @@ class HouseModeManager:
                 _LOGGER.warning("House Mode action %s failed: %s", what, err)
                 if rec is not None:
                     rec.add("house", f"House Mode action failed: {what}: {err}", level="error")
-                await self._notify("House Mode action failed", f"{what}: {err}")
+                await self._send("failed", entering, source, reason=f"Script Action failed: {what}: {err}")
 
     def _event(
         self, event_type: str, mode: dict | None, source: str, **extra: Any
@@ -501,23 +519,73 @@ class HouseModeManager:
             },
         )
 
-    async def _notify_change(self, prev: dict | None, mode: dict | None, source: str) -> None:
-        """The "every change" notification, when it is on and the source is not skipped."""
-        s = self.settings
-        if not s.get("notify_changes") or source in (s.get("notify_skip_sources") or []):
+    async def _send(
+        self,
+        event: str,
+        mode: dict | None,
+        source: str,
+        previous: dict | None = None,
+        duration: float | None = None,
+        args: dict[str, str] | None = None,
+        **values: Any,
+    ) -> None:
+        """A Simple notification (house_notify.py). Never raises."""
+        notifier = getattr(self.ext, "notifier", None)
+        if notifier is None:
             return
-        title, message = change_message(prev, mode, source)
-        await self._notify(title, message)
+        cur = find_mode(self.settings, self.settings["current"])
+        await notifier.async_send(
+            event,
+            {
+                "mode": mode["name"] if mode else "unknown",
+                "mode_id": mode["id"] if mode else None,
+                "previous": previous["name"] if previous else "",
+                "current": cur["name"] if cur else "unknown",
+                "source": SOURCE_TEXT.get(source, source),
+                "source_id": source,
+                "duration": duration_text(duration),
+                **values,
+            },
+            args,
+        )
 
-    async def _notify(self, title: str, message: str) -> None:
-        for svc in self.settings.get("notify_services") or []:
-            domain, name = svc.split(".", 1)
-            try:
-                await self.hass.services.async_call(
-                    domain, name, {"title": title, "message": message}, blocking=True
-                )
-            except Exception as err:
-                _LOGGER.warning("House Mode notify via %s failed: %s", svc, err)
+    async def _timer_set(self, entry: dict, current: dict | None, notify: bool = True) -> None:
+        """A timer or a delayed request was set: event (always) and notification (when the timer asks for one)."""
+        tgt = find_mode(self.settings, entry["target"])
+        when = f"at {entry['at']}" if entry.get("at") else f"in {entry.get('minutes')} min"
+        self.hass.bus.async_fire(
+            EVENT_TIMER,
+            {
+                "mode": entry["target"], "name": tgt["name"] if tgt else entry["target"],
+                "current": current["id"] if current else None, "current_name": current["name"] if current else None,
+                "when": when, "minutes": entry.get("minutes"), "at": entry.get("at"),
+                "kind": entry.get("kind"), "id": entry["id"], "source": entry.get("source"),
+            },
+        )
+        if notify:
+            await self._send("timer", tgt or {"id": entry["target"], "name": entry["target"]}, entry.get("source") or
+                             "timer", when=when, minutes=entry.get("minutes"),
+                             args={"cancel": entry["id"], "now": entry["id"]})
+
+    async def async_cancel_pending(self, entry_id: str) -> bool:
+        """Cancel one timer or delayed request (the Cancel timer button)."""
+        data = self.settings
+        if not any(p["id"] == entry_id for p in data["pending"]):
+            return False
+        data["pending"] = [p for p in data["pending"] if p["id"] != entry_id]
+        await self._store(data)
+        unsub = self._timer_unsubs.pop(entry_id, None)
+        if unsub:
+            unsub()
+        async_dispatcher_send(self.hass, SIGNAL_HOUSE)
+        return True
+
+    async def async_run_pending_now(self, entry_id: str) -> None:
+        """Run one timer or delayed request now (the Do it now button)."""
+        unsub = self._timer_unsubs.pop(entry_id, None)
+        if unsub:
+            unsub()
+        await self._run_timer(entry_id)
 
     # ------------------------------------------------------------ timers (Phase 6)
 
@@ -535,11 +603,7 @@ class HouseModeManager:
         ]
         await self._store(data)
         self._arm_timer(entry)
-        tgt = find_mode(data, entry["target"])
-        await self._notify(
-            "House Mode delayed",
-            f"{tgt['name'] if tgt else entry['target']} in {minutes} min",
-        )
+        await self._timer_set(entry, find_mode(data, data["current"]))
 
     def _arm_timer(self, entry: dict) -> None:
         when = dt_util.utc_from_timestamp(max(entry["due"], time.time() + 1))

@@ -158,9 +158,9 @@ async def test_changing_to_while_a_change_runs(hass: Any, hass_storage: Any, tmp
     seen = []
     orig = house._apply
 
-    async def spy(target, source):
+    async def spy(target, source, bypass=False):
         seen.append(house.changing_to)
-        return await orig(target, source)
+        return await orig(target, source, bypass)
 
     house._apply = spy
     await house.async_set_mode("Stay", "manual")

@@ -58,7 +58,16 @@ const SHOTS = [
       const t = document.querySelector('house-modes-panel').shadowRoot.querySelector('hm-view-actions');
       const sa = t.shadowRoot.querySelector('hm-smart-alerts');
       for (let i = 0; i < 30 && !sa.info; i++) await new Promise(r => setTimeout(r, 100));
-      t.shadowRoot.querySelectorAll('details.tab-sec').forEach(d => (d.open = true));
+      t.shadowRoot.querySelectorAll('details.tab-sec').forEach((d, i) => (d.open = i > 0));
+      await new Promise(r => setTimeout(r, 100));
+    });
+  }],
+  ['/house_modes/notifications/open/house', '27-house-mode-notifications', async (p) => {
+    await p.evaluate(async () => {
+      const t = document.querySelector('house-modes-panel').shadowRoot.querySelector('hm-view-actions');
+      const hn = t.shadowRoot.querySelector('hm-house-notifications');
+      for (let i = 0; i < 30 && !hn.shadowRoot.querySelector('details.event'); i++) await new Promise(r => setTimeout(r, 100));
+      hn.shadowRoot.querySelectorAll('details.event')[0].open = true;
       await new Promise(r => setTimeout(r, 100));
     });
   }],

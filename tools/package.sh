@@ -46,7 +46,7 @@ grep -q "$VER" "$FE/dist/house-modes-panel.js"
 node --check "$FE/dist/house-modes-panel.js"
 node /shared/user/code/_tests/probe.mjs "$FE/dist/house-modes-panel.js" house-modes-panel hm-view-general \
   hm-view-actions hm-view-sensors hm-view-sensor-table hm-view-backup hm-view-codes \
-  hm-view-panel hm-view-house hm-view-mirrors hm-view-connections hm-view-ha-zones hm-view-quick-start hm-alarmo-import | head -1
+  hm-view-panel hm-view-house hm-view-mirrors hm-view-connections hm-view-ha-zones hm-view-quick-start hm-alarmo-import hm-house-notifications | head -1
 # the dashboard card (served by the integration)
 CARD="$FE/dist/house-modes-alarm-center-card.js"
 grep -q "$VER" "$CARD"

@@ -4,6 +4,30 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.13.97 — 2026-11-13
+
+Restart Home Assistant after the update.
+
+- **House Mode notifications moved to the Notifications tab** (group *House Mode*); the House Modes tab keeps the
+  helpers (*Helpers*) and links there. Your notify services, *every change* and skipped sources move over with the
+  same wording.
+- **Simple notifications**, per event — *Changed*, *Blocked*, *Failed to arm*, *Timer set*: on/off, your own title and
+  message with placeholders (`{mode}`, `{previous}`, `{current}`, `{source}`, `{reason}`, `{what}`, `{when}`,
+  `{minutes}`, `{duration}`, `{change}`; *Reset the wording*), priority (normal / high / critical), and buttons the
+  integration handles: *Undo*, *Disarm*, *Change anyway*, *Dismiss*, *Retry*, *Force arm* (bypasses open zones),
+  *Cancel timer*, *Do it now*. Shared: *Send to*, *Not for changes by*, *Only for these modes*, *Replace the previous
+  message*, *Who may use the buttons* (administrators or chosen users). *Send a test* per event.
+- **Advanced notifications**: the new blueprint **🔔 House Mode Notifications (Ltek)**
+  (`blueprints/automation/LTek/house-mode-notifications-ltek.yaml`, installed with the integration) for conditions,
+  templates, phones and any phone-app data. *Add an advanced notification* creates one; the tab lists them (on/off,
+  edit) and flags an event that both send.
+- New: a change blocked by **Allowed Sources** sends a *Blocked* message (it only fired an event before). Blocked and
+  Failed to arm default to priority high. A keypad action that is not allowed is a *Blocked* message.
+- Events: `house_modes_house_mode_changed` carries `previous_name`, `duration` (s) and `change`; `_blocked` carries
+  `what`; `_failed` carries `reason`; new `house_modes_house_mode_timer` (timer or delayed request: `name`,
+  `current_name`, `when`, `minutes`, `at`, `id`).
+- Fixed: links that open a section (`…/open/helpers`, `…/open/house`) were treated as an editor page.
+
 ## v2026.11.12.96 — 2026-11-12
 
 Restart Home Assistant after the update.

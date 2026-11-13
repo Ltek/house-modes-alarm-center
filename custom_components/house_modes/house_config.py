@@ -132,6 +132,69 @@ def _unique_modes(modes: list[dict]) -> list[dict]:
     return modes
 
 
+# ------------------------------------------------------------------ notifications (Notifications tab, House Mode)
+# Simple notifications, sent by the integration itself (house_notify.py). Advanced ones are automations made from the
+# House Mode Notifications blueprint.
+
+NOTIFY_EVENTS = ("changed", "blocked", "failed", "timer")
+PRIORITIES = ("normal", "high", "critical")
+# the buttons each event may offer (the integration handles them: house_notify.py)
+BUTTONS = {
+    "changed": ("undo", "disarm"),
+    "blocked": ("force", "dismiss"),
+    "failed": ("retry", "force_arm", "disarm"),
+    "timer": ("cancel", "now"),
+}
+# the wording of the builds before 2026.11.13.97 (kept as the defaults, so nothing changes until it is edited)
+NOTIFY_DEFAULTS: dict[str, dict[str, str]] = {
+    "changed": {"title": "House Mode: {mode}", "message": "{change}", "priority": "normal"},
+    "blocked": {"title": "{mode} {what}", "message": "{reason}", "priority": "high"},
+    "failed": {"title": "House Mode {mode} failed", "message": "{reason}", "priority": "high"},
+    "timer": {"title": "House Mode {current}", "message": "Changes to {mode} {when}", "priority": "normal"},
+}
+PLACEHOLDERS = ("mode", "previous", "current", "source", "reason", "what", "when", "minutes", "duration", "change")
+
+_EVENT_SCHEMA = {
+    ev: vol.Schema(
+        {
+            vol.Optional("enabled", default=ev != "changed"): bool,
+            vol.Optional("title", default=NOTIFY_DEFAULTS[ev]["title"]): vol.All(str, vol.Length(max=200)),
+            vol.Optional("message", default=NOTIFY_DEFAULTS[ev]["message"]): vol.All(str, vol.Length(max=1000)),
+            vol.Optional("priority", default=NOTIFY_DEFAULTS[ev]["priority"]): vol.In(PRIORITIES),
+            vol.Optional("buttons", default=[]): [vol.In(BUTTONS[ev])],
+        }
+    )
+    for ev in NOTIFY_EVENTS
+}
+
+NOTIFY_SCHEMA = vol.Schema(
+    {
+        vol.Optional("services", default=[]): [vol.Match(r"^notify\.[a-z0-9_]+$")],
+        vol.Optional("skip_sources", default=[]): [vol.In((*SOURCES, "external"))],
+        # mode ids; empty = every mode
+        vol.Optional("only_modes", default=[]): [str],
+        # a new message replaces the last one of the same event on the phone (mobile app tag)
+        vol.Optional("replace", default=False): bool,
+        # who may use the buttons: "admins", or the HA users listed (by user id)
+        vol.Optional("button_users", default="admins"): vol.Any("admins", [str]),
+        **{vol.Optional(ev, default={}): _EVENT_SCHEMA[ev] for ev in NOTIFY_EVENTS},
+    }
+)
+
+
+def normalize_notifications(raw: dict | None, old: dict | None = None) -> dict[str, Any]:
+    """Notification settings with defaults; ``old`` = the settings of builds before 2026.11.13.97 (migrated)."""
+    raw = copy.deepcopy(raw) if isinstance(raw, dict) else None
+    if raw is None:
+        old = old or {}
+        raw = {
+            "services": list(old.get("notify_services") or []),
+            "skip_sources": list(old.get("notify_skip_sources") or []),
+            "changed": {"enabled": bool(old.get("notify_changes"))},
+        }
+    return NOTIFY_SCHEMA(raw)
+
+
 SETTINGS_SCHEMA = vol.Schema(
     {
         vol.Optional("enabled", default=False): bool,
@@ -145,12 +208,8 @@ SETTINGS_SCHEMA = vol.Schema(
         # the user's own current / previous House Mode entities: written in Live, compared in Shadow
         vol.Optional("current_entity"): vol.Any(None, vol.Match(r"^(input_select|input_text)\.[a-z0-9_]+$")),
         vol.Optional("previous_entity"): vol.Any(None, vol.Match(r"^(input_select|input_text)\.[a-z0-9_]+$")),
-        vol.Optional("notify_services", default=[]): [
-            vol.Match(r"^notify\.[a-z0-9_]+$")
-        ],
-        # a notification on every House Mode change (Live only), except changes from these sources
-        vol.Optional("notify_changes", default=False): bool,
-        vol.Optional("notify_skip_sources", default=[]): [vol.In((*SOURCES, "external"))],
+        # House Mode notifications (Notifications tab); filled in by normalize()
+        vol.Optional("notifications"): dict,
     }
 )
 
@@ -189,6 +248,9 @@ def normalize(raw: dict | None) -> dict[str, Any]:
     old = raw.pop("notify_service", None)
     if old and not raw.get("notify_services"):
         raw["notify_services"] = [old]
+    # before v2026.11.13.97: notify_services / notify_changes / notify_skip_sources
+    legacy = {k: raw.pop(k) for k in ("notify_services", "notify_changes", "notify_skip_sources") if k in raw}
+    raw["notifications"] = normalize_notifications(raw.get("notifications"), legacy)
     clean = SETTINGS_SCHEMA(raw)
     for m in clean["modes"]:
         m["icon"] = _upgrade_icon(m["name"], m["icon"])

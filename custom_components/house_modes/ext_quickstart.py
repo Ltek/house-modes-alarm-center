@@ -154,17 +154,20 @@ def _helpers_step(hass, house: dict) -> dict:
         return _step("helpers", "House Mode helpers", "done", ", ".join(used), link)
     return _step("helpers", "House Mode helpers", "optional",
                  "none: House Modes works with select.house_mode alone. To have a selector, current and previous "
-                 "mode helper, create them on House Modes → Helpers and notifications", link)
+                 "mode helper, create them on House Modes → Helpers", link)
 
 
 def _notify_step(house: dict) -> dict:
-    n = house.get("notify_services") or []
-    link = "/house_modes/house/open/helpers"
+    n = (house.get("notifications") or {}).get("services") or []
+    link = "/house_modes/notifications/open/house"
     if n:
-        every = " · every change" if house.get("notify_changes") else ""
-        return _step("notify", "House Mode notifications", "done", ", ".join(n) + every, link)
+        nt = house["notifications"]
+        on = [ev for ev in ("changed", "blocked", "failed", "timer") if (nt.get(ev) or {}).get("enabled")]
+        return _step("notify", "House Mode notifications", "done", ", ".join(n) + " · " + (", ".join(on) or "all off"),
+                     link)
     return _step("notify", "House Mode notifications", "optional",
-                 "none: pick a notify service for blocked changes, failed arming and timers", link)
+                 "none: pick a notify service on Notifications → House Mode (changes, blocked, failed arming, timers)",
+                 link)
 
 
 def _automations_step(hass) -> dict:

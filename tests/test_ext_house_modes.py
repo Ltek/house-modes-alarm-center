@@ -382,7 +382,7 @@ async def test_notify_several_services_and_old_setting(hass: Any, hass_storage: 
     await _settle(hass)
     assert len(a) == 1 and len(b) == 1
 
-    assert normalize({"notify_service": "notify.x"})["notify_services"] == ["notify.x"]
+    assert normalize({"notify_service": "notify.x"})["notifications"]["services"] == ["notify.x"]
 
 
 async def test_house_mode_steps(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
@@ -443,7 +443,7 @@ async def test_notify_every_change_and_previous_duration(hass: Any, hass_storage
     attrs = hass.states.get(SELECT).attributes
     assert attrs["previous"] == "Guest" and attrs["previous_since"] and attrs["previous_duration"] >= 0
     # off by default
-    assert normalize({})["notify_changes"] is False
+    assert normalize({})["notifications"]["changed"]["enabled"] is False
 
 
 def test_change_message() -> None:

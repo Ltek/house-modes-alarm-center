@@ -29,6 +29,7 @@ const SHOWN: Record<string, Set<string>> = { notifications: new Set(['on', 'off'
 import { isLegacyEvent, eventTargets } from '../../data/alarm-events';
 import '../ext/event-migrate';
 import '../ext/smart-alerts';
+import '../ext/house-notifications';
 
 const noArea = 'no_area';
 
@@ -136,8 +137,12 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
         ${showNotifications && editor ? this.renderNotifications(editor, notificationData) : ''}
         ${showNotifications && !editor
           ? tabCard('Notifications', 'settings', html`<p>Alerts and messages sent to your phones. <em>Smart Repeating Alerts</em> are Home
-              Assistant automations (doors, windows, leaks, cameras …); <em>Alarm notifications</em> are sent on alarm events.
-              House Mode messages are set on the House Modes tab.</p>`, html`
+              Assistant automations (doors, windows, leaks, cameras …); <em>House Mode</em> messages are sent when the House Mode
+              changes, is blocked, fails to arm or sets a timer; <em>Alarm notifications</em> are sent on alarm events.</p>`, html`
+              ${tabSection('house', 'House Mode', this.houseSummary,
+                html`<hm-house-notifications .hass=${this.hass}
+                  @notify-summary=${(e: CustomEvent) => { this.houseSummary = e.detail; this.requestUpdate(); }}></hm-house-notifications>`,
+                { open: this.path?.params?.open === 'house' })}
               ${tabSection('smart-alerts', 'Smart Repeating Alerts', this.alertsSummary,
                 html`<hm-smart-alerts embedded .hass=${this.hass}
                   @alerts-summary=${(e: CustomEvent) => { this.alertsSummary = e.detail; this.requestUpdate(); }}></hm-smart-alerts>`)}
@@ -249,6 +254,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
   // ext: the Notifications tab as rows (CARD_DESIGN_SYSTEM): icon, name, what it does, on/off chip, edit and delete
   /** set by the Smart Repeating Alerts section, for its summary line */
   private alertsSummary = '';
+  private houseSummary = 'loading…';
 
   private renderNotifications(editor: unknown, data: (HmAutomation & { area: string | number; warning: boolean })[], inSection = false) {
     const all = data;

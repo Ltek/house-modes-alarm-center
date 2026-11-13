@@ -1,0 +1,205 @@
+blueprint:
+  name: 🔔 House Mode Notifications (Ltek)
+  description: >-
+    Advanced House Mode notifications for House Modes & Alarm Center: a message when the House Mode changes, a
+    change is blocked, arming fails, or a timer is set, with your own conditions, wording (Home Assistant templates),
+    phones, priority and phone-app options. For the simple version, use Notifications → House Mode in the House Modes
+    & Alarm Center panel.
+
+    Template variables: mode, previous, current, source, reason, what, when, minutes, duration (seconds), change, event
+    (changed / blocked / failed / timer).
+
+    Version 2026.11.13.97 · github.com/Ltek/house-modes-alarm-center
+  domain: automation
+  source_url: https://github.com/Ltek/house-modes-alarm-center/blob/main/blueprints/automation/LTek/house-mode-notifications-ltek.yaml
+  input:
+    what:
+      name: What to notify
+      icon: mdi:bell-outline
+      input:
+        events:
+          name: Events
+          default: [changed]
+          selector:
+            select:
+              multiple: true
+              options:
+                - label: The House Mode changed
+                  value: changed
+                - label: A change was blocked (Allowed Sources, open zones)
+                  value: blocked
+                - label: Arming failed
+                  value: failed
+                - label: A timer was set
+                  value: timer
+        only_modes:
+          name: Only for these House Modes
+          description: The mode it changes to (or would have). Empty = every mode. Type each name and press Enter.
+          default: []
+          selector:
+            select:
+              multiple: true
+              custom_value: true
+              options: []
+        skip_sources:
+          name: Not for changes by
+          default: []
+          selector:
+            select:
+              multiple: true
+              options:
+                - {label: By hand, value: manual}
+                - {label: An automation, value: automation}
+                - {label: Schedule, value: schedule}
+                - {label: Everyone left, value: presence_away}
+                - {label: Someone came home, value: presence_home}
+                - {label: Lock code, value: lock}
+                - {label: Panel keypad, value: panel_keypad}
+                - {label: Timer, value: timer}
+                - {label: Outside House Modes, value: external}
+        extra_conditions:
+          name: Only when
+          description: Any extra conditions, e.g. only when someone is home.
+          default: []
+          selector:
+            condition: {}
+    who:
+      name: Send to
+      icon: mdi:cellphone
+      input:
+        notify_devices:
+          name: Phones (Home Assistant app)
+          default: []
+          selector:
+            device:
+              multiple: true
+              filter:
+                - integration: mobile_app
+        notify_services:
+          name: Other notify services
+          description: e.g. notify.family_phones. Type each one and press Enter.
+          default: []
+          selector:
+            select:
+              multiple: true
+              custom_value: true
+              options: []
+    message:
+      name: Message
+      icon: mdi:message-text-outline
+      input:
+        title:
+          name: Title
+          default: >-
+            {% if event == 'changed' %}House Mode: {{ mode }}{% elif event == 'blocked' %}{{ mode }} {{ what or 'not set' }}{% elif event == 'failed' %}House Mode {{ mode }} failed{% else %}House Mode {{ current }}{% endif %}
+          selector:
+            text: {}
+        body:
+          name: Message
+          default: >-
+            {% if event == 'changed' %}{{ change }}{% elif event == 'timer' %}Changes to {{ mode }} {{ when }}{% else %}{{ reason }}{% endif %}
+          selector:
+            text:
+              multiline: true
+        priority:
+          name: Priority
+          default: normal
+          selector:
+            select:
+              options:
+                - {label: Normal, value: normal}
+                - {label: High (time sensitive), value: high}
+                - {label: Critical (through Do Not Disturb), value: critical}
+        replace:
+          name: Replace the previous message
+          description: Each new message replaces the last one from this automation on the phone.
+          default: false
+          selector:
+            boolean: {}
+        extra_data:
+          name: Extra phone-app data
+          description: 'Merged into the notification''s data, e.g. {"channel": "House Mode", "clickAction": "/house_modes/house"}.'
+          default: {}
+          selector:
+            object: {}
+
+mode: queued
+max: 10
+
+triggers:
+  - trigger: event
+    event_type: house_modes_house_mode_changed
+    id: changed
+  - trigger: event
+    event_type: house_modes_house_mode_blocked
+    id: blocked
+  - trigger: event
+    event_type: house_modes_house_mode_failed
+    id: failed
+  - trigger: event
+    event_type: house_modes_house_mode_timer
+    id: timer
+
+variables:
+  events: !input events
+  only_modes: !input only_modes
+  skip_sources: !input skip_sources
+  notify_devices: !input notify_devices
+  notify_services: !input notify_services
+  priority: !input priority
+  replace: !input replace
+  extra_data: !input extra_data
+  event: "{{ trigger.id }}"
+  d: "{{ trigger.event.data }}"
+  mode: "{{ d.name or d.mode or 'unknown' }}"
+  previous: "{{ d.previous_name or '' }}"
+  current: "{{ d.current_name or states('select.house_mode') }}"
+  source: "{{ d.source or '' }}"
+  reason: "{{ d.reason or '' }}"
+  what: "{{ d.what or '' }}"
+  when: "{{ d.when or '' }}"
+  minutes: "{{ d.minutes }}"
+  duration: "{{ d.duration }}"
+  change: "{{ d.change or '' }}"
+  priority_data: >-
+    {% if priority == 'critical' %}
+    {{ {'priority': 'high', 'ttl': 0, 'channel': 'alarm_stream', 'push': {'interruption-level': 'critical', 'sound': {'name': 'default', 'critical': 1, 'volume': 1.0}}} }}
+    {% elif priority == 'high' %}
+    {{ {'priority': 'high', 'ttl': 0, 'push': {'interruption-level': 'time-sensitive'}} }}
+    {% else %}{{ {} }}{% endif %}
+  tag_data: "{{ {'tag': 'house_mode_' ~ this.entity_id} if replace else {} }}"
+  data: "{{ dict(dict(priority_data, **tag_data), **extra_data) }}"
+
+conditions:
+  - condition: template
+    value_template: "{{ event in events }}"
+  - condition: template
+    value_template: >-
+      {{ not only_modes or (mode | lower) in (only_modes | map('lower') | list) }}
+  - condition: template
+    value_template: "{{ source not in skip_sources }}"
+  - condition: and
+    conditions: !input extra_conditions
+
+actions:
+  - variables:
+      title_text: !input title
+      body_text: !input body
+  - repeat:
+      for_each: "{{ notify_devices }}"
+      sequence:
+        - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify }}"
+          continue_on_error: true
+          data:
+            title: "{{ title_text }}"
+            message: "{{ body_text }}"
+            data: "{{ data }}"
+  - repeat:
+      for_each: "{{ notify_services }}"
+      sequence:
+        - action: "{{ repeat.item }}"
+          continue_on_error: true
+          data:
+            title: "{{ title_text }}"
+            message: "{{ body_text }}"
+            data: "{{ data }}"

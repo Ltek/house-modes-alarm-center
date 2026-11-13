@@ -176,6 +176,12 @@ Rendered from a demo house with made-up names (see [Development](#development)).
       <a href="screenshots/26-quick-start-moving-from-alarmo.png"><img src="screenshots/26-quick-start-moving-from-alarmo.png" width="100%" alt="Quick start moving from alarmo"></a><br><sub>Quick start moving from alarmo</sub>
     </td>
   </tr>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/27-house-mode-notifications.png"><img src="screenshots/27-house-mode-notifications.png" width="100%" alt="House mode notifications"></a><br><sub>House mode notifications</sub>
+    </td>
+    <td></td>
+  </tr>
 </table>
 <!-- SCREENSHOTS:END -->
 
@@ -212,7 +218,7 @@ Rendered from a demo house with made-up names (see [Development](#development)).
 | **Mode timers** | After N minutes or at a clock time, change to another mode or back to the previous one |
 | **Script Actions** | Native HA scripts run when a mode starts or ends, before or after arming |
 | **Automation Actions** | The automations triggered by a mode, read from them, with an Enabled chip and a run button |
-| **Change notifications** | Optional message on every change, saying where it came from and why |
+| **House Mode notifications** | On the Notifications tab: Changed, Blocked, Failed to arm, Timer set — your wording, priority and phone buttons (Undo, Retry, Force arm, Cancel timer, …); or advanced ones from the 🔔 House Mode Notifications blueprint |
 | **Shadow mode** | House Modes and the panel link log what they would do; compare, then go Live |
 | **Partitions & Arm Modes** | One `alarm_control_panel` per partition; Away, Home, Night, Vacation, Custom with exit and entry delays |
 | **Zone rules** | Assign zones from HA labels, areas and floors, with per-zone overrides |
@@ -263,6 +269,11 @@ Shadow runs House Modes next to the automations you already have, without arming
 **Alarm Events** are scripts that run when the alarm arms, disarms, triggers, fails to arm and more, per partition, in one list grouped by event. Events written the older way, as a list of actions, can be migrated to scripts, with a backup first.
 
 **Notifications** are messages on the same events, listed the same way, with actionable buttons on the phone (`HOUSE_MODES_DISARM`, `HOUSE_MODES_ARM_AWAY`, `HOUSE_MODES_RETRY_ARM`, `HOUSE_MODES_FORCE_ARM`, …).
+
+**House Mode notifications** are on the same tab, in two kinds:
+
+- **Simple** (sent by the integration): when the House Mode **changes**, a change is **blocked**, arming **fails**, or a **timer** is set. Each has its own title and message with placeholders (`{mode}`, `{previous}`, `{source}`, `{reason}`, `{when}`, `{duration}`, …), a priority (normal, high, critical), and buttons the integration handles: *Undo*, *Disarm*, *Change anyway*, *Retry*, *Force arm*, *Cancel timer*, *Do it now* (only for the users you allow). Shared: who gets them, sources and modes to skip, *Replace the previous message*, and *Send a test*.
+- **Advanced**: automations from the **🔔 House Mode Notifications (Ltek)** blueprint, installed with the integration, for conditions, templates and any phone-app option. They are listed on the tab, and an event sent by both is flagged.
 
 ---
 

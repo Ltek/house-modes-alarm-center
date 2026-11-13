@@ -48,3 +48,8 @@ test('isEditorPath', () => {
   assert.equal(isEditorPath('new_action', {}), true);
   assert.equal(isEditorPath(undefined, { edit_area: '1' }), true);
 });
+
+test('open/<section> links stay on the list page', () => {
+  assert.equal(isEditorPath(undefined, { open: 'house' }), false);
+  assert.equal(isEditorPath(undefined, { edit_notification: '3' }), true);
+});

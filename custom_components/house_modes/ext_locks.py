@@ -455,9 +455,15 @@ class LockManager:
             result["failed"] = await house.async_apply_overrides(p["targets"])
         if p["denied"]:
             who = user["name"] if user else "unknown user"
-            await house._notify(
-                "Keypad action not allowed",
-                f"{who} at {entity_id}: " + "; ".join(f"{k}: {v}" for k, v in p["denied"].items()),
+            # a Blocked notification (Notifications tab → House Mode)
+            from .house_config import find_mode  # noqa: PLC0415
+
+            await house._send(
+                "blocked",
+                find_mode(house.settings, p["house_mode"]) or {"id": None, "name": who},
+                "lock",
+                what="keypad action not allowed",
+                reason=f"{who} at {entity_id}: " + "; ".join(f"{k}: {v}" for k, v in p["denied"].items()),
             )
         self.hass.bus.async_fire(
             EVENT_KEYPAD,

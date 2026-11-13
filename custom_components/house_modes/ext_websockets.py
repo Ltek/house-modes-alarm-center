@@ -50,6 +50,8 @@ from .ext_house_ws import HOUSE_COMMANDS, register_house_service
 from .ext_panel_ws import PANEL_COMMANDS
 from .ext_rules_ws import RULE_COMMANDS
 from .extras_store import MAX_RETENTION_DAYS, ExtrasStore
+from .house_notify import NOTIFY_COMMANDS, HouseNotifier
+from .house_notify import async_sync_blueprint as async_sync_notify_blueprint
 from .alarmo_import import IMPORT_COMMANDS
 from .combined_store import DATA_KEY as COMBINED_DATA
 from .combined_store import STORAGE_KEY as COMBINED_KEY
@@ -82,6 +84,7 @@ class ExtManager:
         self.house = HouseModeManager(hass, self)
         self.locks = LockManager(hass, self)
         self.recorder = ActivityRecorder(hass, self)
+        self.notifier = HouseNotifier(hass, self)
 
     def backup_settings(self) -> dict[str, Any]:
         """Settings shown on the backup page."""
@@ -550,6 +553,7 @@ COMMANDS = (
     *QUICKSTART_COMMANDS,
     *IMPORT_COMMANDS,
     *REFERENCE_COMMANDS,
+    *NOTIFY_COMMANDS,
 )
 
 
@@ -571,6 +575,7 @@ async def async_setup_ext(hass: HomeAssistant, store) -> None:
                 manager.house.async_stop()
                 manager.locks.async_stop()
                 manager.recorder.async_stop()
+                manager.notifier.async_stop()
 
             hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _on_stop)
         manager = hass.data[DATA_EXT]
@@ -602,11 +607,13 @@ async def async_setup_ext(hass: HomeAssistant, store) -> None:
         register_house_service(hass)
         register_card_services(hass)
         hass.async_create_task(async_sync_blueprint(hass), "house_modes_ext_blueprint")
+        hass.async_create_task(async_sync_notify_blueprint(hass), "house_modes_notify_blueprint")
 
         # panel links need the alarm entities, which are added after setup
         @callback
         def _start_links(_now=None) -> None:
             # each part separately: one failing must not stop the others
+            manager.notifier.async_start()
             parts = [manager.house, manager.locks, manager.recorder]
             if not manager.panel.started:
                 parts.insert(0, manager.panel)

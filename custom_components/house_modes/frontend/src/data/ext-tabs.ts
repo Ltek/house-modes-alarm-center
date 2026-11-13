@@ -79,4 +79,5 @@ export const tabForPath = (
 
 /** True when the URL is an editor/sub page rather than the tab's list page. */
 export const isEditorPath = (subpage?: string, params: Record<string, string | undefined> = {}) =>
-  !!subpage || Object.values(params).some(v => v !== undefined);
+  // "open/<section>" only opens a section of the list page (links from Quick Start and other tabs)
+  !!subpage || Object.entries(params).some(([k, v]) => k !== 'open' && v !== undefined);

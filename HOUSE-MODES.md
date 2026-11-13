@@ -101,6 +101,25 @@ Blueprints are in `blueprints/automation/LTek/` in the ZIP: copy them to
   began. Example **Late Night**: partitions Home; under *Allowed Sources* untick **Schedule** in *May Exit*
   (the 23:30 Sleep schedule is then blocked); timer *at 01:00 → Sleep*.
 
+## Notifications
+
+House Mode messages are set on the **Notifications** tab → *House Mode* (not on the House Modes tab):
+
+- **Simple**: four events — *Changed*, *Blocked* (Allowed Sources, open zones, a "not ready" warning, a keypad action
+  not allowed), *Failed to arm* (also a Script Action that failed) and *Timer set* (also a delayed request). Each:
+  on/off, title and message with placeholders (`{mode}` `{previous}` `{current}` `{source}` `{reason}` `{what}` `{when}`
+  `{minutes}` `{duration}` `{change}`), priority, buttons. Shared: *Send to*, *Not for changes by*, *Only for these
+  modes*, *Replace the previous message*, *Who may use the buttons* (administrators, or chosen users).
+- Priority, Replace and buttons are Home Assistant phone-app options (`notify.mobile_app_*`, or a group of them); a
+  service that does not take them gets the text only.
+- **Advanced**: *Add an advanced notification* creates an automation from `blueprints/automation/LTek/house-mode-notifications-ltek.yaml`
+  (🔔 House Mode Notifications (Ltek)). It reacts to the events `house_modes_house_mode_changed`, `_blocked`, `_failed`
+  and `_timer`. When an enabled one covers an event the Simple one also sends, the tab says so.
+
+The settings of earlier builds (notify services, *Notify on every change*, skipped sources) were moved here with the
+same wording. New: a change blocked by Allowed Sources now sends a *Blocked* message; Blocked and Failed default to
+priority high.
+
 ## Sources
 
 `manual` (dashboard / a person), `automation` (anything else without a source), `schedule`,

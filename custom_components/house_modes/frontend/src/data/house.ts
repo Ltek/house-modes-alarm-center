@@ -55,9 +55,8 @@ export type HouseSettings = {
   modes: HouseMode[];
   input_select?: string | null;
   lock_keypads: LockKeypad[];
-  notify_services: string[];
-  notify_changes?: boolean;
-  notify_skip_sources?: string[];
+  /** House Mode notifications: edited on the Notifications tab (data/house-notify.ts) */
+  notifications?: unknown;
   current: string | null;
   previous: string | null;
   source: string | null;

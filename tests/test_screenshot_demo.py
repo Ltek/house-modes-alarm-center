@@ -234,6 +234,13 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
         }
     )
     await locks.async_save(s)
+    # House Mode notifications (Notifications tab → House Mode)
+    await ext.house.async_save_settings({**ext.house.settings, "notifications": {
+        "services": ["notify.mobile_app_phone", "notify.family_phones"], "skip_sources": ["timer"], "replace": True,
+        "changed": {"enabled": True, "message": "{change} · was {previous} for {duration}", "buttons": ["undo"]},
+        "failed": {"priority": "critical", "buttons": ["retry", "force_arm", "disarm"]},
+        "timer": {"buttons": ["cancel", "now"]},
+    }})
     await ext.backups.async_create("before-migration")
     await ext.backups.async_create("pre-save")
 
@@ -334,7 +341,7 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
         "house_modes/ext/panel/get", "house_modes/ext/panel/log", "house_modes/ext/house_actions/get", "house_modes/ext/alerts/get", "house_modes/ext/rules/list", "house_modes/ext/rules/preview",
         "house_modes/ext/backup/list", "house_modes/ext/locks/get", "house_modes/ext/locks/legacy", "house_modes/ext/activity/get",
         "config/area_registry/list", "config/floor_registry/list", "config/label_registry/list",
-        "house_modes/ext/card/get", "house_modes/ext/card/permissions", "house_modes/ext/quickstart/plan",
+        "house_modes/ext/card/get", "house_modes/ext/card/permissions", "house_modes/ext/quickstart/plan", "house_modes/ext/house_notify/get",
     ]:
         i += 1
         try:

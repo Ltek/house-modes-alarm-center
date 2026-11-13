@@ -11,6 +11,7 @@ from homeassistant.components import websocket_api
 
 from . import const, legacy
 from .ext_panel_ws import exit_mismatches
+from .house_checks import collect
 from .house_config import find_mode, open_entities
 
 READY_WORDS = ("ready",)
@@ -83,6 +84,8 @@ def status_payload(hass: HomeAssistant) -> dict[str, Any]:
         "rules_pending": ext.rules.pending_count,
         # the old Alarmo integration is still enabled: never both (the panel link stays in Shadow)
         "alarmo_enabled": legacy.old_alarmo_active(hass),
+        # everything that needs the user's attention (house_checks.py): the status strip shows each
+        "warnings": collect(hass),
     }
 
 

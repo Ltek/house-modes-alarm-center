@@ -1,6 +1,8 @@
 // Status strip, live zone state, "Why won't it arm?" and walk test: websocket calls + pure helpers.
 import type { HomeAssistant } from '../types';
 
+export type WarningItem = { entity_id: string; name: string; edit_id: string | null; reasons: string[] };
+export type Warning = { id: string; level: 'error' | 'warn'; title: string; detail: string; link: string; items?: WarningItem[] };
 export type StatusInfo = {
   house: { enabled: boolean; shadow?: boolean; current: string | null; name: string | null; icon: string | null; source: string | null };
   alarms: { key: string; entity_id: string; name: string }[];
@@ -15,6 +17,8 @@ export type StatusInfo = {
   rules_pending: number;
   /** the old Alarmo integration is still enabled */
   alarmo_enabled?: boolean;
+  /** everything that needs attention (house_checks.py) */
+  warnings?: Warning[];
 };
 export type WhyBlocker = { entity_id: string; state: string; reason: string; motion: boolean; exit_delay: boolean };
 export type WhyMode = { mode: string; ready: boolean; blocking: WhyBlocker[]; bypassed: string[]; exit_time: number };

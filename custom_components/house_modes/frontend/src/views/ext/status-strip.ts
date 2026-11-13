@@ -3,7 +3,21 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
-import { StatusInfo, ZONE_DRAFT_KEY, fetchStatus } from '../../data/status';
+import { StatusInfo, Warning, ZONE_DRAFT_KEY, fetchStatus } from '../../data/status';
+
+const MAX_CHIPS = 3;
+const WARN_ICON: Record<string, string> = {
+  alarmo_enabled: 'mdi:alert-octagon',
+  link_down: 'mdi:lan-disconnect',
+  panel_code: 'mdi:dialpad',
+  exit: 'mdi:timer-alert-outline',
+  automations: 'mdi:robot-confused-outline',
+  timer: 'mdi:timer-off-outline',
+  selector: 'mdi:form-dropdown',
+  notify: 'mdi:bell-off-outline',
+  rules: 'mdi:auto-fix',
+  draft: 'mdi:pencil-circle',
+};
 import { navigate } from '../../helpers';
 
 const ALARM_ICON: Record<string, string> = {
@@ -23,6 +37,7 @@ const pretty = (s?: string | null) => (s || 'unknown').replace(/_/g, ' ');
 export class StatusStrip extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
   @state() private info?: StatusInfo;
+  @state() private open = false;
   private timer?: number;
 
   connectedCallback() {
@@ -87,18 +102,34 @@ export class StatusStrip extends LitElement {
           const kind = !l.running && l.mode !== 'off' ? 'bad' : l.mode === 'live' ? 'on' : '';
           return this.chip('mdi:alarm-panel-outline', `${pname}: ${pretty(p?.state)}${ready} · ${l.mode}`, `Physical panel link (${l.running ? 'running' : 'not running'})`, '/house_modes/panel', kind);
         })}
-        ${i.alarmo_enabled ? this.chip('mdi:alert', 'Alarmo is still enabled', 'Disable the Alarmo integration: the two must never run together. Until then the panel link stays in Shadow.', '/house_modes/backup', 'warn') : nothing}
-        ${i.links.some(l => l.exit_mismatch?.length)
-          ? this.chip('mdi:timer-alert-outline', "Exit times don't match the panel",
-              'The alarm counts as armed at a different time than the physical panel. Physical Panel → Match the alarm\'s exit times.',
-              '/house_modes/panel', 'warn')
-          : nothing}
-        ${i.rules_pending ? this.chip('mdi:auto-fix', `${i.rules_pending} zone rule change(s) pending`, 'Review on Zones', '/house_modes/zones', 'warn') : nothing}
-        ${draft ? this.chip('mdi:pencil-circle', 'Unsaved zone edits', 'Zones has unsaved changes', '/house_modes/zones', 'warn') : nothing}
+        ${this.renderWarnings(draft)}
         <span class="grow"></span>
         ${this.chip('mdi:help-circle-outline', "Why won't it arm?", 'What blocks arming right now', '/house_modes/activity/arm_check')}
       </div>
     `;
+  }
+
+  /** Each warning as a chip (errors red, the rest yellow); more than 3 fold into one chip that opens the list. */
+  private renderWarnings(draft: boolean) {
+    const list: Warning[] = [...(this.info?.warnings || [])];
+    if (draft) list.push({ id: 'draft', level: 'warn', title: 'Unsaved zone edits', detail: 'Zones has unsaved changes.', link: '/house_modes/zones' });
+    if (!list.length) return nothing;
+    const icon = (w: Warning) => WARN_ICON[w.id.split(':')[0]] || (w.level === 'error' ? 'mdi:alert-circle' : 'mdi:alert');
+    const kind = (w: Warning) => (w.level === 'error' ? 'bad' : 'warn');
+    const tip = (w: Warning) => [w.detail, ...(w.items || []).map(i => `• ${i.name}: ${i.reasons.join('; ')}`)].join('\n');
+    if (list.length <= MAX_CHIPS) return list.map(w => this.chip(icon(w), w.title, tip(w), w.link, kind(w)));
+    const errors = list.filter(w => w.level === 'error').length;
+    return html`<span class="fold">
+      <button class="chip ${errors ? 'bad' : 'warn'}" aria-expanded=${this.open} @click=${() => (this.open = !this.open)}>
+        <ha-icon icon="mdi:alert"></ha-icon><span>${list.length} to check${errors ? ` · ${errors} problem${errors === 1 ? '' : 's'}` : ''}</span>
+        <ha-icon icon=${this.open ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
+      </button>
+      ${this.open
+        ? html`<div class="menu" role="menu">${list.map(w => html`<button class="item ${kind(w)}" role="menuitem" title=${tip(w)}
+              @click=${() => { this.open = false; this.go(w.link); }}>
+              <ha-icon icon=${icon(w)}></ha-icon><span><strong>${w.title}</strong><span class="d">${w.detail}</span></span></button>`)}</div>`
+        : nothing}
+    </span>`;
   }
 
   static styles = css`
@@ -144,6 +175,51 @@ export class StatusStrip extends LitElement {
     .chip.bad {
       border-color: var(--error-color, #f44336);
       color: var(--error-color, #f44336);
+    }
+    .fold {
+      position: relative;
+    }
+    .menu {
+      position: absolute;
+      z-index: 10;
+      top: calc(100% + 4px);
+      left: 0;
+      min-width: 320px;
+      max-width: 520px;
+      background: var(--card-background-color);
+      border: 1px solid var(--divider-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      padding: 4px 0;
+    }
+    .item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      padding: 8px 12px;
+      background: none;
+      border: none;
+      color: var(--primary-text-color);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      --mdc-icon-size: 18px;
+    }
+    .item:hover {
+      background: var(--secondary-background-color);
+    }
+    .item.bad ha-icon {
+      color: var(--error-color, #f44336);
+    }
+    .item.warn ha-icon {
+      color: var(--warning-color, #ffa600);
+    }
+    .item .d {
+      display: block;
+      color: var(--secondary-text-color);
+      white-space: normal;
     }
   `;
 }

@@ -151,3 +151,62 @@ async def test_alarmo_setup_only_with_alarmo(hass: Any, hass_storage: Any, hass_
     steps = {s["id"]: s["status"] for s in plans["alarmo"]["steps"]}
     assert steps["import"] == "done" and steps["references"] == "done"
     assert {"entity_ids", "check_mode", "check_cycle", "retire"} <= set(steps)
+
+
+async def test_warnings_and_named_automations(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """The status strip's warnings: an automation that writes the selector is named (a turned-off one is not)."""
+    assert await async_setup_component(hass, "input_select", {"input_select": {
+        "house_mode_selector": {"options": ["Away"]},
+    }})
+    await setup_real_house_modes(hass, hass_storage, tmp_path, _empty_env())
+    ext = hass.data["house_modes_ext"]
+    await ext.house.async_save_settings({"enabled": True, "input_select": "input_select.house_mode_selector",
+                                         "modes": [{"id": "away", "name": "Away", "targets": {}},
+                                                   {"id": "home", "name": "Home", "targets": {}}]})
+    sel = {"action": "input_select.select_option", "target": {"entity_id": "input_select.house_mode_selector"},
+           "data": {"option": "Away"}}
+    assert await async_setup_component(hass, "automation", {"automation": [
+        {"id": "a1", "alias": "Writes the selector", "triggers": [{"trigger": "time", "at": "06:00:00"}], "actions": [sel]},
+        {"id": "a2", "alias": "Old one", "initial_state": False, "triggers": [{"trigger": "time", "at": "07:00:00"}],
+         "actions": [sel]},
+    ]})
+    await hass.async_block_till_done()
+    client = await hass_ws_client(hass)
+    st = await _ws(client, 1, type="house_modes/ext/status")
+    by = {w["id"]: w for w in st["warnings"]}
+    assert [i["name"] for i in by["automations"]["items"]] == ["Writes the selector"]
+    assert "writes the selector" in by["automations"]["items"][0]["reasons"][0]
+    assert "selector" in by and "Home" in by["selector"]["detail"]
+    plan = (await _ws(client, 2, type="house_modes/ext/quickstart/plan", setup="house"))["plans"]["house"]
+    step = next(s for s in plan["steps"] if s["id"] == "automations")
+    assert step["status"] == "manual" and [a["name"] for a in step["automations"]] == ["Writes the selector"]
+
+
+async def test_go_live_done_when_both_live(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """Go live turns done once House Modes and every panel link are Live."""
+    await _panel_setup(hass, hass_storage, tmp_path)
+    client = await hass_ws_client(hass)
+    ext = hass.data["house_modes_ext"]
+    await ext.house.async_save_settings({"enabled": True, "run_mode": "live", "modes": [{"id": "a", "name": "A", "targets": {}}]})
+    await ext.panel.async_save_settings({"links": {"1700000001": {"panel_entity": PANEL, "panel_type": "envisalink", "mode": "shadow"}}})
+    plan = (await _ws(client, 1, type="house_modes/ext/quickstart/plan", setup="panel"))["plans"]["panel"]
+    live = next(s for s in plan["steps"] if s["id"] == "live")
+    assert live["status"] == "manual" and "the panel link" in live["detail"]
+    await ext.panel.async_save_settings({"links": {"1700000001": {"panel_entity": PANEL, "panel_type": "envisalink", "mode": "live"}}})
+    plan = (await _ws(client, 2, type="house_modes/ext/quickstart/plan", setup="panel"))["plans"]["panel"]
+    assert next(s for s in plan["steps"] if s["id"] == "live")["status"] == "done"
+
+
+async def test_mark_as_done(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """A step that can't be measured is marked done and stays done."""
+    await setup_real_house_modes(hass, hass_storage, tmp_path, _empty_env())
+    hass_storage["alarmo.storage"] = {"version": 6, "minor_version": 3, "key": "alarmo.storage",
+                                      "data": load_fixture_envelope()["data"]}
+    client = await hass_ws_client(hass)
+    await _ws(client, 1, type="house_modes/ext/alarmo_import/run")
+    await hass.async_block_till_done()
+    steps = {s["id"]: s for s in (await _ws(client, 2, type="house_modes/ext/quickstart/plan", setup="alarmo"))["plans"]["alarmo"]["steps"]}
+    assert steps["check_cycle"]["status"] == "manual" and steps["check_cycle"]["can_mark"]
+    await _ws(client, 3, type="house_modes/ext/quickstart/mark", step="check_cycle")
+    steps = {s["id"]: s for s in (await _ws(client, 4, type="house_modes/ext/quickstart/plan", setup="alarmo"))["plans"]["alarmo"]["steps"]}
+    assert steps["check_cycle"]["status"] == "done" and "checked" in steps["check_cycle"]["detail"]

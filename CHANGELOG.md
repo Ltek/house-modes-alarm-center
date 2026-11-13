@@ -4,6 +4,24 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.13.100 — 2026-11-13
+
+Restart Home Assistant after the update.
+
+- **Every warning on the status strip.** One list of what needs attention, as chips: red for a problem (Alarmo still
+  enabled, a panel link not running, no default code on the panel, the alarm's exit time shorter than the panel's),
+  yellow for something to fix (House Mode automations to check, a timer that can't work, the selector missing mode
+  names, House Mode notifications without a recipient, pending zone rules, unsaved zone edits). Each opens the place
+  to fix it; hovering shows the details. More than 3 fold into one *N to check* chip with a list.
+- **Quick Start names the automations to check**, each with what is wrong and a link to edit it. Turned-off
+  automations are no longer counted.
+- **Quick Start steps complete themselves:** *Go live* when House Modes and every panel link are Live; *Check the
+  House Mode and the panel link* when the House Mode is known and the link runs; *One full test before any Away* when
+  Activity shows, since the import, a disarm, an arm, and an arm and a disarm at the panel keypad. Steps that can't be
+  measured have **Mark as done**.
+- Physical Panel: the Live / Shadow chip is shown once, on the *Current Run State* row (not also in the link's
+  title).
+
 ## v2026.11.13.99 — 2026-11-13
 
 Restart Home Assistant after the update.

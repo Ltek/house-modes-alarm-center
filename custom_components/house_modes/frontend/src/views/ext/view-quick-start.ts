@@ -17,6 +17,8 @@ type Step = {
   link: string | null;
   yaml?: string;
   candidates?: { entity_id: string; name: string; device_class: string }[];
+  automations?: { entity_id: string; name: string; edit_id: string | null; reasons: string[] }[];
+  can_mark?: boolean;
 };
 type Plan = { setup: string; steps: Step[]; todo: number };
 type Status = {
@@ -127,6 +129,15 @@ export class AlarmViewQuickStart extends LitElement {
       this.status = res.status;
       this.plans = res.plans;
       this.error = '';
+    } catch (err) {
+      this.error = wsErrorMessage(err);
+    }
+  }
+
+  private async mark(step: string) {
+    try {
+      await this.hass.callWS({ type: 'house_modes/ext/quickstart/mark', step, done: true });
+      await this.load();
     } catch (err) {
       this.error = wsErrorMessage(err);
     }
@@ -267,6 +278,15 @@ export class AlarmViewQuickStart extends LitElement {
         <div><strong>${st.title}</strong>${st.detail ? html` <span class="secondary" style="display:inline">· ${st.detail}</span>` : nothing}
           ${st.link ? html` <a href=${st.link} @click=${(e: Event) => { e.preventDefault(); navigate(this, st.link!, true); }}>open</a>` : nothing}</div>
         ${st.candidates && st.status === 'todo' ? this.renderZoneGroups(st.candidates) : nothing}
+        ${st.automations?.length
+          ? html`<ul class="autos">${st.automations.map(a => html`<li>
+              <ha-icon icon="mdi:alert"></ha-icon>
+              <div>${a.edit_id
+                ? html`<a href=${`/config/automation/edit/${a.edit_id}`} @click=${(e: Event) => { e.preventDefault(); navigate(this, `/config/automation/edit/${a.edit_id}`); }}>${a.name}</a>`
+                : html`<strong>${a.name}</strong>`}
+                ${a.reasons.map(r => html`<div class="secondary">${r}</div>`)}</div></li>`)}</ul>`
+          : nothing}
+        ${st.can_mark ? html`<button class="link" @click=${() => this.mark(st.id)}>Mark as done</button>` : nothing}
         ${st.yaml
           ? html`<pre class="yaml">${st.yaml}</pre>
               <button class="link" @click=${() => navigator.clipboard?.writeText(st.yaml!).then(() => toast(this, 'Copied'), () => toast(this, 'Select the text and copy it'))}>Copy</button>
@@ -333,6 +353,21 @@ export class AlarmViewQuickStart extends LitElement {
       .step-body {
         flex: 1;
         min-width: 0;
+      }
+      .autos {
+        list-style: none;
+        padding: 0;
+        margin: 6px 0 4px;
+      }
+      .autos li {
+        display: flex;
+        gap: 6px;
+        padding: 3px 0;
+        --mdc-icon-size: 16px;
+      }
+      .autos li > ha-icon {
+        color: var(--warning-color, #ffa600);
+        margin-top: 2px;
       }
       .zgroup {
         border-top: 1px solid var(--divider-color);

@@ -28,7 +28,7 @@ import { extStyles } from './ext-styles';
 import './view-mirrors';
 import './view-ha-zones';
 import './slider-field';
-import { entityBadge, sectionHead, tabSection, tabCard, settingLock, SETTING_LOCKS, isLocked, runStateRow, runChip } from './page-intro';
+import { entityBadge, sectionHead, tabSection, tabCard, settingLock, SETTING_LOCKS, isLocked, runStateRow } from './page-intro';
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 const STATE_LABEL: Record<string, string> = {
@@ -273,8 +273,8 @@ export class AlarmViewPanel extends LitElement {
       <hm-slider .label=${label} .min=${min} .max=${max} unit=${field === 'retry_delay' ? 's' : ''} .value=${link[field]}
         @value-changed=${(e: CustomEvent) => upd(l => (l[field] = e.detail.value))}></hm-slider>`;
     const open = this.openLinks[key] ?? false;
+    // the Live / Shadow chip is on the Current Run State row only
     const head = html`<span class="collapse-title">${target?.name || key} ⇄ ${panel?.name || link.panel_entity}</span>
-          ${runChip(link.mode)}
           <span class="secondary" style="display:inline">${running ? 'running' : 'not running'}${panel ? ` · panel is ${panel.state}` : ''}</span>`;
     const body = html`
       <div class="collapse-body ${link.mode === 'live' ? 'live' : ''}">

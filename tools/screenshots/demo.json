@@ -916,8 +916,8 @@
      "1700000001"
     ]
    },
-   "1794529297": {
-    "user_id": "1794529297",
+   "1794587912": {
+    "user_id": "1794587912",
     "name": "Dog Walker",
     "enabled": true,
     "code": "x",
@@ -928,8 +928,8 @@
     "code_length": 4,
     "area_limit": []
    },
-   "1794529298": {
-    "user_id": "1794529298",
+   "1794587913": {
+    "user_id": "1794587913",
     "name": "Cleaner",
     "enabled": true,
     "code": "x",
@@ -1048,7 +1048,7 @@
    }
   ],
   "house_modes/ext/info": {
-   "version": "2026.11.12.96",
+   "version": "2026.11.13.100",
    "export_version": 1,
    "backup_dir": "/config/house_modes/backups",
    "settings": {
@@ -1094,11 +1094,69 @@
      "panel_entity": "alarm_control_panel.vista_partition_1",
      "mode": "shadow",
      "running": true,
-     "ready_entity": "binary_sensor.vista_partition_1_ready"
+     "ready_entity": "binary_sensor.vista_partition_1_ready",
+     "exit_mismatch": [
+      {
+       "area_id": "1700000001",
+       "name": "Ground Floor",
+       "modes": {
+        "armed_away": {
+         "alarm": 60,
+         "panel": 30,
+         "suggested": 33,
+         "kind": "long"
+        },
+        "armed_home": {
+         "alarm": 0,
+         "panel": 29,
+         "suggested": 32,
+         "kind": "short"
+        },
+        "armed_vacation": {
+         "alarm": 90,
+         "panel": 30,
+         "suggested": 33,
+         "kind": "long"
+        },
+        "armed_custom_bypass": {
+         "alarm": 0,
+         "panel": 29,
+         "suggested": 32,
+         "kind": "short"
+        }
+       }
+      }
+     ]
     }
    ],
    "rules_pending": 0,
-   "alarmo_enabled": false
+   "alarmo_enabled": false,
+   "warnings": [
+    {
+     "id": "exit:1700000001:1700000001",
+     "level": "error",
+     "title": "Exit times don't match the panel",
+     "detail": "Ground Floor: Away 60 s (panel 30 s), Home 0 s (panel 29 s), Vacation 90 s (panel 30 s), Custom_Bypass 0 s (panel 29 s). The alarm shows armed while the panel is still counting down. Physical Panel \u2192 Match the alarm's exit times.",
+     "link": "/house_modes/panel"
+    },
+    {
+     "id": "automations",
+     "level": "warn",
+     "title": "1 House Mode automation to check",
+     "detail": "They change the House Mode in a way that bypasses or is refused by House Modes.",
+     "link": "/house_modes/general",
+     "items": [
+      {
+       "entity_id": "automation.sleep_when_the_bedroom_tv_turns_off",
+       "name": "Sleep when the bedroom TV turns off",
+       "edit_id": "s2",
+       "reasons": [
+        "Sleep: writes the selector, so the request arrives as \"automation\": call house_modes.set_house_mode with a source"
+       ]
+      }
+     ]
+    }
+   ]
   },
   "house_modes/ext/why": {
    "areas": [
@@ -1297,6 +1355,15 @@
        "1700000002": "disarmed",
        "1700000003": "disarmed"
       },
+      "delay_sources": {},
+      "color": "",
+      "on_failure": "undo",
+      "timers": [],
+      "readiness": {
+       "entities": [],
+       "action": "warn",
+       "labels": []
+      },
       "leave_sources": [
        "manual",
        "automation",
@@ -1307,11 +1374,6 @@
        "panel_keypad",
        "timer"
       ],
-      "readiness": {
-       "action": "warn",
-       "labels": [],
-       "entities": []
-      },
       "enter_sources": [
        "manual",
        "automation",
@@ -1322,11 +1384,7 @@
        "panel_keypad",
        "timer"
       ],
-      "steps": [],
-      "delay_sources": {},
-      "timers": [],
-      "color": "",
-      "on_failure": "undo"
+      "steps": []
      },
      {
       "id": "stay",
@@ -1337,6 +1395,15 @@
        "1700000002": "disarmed",
        "1700000003": "armed_away"
       },
+      "delay_sources": {},
+      "color": "",
+      "on_failure": "undo",
+      "timers": [],
+      "readiness": {
+       "entities": [],
+       "action": "warn",
+       "labels": []
+      },
       "leave_sources": [
        "manual",
        "automation",
@@ -1347,11 +1414,6 @@
        "panel_keypad",
        "timer"
       ],
-      "readiness": {
-       "action": "warn",
-       "labels": [],
-       "entities": []
-      },
       "enter_sources": [
        "manual",
        "automation",
@@ -1362,11 +1424,7 @@
        "panel_keypad",
        "timer"
       ],
-      "steps": [],
-      "delay_sources": {},
-      "timers": [],
-      "color": "",
-      "on_failure": "undo"
+      "steps": []
      },
      {
       "id": "sleep",
@@ -1390,8 +1448,8 @@
         "entity_id": "script.lock_up",
         "when": "enter",
         "phase": "before",
-        "wait": false,
-        "modes": []
+        "modes": [],
+        "wait": false
        }
       ],
       "timers": [
@@ -1406,6 +1464,9 @@
         "notify": true
        }
       ],
+      "delay_sources": {},
+      "color": "",
+      "on_failure": "undo",
       "leave_sources": [
        "manual",
        "automation",
@@ -1425,10 +1486,7 @@
        "lock",
        "panel_keypad",
        "timer"
-      ],
-      "delay_sources": {},
-      "color": "",
-      "on_failure": "undo"
+      ]
      },
      {
       "id": "away",
@@ -1452,17 +1510,26 @@
         "entity_id": "script.lock_up",
         "when": "enter",
         "phase": "before",
-        "wait": false,
-        "modes": []
+        "modes": [],
+        "wait": false
        },
        {
         "entity_id": "script.spa_evening",
         "when": "leave",
         "phase": "after",
-        "wait": false,
-        "modes": []
+        "modes": [],
+        "wait": false
        }
       ],
+      "delay_sources": {},
+      "color": "",
+      "on_failure": "undo",
+      "timers": [],
+      "readiness": {
+       "entities": [],
+       "action": "warn",
+       "labels": []
+      },
       "leave_sources": [
        "manual",
        "automation",
@@ -1472,16 +1539,7 @@
        "lock",
        "panel_keypad",
        "timer"
-      ],
-      "readiness": {
-       "action": "warn",
-       "labels": [],
-       "entities": []
-      },
-      "delay_sources": {},
-      "timers": [],
-      "color": "",
-      "on_failure": "undo"
+      ]
      },
      {
       "id": "guest",
@@ -1500,6 +1558,14 @@
         "from_modes": []
        }
       ],
+      "delay_sources": {},
+      "color": "",
+      "on_failure": "undo",
+      "readiness": {
+       "entities": [],
+       "action": "warn",
+       "labels": []
+      },
       "leave_sources": [
        "manual",
        "automation",
@@ -1510,11 +1576,6 @@
        "panel_keypad",
        "timer"
       ],
-      "readiness": {
-       "action": "warn",
-       "labels": [],
-       "entities": []
-      },
       "enter_sources": [
        "manual",
        "automation",
@@ -1525,10 +1586,7 @@
        "panel_keypad",
        "timer"
       ],
-      "steps": [],
-      "delay_sources": {},
-      "color": "",
-      "on_failure": "undo"
+      "steps": []
      }
     ],
     "notifications": {
@@ -1556,37 +1614,37 @@
        "force_arm",
        "disarm"
       ],
+      "message": "{reason}",
       "enabled": true,
-      "title": "House Mode {mode} failed",
-      "message": "{reason}"
+      "title": "House Mode {mode} failed"
      },
      "timer": {
       "buttons": [
        "cancel",
        "now"
       ],
+      "message": "Changes to {mode} {when}",
       "enabled": true,
       "title": "House Mode {current}",
-      "priority": "normal",
-      "message": "Changes to {mode} {when}"
+      "priority": "normal"
      },
+     "only_modes": [],
      "blocked": {
-      "enabled": true,
       "buttons": [],
+      "message": "{reason}",
+      "enabled": true,
       "title": "{mode} {what}",
-      "priority": "high",
-      "message": "{reason}"
+      "priority": "high"
      },
-     "button_users": "admins",
-     "only_modes": []
+     "button_users": "admins"
     },
-    "run_mode": "live",
     "lock_keypads": [],
+    "run_mode": "live",
     "current": "disarmed",
     "previous": null,
     "history": [
      {
-      "at": "2026-11-13T00:21:37.916525+00:00",
+      "at": "2026-11-13T16:38:32.021181+00:00",
       "from": null,
       "to": "disarmed",
       "source": "manual",
@@ -1595,7 +1653,7 @@
     ],
     "pending": [],
     "source": "manual",
-    "changed_at": "2026-11-13T00:21:37.916525+00:00"
+    "changed_at": "2026-11-13T16:38:32.021181+00:00"
    },
    "targets": [
     {
@@ -1665,14 +1723,12 @@
        "armed_home": 29,
        "armed_away": 30
       },
-      "bypass_keys": "{code}6{zone}",
-      "retry_delay": 5,
-      "follow_panel": true,
-      "arm_order": "panel_leads",
-      "follow_map": {},
       "failure_policy": "disarm",
-      "retries": 3,
+      "bypass_keys": "{code}6{zone}",
+      "arm_order": "panel_leads",
+      "retry_delay": 5,
       "delays": {},
+      "follow_panel": true,
       "confirm_margin": 10,
       "commands": {
        "armed_away": {
@@ -1728,7 +1784,9 @@
         ],
         "timeout": 20
        }
-      }
+      },
+      "follow_map": {},
+      "retries": 3
      }
     },
     "mirrors": {
@@ -1759,12 +1817,12 @@
     },
     "zone_trip": {},
     "ignored_zones": [],
-    "bypass_entity": null,
     "keypad_input": {
-     "blocked_keys": "",
      "users": [],
+     "blocked_keys": "",
      "mode": "admins"
-    }
+    },
+    "bypass_entity": null
    },
    "panels": [
     {
@@ -1927,30 +1985,64 @@
    "bypassed": [],
    "log": [
     {
-     "ts": 1794529297.887944,
+     "ts": 1794587911.962767,
      "link": "1700000001",
      "level": "info",
      "msg": "started (shadow): alarm_control_panel.ground_floor <-> alarm_control_panel.vista_partition_1"
     },
     {
-     "ts": 1794529298.0451093,
+     "ts": 1794587912.193334,
      "link": "1700000001",
      "level": "info",
      "msg": "[shadow] start check: in step (alarm disarmed, physical panel disarmed)",
      "ok": true
     }
-   ]
+   ],
+   "exit_mismatch": {
+    "1700000001": [
+     {
+      "area_id": "1700000001",
+      "name": "Ground Floor",
+      "modes": {
+       "armed_away": {
+        "alarm": 60,
+        "panel": 30,
+        "suggested": 33,
+        "kind": "long"
+       },
+       "armed_home": {
+        "alarm": 0,
+        "panel": 29,
+        "suggested": 32,
+        "kind": "short"
+       },
+       "armed_vacation": {
+        "alarm": 90,
+        "panel": 30,
+        "suggested": 33,
+        "kind": "long"
+       },
+       "armed_custom_bypass": {
+        "alarm": 0,
+        "panel": 29,
+        "suggested": 32,
+        "kind": "short"
+       }
+      }
+     }
+    ]
+   }
   },
   "house_modes/ext/panel/log": {
    "log": [
     {
-     "ts": 1794529297.887944,
+     "ts": 1794587911.962767,
      "link": "1700000001",
      "level": "info",
      "msg": "started (shadow): alarm_control_panel.ground_floor <-> alarm_control_panel.vista_partition_1"
     },
     {
-     "ts": 1794529298.0451093,
+     "ts": 1794587912.193334,
      "link": "1700000001",
      "level": "info",
      "msg": "[shadow] start check: in step (alarm disarmed, physical panel disarmed)",
@@ -2333,8 +2425,8 @@
    "blueprint": {
     "path": "LTek/smart-repeating-alerts-ltek.yaml",
     "installed": true,
-    "installed_version": "2026.11.06.43",
-    "shipped_version": "2026.11.06.43",
+    "installed_version": "2026.11.13.44",
+    "shipped_version": "2026.11.13.44",
     "ours": true,
     "update": false
    },
@@ -2485,32 +2577,32 @@
   "house_modes/ext/backup/list": {
    "backups": [
     {
-     "name": "house_modes_2026-11-12_162138_pre-save",
+     "name": "house_modes_2026-11-13_083832-1_pre-save",
      "label": "pre-save",
-     "created": "2026-11-12T16:21:38-08:00",
+     "created": "2026-11-13T08:38:32-08:00",
      "files": {
       "storage": {
-       "file": "house_modes_2026-11-12_162138_pre-save.storage.json",
+       "file": "house_modes_2026-11-13_083832-1_pre-save.storage.json",
        "size": 59180
       },
       "yaml": {
-       "file": "house_modes_2026-11-12_162138_pre-save.yaml",
-       "size": 30510
+       "file": "house_modes_2026-11-13_083832-1_pre-save.yaml",
+       "size": 30511
       }
      }
     },
     {
-     "name": "house_modes_2026-11-12_162137_before-migration",
+     "name": "house_modes_2026-11-13_083832_before-migration",
      "label": "before-migration",
-     "created": "2026-11-12T16:21:37-08:00",
+     "created": "2026-11-13T08:38:32-08:00",
      "files": {
       "storage": {
-       "file": "house_modes_2026-11-12_162137_before-migration.storage.json",
+       "file": "house_modes_2026-11-13_083832_before-migration.storage.json",
        "size": 59180
       },
       "yaml": {
-       "file": "house_modes_2026-11-12_162137_before-migration.yaml",
-       "size": 30510
+       "file": "house_modes_2026-11-13_083832_before-migration.yaml",
+       "size": 30511
       }
      }
     }
@@ -2521,6 +2613,20 @@
   },
   "house_modes/ext/locks/get": {
    "settings": {
+    "actions": {
+     "1700000101": {
+      "unlock": {
+       "house_mode": "disarmed",
+       "targets": {}
+      }
+     },
+     "1700000102": {
+      "unlock": {
+       "house_mode": "disarmed",
+       "targets": {}
+      }
+     }
+    },
     "links": [
      {
       "user_id": "1700000101",
@@ -2543,30 +2649,16 @@
       "slot": 2
      },
      {
-      "user_id": "1794529297",
+      "user_id": "1794587912",
       "entity_id": "lock.front_door_lock",
       "slot": 3
      },
      {
-      "user_id": "1794529298",
+      "user_id": "1794587913",
       "entity_id": "lock.front_door_lock",
       "slot": 5
      }
     ],
-    "actions": {
-     "1700000101": {
-      "unlock": {
-       "house_mode": "disarmed",
-       "targets": {}
-      }
-     },
-     "1700000102": {
-      "unlock": {
-       "house_mode": "disarmed",
-       "targets": {}
-      }
-     }
-    },
     "lock_actions": {}
    },
    "locks": [
@@ -2591,7 +2683,7 @@
      "area_limit": []
     },
     {
-     "user_id": "1794529298",
+     "user_id": "1794587913",
      "name": "Cleaner",
      "enabled": true,
      "can_arm": false,
@@ -2599,7 +2691,7 @@
      "area_limit": []
     },
     {
-     "user_id": "1794529297",
+     "user_id": "1794587912",
      "name": "Dog Walker",
      "enabled": true,
      "can_arm": false,
@@ -2645,7 +2737,7 @@
     "enabled": true
    },
    "days": [
-    "2026-11-12"
+    "2026-11-13"
    ],
    "open": null,
    "kinds": {
@@ -2676,7 +2768,7 @@
    },
    "directory": "/config/house_modes/activity",
    "running": true,
-   "last_write": 1794529298.0495644,
+   "last_write": 1794587912.1959264,
    "last_error": null
   },
   "config/area_registry/list": [],
@@ -2684,39 +2776,39 @@
   "config/label_registry/list": [
    {
     "color": null,
-    "created_at": 1794529298.254393,
+    "created_at": 1794587912.450384,
     "description": null,
     "icon": "mdi:home-switch",
     "label_id": "house_mode_away",
     "name": "House Mode: Away",
-    "modified_at": 1794529298.254394
+    "modified_at": 1794587912.450387
    },
    {
     "color": null,
-    "created_at": 1794529298.254478,
+    "created_at": 1794587912.450469,
     "description": null,
     "icon": "mdi:home-switch",
     "label_id": "house_mode_stay",
     "name": "House Mode: Stay",
-    "modified_at": 1794529298.254478
+    "modified_at": 1794587912.45047
    },
    {
     "color": null,
-    "created_at": 1794529298.254507,
+    "created_at": 1794587912.450507,
     "description": null,
     "icon": "mdi:home-switch",
     "label_id": "house_mode_sleep",
     "name": "House Mode: Sleep",
-    "modified_at": 1794529298.254507
+    "modified_at": 1794587912.450507
    },
    {
     "color": null,
-    "created_at": 1794529298.254795,
+    "created_at": 1794587912.450858,
     "description": null,
     "icon": "mdi:home-switch",
     "label_id": "house_mode_disarmed",
     "name": "House Mode: Disarmed",
-    "modified_at": 1794529298.254796
+    "modified_at": 1794587912.450859
    }
   ],
   "house_modes/ext/card/get": {
@@ -2727,14 +2819,14 @@
     "display_entity": null,
     "current": "disarmed",
     "previous": null,
-    "changed_at": "2026-11-13T00:21:37.916525+00:00",
+    "changed_at": "2026-11-13T16:38:32.021181+00:00",
     "source": "manual",
     "last_result": {
      "result": "changed",
      "mode": "disarmed",
      "requested": "Disarmed",
      "source": "manual",
-     "at": "2026-11-13T00:21:37.930183+00:00"
+     "at": "2026-11-13T16:38:32.040449+00:00"
     },
     "changing_to": null,
     "modes": [
@@ -2796,7 +2888,7 @@
     ],
     "history": [
      {
-      "at": "2026-11-13T00:21:37.916525+00:00",
+      "at": "2026-11-13T16:38:32.021181+00:00",
       "to": "Disarmed",
       "source": "manual"
      }
@@ -2913,8 +3005,18 @@
        "id": "automations",
        "title": "Your House Mode automations",
        "status": "manual",
-       "detail": "found your automations: 2 set a House Mode, 7 run when one starts or ends \u00b7 1 to check (they write the selector or leave out the source)",
-       "link": "/house_modes/house"
+       "detail": "found your automations: 2 set a House Mode, 7 run when one starts or ends \u00b7 1 to check:",
+       "link": "/house_modes/house",
+       "automations": [
+        {
+         "entity_id": "automation.sleep_when_the_bedroom_tv_turns_off",
+         "name": "Sleep when the bedroom TV turns off",
+         "edit_id": "s2",
+         "reasons": [
+          "Sleep: writes the selector, so the request arrives as \"automation\": call house_modes.set_house_mode with a source"
+         ]
+        }
+       ]
       },
       {
        "id": "notify",
@@ -3087,6 +3189,13 @@
        ]
       },
       {
+       "id": "exit_times",
+       "title": "Exit times match the panel",
+       "status": "manual",
+       "detail": "not yet: Ground Floor Away 60 s (panel 30 s), Ground Floor Home 0 s (panel 29 s), Ground Floor Vacation 90 s (panel 30 s), Ground Floor Custom_Bypass 0 s (panel 29 s) \u2192 Physical Panel \u2192 Match the alarm's exit times",
+       "link": "/house_modes/panel"
+      },
+      {
        "id": "panel_code",
        "title": "The panel's default code",
        "status": "done",
@@ -3125,8 +3234,18 @@
        "id": "automations",
        "title": "Your House Mode automations",
        "status": "manual",
-       "detail": "found your automations: 2 set a House Mode, 7 run when one starts or ends \u00b7 1 to check (they write the selector or leave out the source)",
-       "link": "/house_modes/house"
+       "detail": "found your automations: 2 set a House Mode, 7 run when one starts or ends \u00b7 1 to check:",
+       "link": "/house_modes/house",
+       "automations": [
+        {
+         "entity_id": "automation.sleep_when_the_bedroom_tv_turns_off",
+         "name": "Sleep when the bedroom TV turns off",
+         "edit_id": "s2",
+         "reasons": [
+          "Sleep: writes the selector, so the request arrives as \"automation\": call house_modes.set_house_mode with a source"
+         ]
+        }
+       ]
       },
       {
        "id": "notify",
@@ -3154,7 +3273,7 @@
        "id": "live",
        "title": "Go live",
        "status": "manual",
-       "detail": "when the Shadow logs match your automations: switch the panel link and House Modes to Live and turn off the automations they replace (HOUSE-MODES.md)",
+       "detail": "still in Shadow: the panel link. When the Shadow logs match your automations, switch to Live and turn off the automations they replace (HOUSE-MODES.md)",
        "link": "/house_modes/activity"
       }
      ],
@@ -3188,29 +3307,29 @@
       "force_arm",
       "disarm"
      ],
+     "message": "{reason}",
      "enabled": true,
-     "title": "House Mode {mode} failed",
-     "message": "{reason}"
+     "title": "House Mode {mode} failed"
     },
     "timer": {
      "buttons": [
       "cancel",
       "now"
      ],
+     "message": "Changes to {mode} {when}",
      "enabled": true,
      "title": "House Mode {current}",
-     "priority": "normal",
-     "message": "Changes to {mode} {when}"
+     "priority": "normal"
     },
+    "only_modes": [],
     "blocked": {
-     "enabled": true,
      "buttons": [],
+     "message": "{reason}",
+     "enabled": true,
      "title": "{mode} {what}",
-     "priority": "high",
-     "message": "{reason}"
+     "priority": "high"
     },
-    "button_users": "admins",
-    "only_modes": []
+    "button_users": "admins"
    },
    "defaults": {
     "changed": {
@@ -3335,8 +3454,8 @@
      "in_use": true,
      "readable": true,
      "lock_name": "",
-     "user_id": "1794529297",
-     "match_user_id": "1794529297",
+     "user_id": "1794587912",
+     "match_user_id": "1794587912",
      "status": "in_sync"
     },
     {
@@ -3344,8 +3463,8 @@
      "in_use": true,
      "readable": true,
      "lock_name": "",
-     "user_id": "1794529298",
-     "match_user_id": "1794529298",
+     "user_id": "1794587913",
+     "match_user_id": "1794587913",
      "status": "in_sync"
     }
    ]
@@ -3463,7 +3582,7 @@
     "no_user": "User removed"
    }
   },
-  "house_modes/ext/locks/user|1794529297": {
+  "house_modes/ext/locks/user|1794587912": {
    "links": [
     {
      "entity_id": "lock.front_door_lock",
@@ -3471,8 +3590,8 @@
      "in_use": true,
      "readable": true,
      "lock_name": "",
-     "user_id": "1794529297",
-     "match_user_id": "1794529297",
+     "user_id": "1794587912",
+     "match_user_id": "1794587912",
      "status": "in_sync"
     }
    ],
@@ -3486,7 +3605,7 @@
     "no_user": "User removed"
    }
   },
-  "house_modes/ext/locks/user|1794529298": {
+  "house_modes/ext/locks/user|1794587913": {
    "links": [
     {
      "entity_id": "lock.front_door_lock",
@@ -3494,8 +3613,8 @@
      "in_use": true,
      "readable": true,
      "lock_name": "",
-     "user_id": "1794529298",
-     "match_user_id": "1794529298",
+     "user_id": "1794587913",
+     "match_user_id": "1794587913",
      "status": "in_sync"
     }
    ],
@@ -3509,11 +3628,11 @@
     "no_user": "User removed"
    }
   },
-  "house_modes/ext/activity/day|2026-11-12": {
+  "house_modes/ext/activity/day|2026-11-13": {
    "sequences": [
     {
-     "id": "d4a43b881e",
-     "start": 1794529298.0480282,
+     "id": "d537b127d6",
+     "start": 1794587912.1943285,
      "title": "Keypad unlock operation \u00b7 Front Door Lock \u00b7 slot 1 (Alex)",
      "kinds": [
       "lock",
@@ -3525,55 +3644,55 @@
      ],
      "entries": [
       {
-       "t": 1794529298.048,
+       "t": 1794587912.194,
        "dt": 0,
        "kind": "lock",
        "text": "Keypad unlock operation \u00b7 Front Door Lock \u00b7 slot 1 (Alex)"
       },
       {
-       "t": 1794529298.048,
+       "t": 1794587912.194,
        "dt": 0.1,
        "kind": "lock",
        "text": "keypad action for Alex: House Mode disarmed"
       },
       {
-       "t": 1794529298.048,
+       "t": 1794587912.194,
        "dt": 0.4,
        "kind": "automation",
        "text": "ran: Door Lock Activity"
       },
       {
-       "t": 1794529298.048,
+       "t": 1794587912.194,
        "dt": 0.4,
        "kind": "house",
        "text": "House Mode Selector: Stay \u2192 Disarmed",
        "cause": "automation: Door Lock Activity"
       },
       {
-       "t": 1794529298.048,
+       "t": 1794587912.194,
        "dt": 1.6,
        "kind": "house_modes",
        "text": "The alarm Ground Floor: armed_home \u2192 disarmed"
       },
       {
-       "t": 1794529298.048,
+       "t": 1794587912.194,
        "dt": 2.4,
        "kind": "panel",
        "text": "Vista Partition 1: armed_home \u2192 disarmed"
       },
       {
-       "t": 1794529298.048,
+       "t": 1794587912.194,
        "dt": 2.5,
        "kind": "bypass",
        "text": "panel bypasses cleared (BYPASS indicator off)"
       }
      ],
-     "end": 1794529298.048,
+     "end": 1794587912.194,
      "duration": -0.0
     },
     {
-     "id": "94d43bc23d",
-     "start": 1794525698.041684,
+     "id": "5629477fc2",
+     "start": 1794584312.1866162,
      "title": "House Mode Selector: Disarmed \u2192 Stay",
      "kinds": [
       "automation",
@@ -3586,75 +3705,75 @@
      ],
      "entries": [
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 0.0,
        "kind": "automation",
        "text": "ran: House Modes - Time"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 0.0,
        "kind": "house",
        "text": "House Mode Selector: Disarmed \u2192 Stay",
        "cause": "automation: House Modes - Time"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 0.0,
        "kind": "automation",
        "text": "ran: House Modes 1"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 0.4,
        "kind": "house_modes",
        "text": "The alarm Ground Floor: disarmed \u2192 arming",
        "cause": "automation: House Modes 1"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 0.4,
        "kind": "link",
        "text": "[shadow] the alarm armed_home \u2192 physical panel: service alarm_arm_home (try 1/1)"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 2.5,
        "kind": "bypass",
        "text": "bypassed on the panel: binary_sensor.vista_zone_11 \u00b7 mirrors holding open: binary_sensor.vista_zone_11"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 2.6,
        "kind": "panel",
        "text": "Vista Partition 1: disarmed \u2192 arming"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 0.4,
        "kind": "link",
        "text": "[shadow] physical panel started arming after 1 s"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 3.0,
        "kind": "keypad",
        "text": "Keypad: ARMED ***STAY*** ZONE BYPASSED"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 31.8,
        "kind": "panel",
        "text": "Vista Partition 1: arming \u2192 armed_home"
       },
       {
-       "t": 1794529298.042,
+       "t": 1794587912.187,
        "dt": 31.8,
        "kind": "link",
        "text": "[shadow] physical panel is armed_home after 30 s"
       }
      ],
-     "end": 1794529298.042,
+     "end": 1794587912.187,
      "duration": 3600.0
     }
    ],
@@ -3693,7 +3812,7 @@
    },
    "old_entries": [
     {
-     "entry_id": "01M794G1ZS0S4BJA234ZHV1BKG",
+     "entry_id": "01M7AWCTF9307J21N7MK5K10EE",
      "title": "Alarmo",
      "state": "not_loaded",
      "disabled": true
@@ -3730,7 +3849,7 @@
    },
    "old_entries": [
     {
-     "entry_id": "01M794G1ZS0S4BJA234ZHV1BKG",
+     "entry_id": "01M7AWCTF9307J21N7MK5K10EE",
      "title": "Alarmo",
      "state": "not_loaded",
      "disabled": true
@@ -3738,7 +3857,7 @@
    ],
    "old_active": false,
    "choice": "imported",
-   "at": "2026-11-12T16:21:38-08:00",
+   "at": "2026-11-13T08:38:32-08:00",
    "imported": {
     "kind": "fork",
     "counts": {
@@ -3757,7 +3876,7 @@
      "activity": 1,
      "backups": 0
     },
-    "backup": "house_modes_2026-11-12_162138-1_before-alarmo-import"
+    "backup": "house_modes_2026-11-13_083832-2_before-alarmo-import"
    },
    "ask": false
   },
@@ -3855,8 +3974,18 @@
        "id": "automations",
        "title": "Your House Mode automations",
        "status": "manual",
-       "detail": "found your automations: 2 set a House Mode, 7 run when one starts or ends \u00b7 1 to check (they write the selector or leave out the source)",
-       "link": "/house_modes/house"
+       "detail": "found your automations: 2 set a House Mode, 7 run when one starts or ends \u00b7 1 to check:",
+       "link": "/house_modes/house",
+       "automations": [
+        {
+         "entity_id": "automation.sleep_when_the_bedroom_tv_turns_off",
+         "name": "Sleep when the bedroom TV turns off",
+         "edit_id": "s2",
+         "reasons": [
+          "Sleep: writes the selector, so the request arrives as \"automation\": call house_modes.set_house_mode with a source"
+         ]
+        }
+       ]
       },
       {
        "id": "notify",
@@ -4029,6 +4158,13 @@
        ]
       },
       {
+       "id": "exit_times",
+       "title": "Exit times match the panel",
+       "status": "manual",
+       "detail": "not yet: Ground Floor Away 60 s (panel 30 s), Ground Floor Home 0 s (panel 29 s), Ground Floor Vacation 90 s (panel 30 s), Ground Floor Custom_Bypass 0 s (panel 29 s) \u2192 Physical Panel \u2192 Match the alarm's exit times",
+       "link": "/house_modes/panel"
+      },
+      {
        "id": "panel_code",
        "title": "The panel's default code",
        "status": "done",
@@ -4067,8 +4203,18 @@
        "id": "automations",
        "title": "Your House Mode automations",
        "status": "manual",
-       "detail": "found your automations: 2 set a House Mode, 7 run when one starts or ends \u00b7 1 to check (they write the selector or leave out the source)",
-       "link": "/house_modes/house"
+       "detail": "found your automations: 2 set a House Mode, 7 run when one starts or ends \u00b7 1 to check:",
+       "link": "/house_modes/house",
+       "automations": [
+        {
+         "entity_id": "automation.sleep_when_the_bedroom_tv_turns_off",
+         "name": "Sleep when the bedroom TV turns off",
+         "edit_id": "s2",
+         "reasons": [
+          "Sleep: writes the selector, so the request arrives as \"automation\": call house_modes.set_house_mode with a source"
+         ]
+        }
+       ]
       },
       {
        "id": "notify",
@@ -4096,7 +4242,7 @@
        "id": "live",
        "title": "Go live",
        "status": "manual",
-       "detail": "when the Shadow logs match your automations: switch the panel link and House Modes to Live and turn off the automations they replace (HOUSE-MODES.md)",
+       "detail": "still in Shadow: the panel link. When the Shadow logs match your automations, switch to Live and turn off the automations they replace (HOUSE-MODES.md)",
        "link": "/house_modes/activity"
       }
      ],
@@ -4116,7 +4262,7 @@
        "id": "import",
        "title": "Import from Alarmo",
        "status": "done",
-       "detail": "2026-11-12 16:21 \u00b7 3 partitions, 35 zones, 5 users, 5 House Modes",
+       "detail": "2026-11-13 08:38 \u00b7 3 partitions, 35 zones, 5 users, 5 House Modes",
        "link": null
       },
       {
@@ -4136,16 +4282,17 @@
       {
        "id": "check_mode",
        "title": "Check the House Mode and the panel link",
-       "status": "manual",
-       "detail": "House Mode Disarmed \u00b7 House Modes live \u00b7 panel link shadow: the same as before the move?",
+       "status": "done",
+       "detail": "House Mode Disarmed \u00b7 House Modes live \u00b7 panel link shadow \u00b7 the panel link is running",
        "link": "/house_modes/house"
       },
       {
        "id": "check_cycle",
        "title": "One full test before any Away",
        "status": "manual",
-       "detail": "disarm and arm once with a code, arm and disarm at the panel keypad, then watch Activity for an hour. Way back: disable this integration, enable Alarmo (MIGRATION.md \u00a72)",
-       "link": "/house_modes/activity"
+       "detail": "not seen on Activity yet: a disarm, an arm, an arm at the panel keypad, a disarm at the panel keypad. Way back: disable this integration, enable Alarmo (MIGRATION.md \u00a72)",
+       "link": "/house_modes/activity",
+       "can_mark": true
       },
       {
        "id": "retire",
@@ -4184,7 +4331,7 @@
    },
    "old_entries": [
     {
-     "entry_id": "01M794G1ZS0S4BJA234ZHV1BKG",
+     "entry_id": "01M7AWCTF9307J21N7MK5K10EE",
      "title": "Alarmo",
      "state": "not_loaded",
      "disabled": true
@@ -4205,8 +4352,8 @@
     "friendly_name": "Front Door",
     "device_class": "door"
    },
-   "last_changed": "2026-11-13T00:21:37.830246+00:00",
-   "last_updated": "2026-11-13T00:21:37.885244+00:00",
+   "last_changed": "2026-11-13T16:38:31.857039+00:00",
+   "last_updated": "2026-11-13T16:38:31.959077+00:00",
    "context": {
     "id": "x"
    }
@@ -4218,8 +4365,8 @@
     "friendly_name": "Back Door",
     "device_class": "door"
    },
-   "last_changed": "2026-11-13T00:21:37.830308+00:00",
-   "last_updated": "2026-11-13T00:21:37.885275+00:00",
+   "last_changed": "2026-11-13T16:38:31.857085+00:00",
+   "last_updated": "2026-11-13T16:38:31.959104+00:00",
    "context": {
     "id": "x"
    }
@@ -4231,8 +4378,8 @@
     "friendly_name": "Patio Door",
     "device_class": "door"
    },
-   "last_changed": "2026-11-13T00:21:37.830322+00:00",
-   "last_updated": "2026-11-13T00:21:37.885285+00:00",
+   "last_changed": "2026-11-13T16:38:31.857102+00:00",
+   "last_updated": "2026-11-13T16:38:31.959117+00:00",
    "context": {
     "id": "x"
    }
@@ -4244,8 +4391,8 @@
     "friendly_name": "Side Door",
     "device_class": "door"
    },
-   "last_changed": "2026-11-13T00:21:37.830329+00:00",
-   "last_updated": "2026-11-13T00:21:37.885292+00:00",
+   "last_changed": "2026-11-13T16:38:31.857110+00:00",
+   "last_updated": "2026-11-13T16:38:31.959125+00:00",
    "context": {
     "id": "x"
    }
@@ -4257,8 +4404,8 @@
     "friendly_name": "Kitchen Window",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830334+00:00",
-   "last_updated": "2026-11-13T00:21:37.885298+00:00",
+   "last_changed": "2026-11-13T16:38:31.857117+00:00",
+   "last_updated": "2026-11-13T16:38:31.959133+00:00",
    "context": {
     "id": "x"
    }
@@ -4270,8 +4417,8 @@
     "friendly_name": "Dining Window",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830340+00:00",
-   "last_updated": "2026-11-13T00:21:37.885303+00:00",
+   "last_changed": "2026-11-13T16:38:31.857123+00:00",
+   "last_updated": "2026-11-13T16:38:31.959140+00:00",
    "context": {
     "id": "x"
    }
@@ -4283,8 +4430,8 @@
     "friendly_name": "Living Room Window 1",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.885478+00:00",
-   "last_updated": "2026-11-13T00:21:37.885478+00:00",
+   "last_changed": "2026-11-13T16:38:31.959360+00:00",
+   "last_updated": "2026-11-13T16:38:31.959360+00:00",
    "context": {
     "id": "x"
    }
@@ -4296,8 +4443,8 @@
     "friendly_name": "Living Room Window 2",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830348+00:00",
-   "last_updated": "2026-11-13T00:21:37.885314+00:00",
+   "last_changed": "2026-11-13T16:38:31.857138+00:00",
+   "last_updated": "2026-11-13T16:38:31.959153+00:00",
    "context": {
     "id": "x"
    }
@@ -4309,8 +4456,8 @@
     "friendly_name": "Family Room Window",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830351+00:00",
-   "last_updated": "2026-11-13T00:21:37.885320+00:00",
+   "last_changed": "2026-11-13T16:38:31.857146+00:00",
+   "last_updated": "2026-11-13T16:38:31.959165+00:00",
    "context": {
     "id": "x"
    }
@@ -4322,8 +4469,8 @@
     "friendly_name": "Laundry Window",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830355+00:00",
-   "last_updated": "2026-11-13T00:21:37.885325+00:00",
+   "last_changed": "2026-11-13T16:38:31.857152+00:00",
+   "last_updated": "2026-11-13T16:38:31.959174+00:00",
    "context": {
     "id": "x"
    }
@@ -4335,8 +4482,8 @@
     "friendly_name": "Hall Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830361+00:00",
-   "last_updated": "2026-11-13T00:21:37.885329+00:00",
+   "last_changed": "2026-11-13T16:38:31.857157+00:00",
+   "last_updated": "2026-11-13T16:38:31.959180+00:00",
    "context": {
     "id": "x"
    }
@@ -4348,8 +4495,8 @@
     "friendly_name": "Living Room Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830364+00:00",
-   "last_updated": "2026-11-13T00:21:37.885334+00:00",
+   "last_changed": "2026-11-13T16:38:31.857162+00:00",
+   "last_updated": "2026-11-13T16:38:31.959185+00:00",
    "context": {
     "id": "x"
    }
@@ -4361,8 +4508,8 @@
     "friendly_name": "Kitchen Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.885485+00:00",
-   "last_updated": "2026-11-13T00:21:37.885485+00:00",
+   "last_changed": "2026-11-13T16:38:31.959369+00:00",
+   "last_updated": "2026-11-13T16:38:31.959369+00:00",
    "context": {
     "id": "x"
    }
@@ -4374,8 +4521,8 @@
     "friendly_name": "Dining Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830371+00:00",
-   "last_updated": "2026-11-13T00:21:37.885341+00:00",
+   "last_changed": "2026-11-13T16:38:31.857172+00:00",
+   "last_updated": "2026-11-13T16:38:31.959195+00:00",
    "context": {
     "id": "x"
    }
@@ -4387,8 +4534,8 @@
     "friendly_name": "Bedroom 1 Window",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830376+00:00",
-   "last_updated": "2026-11-13T00:21:37.885344+00:00",
+   "last_changed": "2026-11-13T16:38:31.857176+00:00",
+   "last_updated": "2026-11-13T16:38:31.959199+00:00",
    "context": {
     "id": "x"
    }
@@ -4400,8 +4547,8 @@
     "friendly_name": "Bedroom 2 Window",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830381+00:00",
-   "last_updated": "2026-11-13T00:21:37.885349+00:00",
+   "last_changed": "2026-11-13T16:38:31.857181+00:00",
+   "last_updated": "2026-11-13T16:38:31.959206+00:00",
    "context": {
     "id": "x"
    }
@@ -4413,8 +4560,8 @@
     "friendly_name": "Bedroom 3 Window",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830384+00:00",
-   "last_updated": "2026-11-13T00:21:37.885353+00:00",
+   "last_changed": "2026-11-13T16:38:31.857186+00:00",
+   "last_updated": "2026-11-13T16:38:31.959211+00:00",
    "context": {
     "id": "x"
    }
@@ -4426,8 +4573,8 @@
     "friendly_name": "Bathroom Window",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830387+00:00",
-   "last_updated": "2026-11-13T00:21:37.885363+00:00",
+   "last_changed": "2026-11-13T16:38:31.857191+00:00",
+   "last_updated": "2026-11-13T16:38:31.959217+00:00",
    "context": {
     "id": "x"
    }
@@ -4439,8 +4586,8 @@
     "friendly_name": "Landing Window",
     "device_class": "window"
    },
-   "last_changed": "2026-11-13T00:21:37.830391+00:00",
-   "last_updated": "2026-11-13T00:21:37.885370+00:00",
+   "last_changed": "2026-11-13T16:38:31.857200+00:00",
+   "last_updated": "2026-11-13T16:38:31.959224+00:00",
    "context": {
     "id": "x"
    }
@@ -4452,8 +4599,8 @@
     "friendly_name": "Landing Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830395+00:00",
-   "last_updated": "2026-11-13T00:21:37.885376+00:00",
+   "last_changed": "2026-11-13T16:38:31.857207+00:00",
+   "last_updated": "2026-11-13T16:38:31.959233+00:00",
    "context": {
     "id": "x"
    }
@@ -4465,8 +4612,8 @@
     "friendly_name": "Bedroom 1 Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830399+00:00",
-   "last_updated": "2026-11-13T00:21:37.885384+00:00",
+   "last_changed": "2026-11-13T16:38:31.857212+00:00",
+   "last_updated": "2026-11-13T16:38:31.959240+00:00",
    "context": {
     "id": "x"
    }
@@ -4478,8 +4625,8 @@
     "friendly_name": "Bedroom 2 Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830402+00:00",
-   "last_updated": "2026-11-13T00:21:37.885388+00:00",
+   "last_changed": "2026-11-13T16:38:31.857217+00:00",
+   "last_updated": "2026-11-13T16:38:31.959244+00:00",
    "context": {
     "id": "x"
    }
@@ -4491,8 +4638,8 @@
     "friendly_name": "Bedroom 3 Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830407+00:00",
-   "last_updated": "2026-11-13T00:21:37.885392+00:00",
+   "last_changed": "2026-11-13T16:38:31.857223+00:00",
+   "last_updated": "2026-11-13T16:38:31.959248+00:00",
    "context": {
     "id": "x"
    }
@@ -4504,8 +4651,8 @@
     "friendly_name": "Office Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830410+00:00",
-   "last_updated": "2026-11-13T00:21:37.885396+00:00",
+   "last_changed": "2026-11-13T16:38:31.857227+00:00",
+   "last_updated": "2026-11-13T16:38:31.959253+00:00",
    "context": {
     "id": "x"
    }
@@ -4517,8 +4664,8 @@
     "friendly_name": "Garage Side Door",
     "device_class": "door"
    },
-   "last_changed": "2026-11-13T00:21:37.830414+00:00",
-   "last_updated": "2026-11-13T00:21:37.885399+00:00",
+   "last_changed": "2026-11-13T16:38:31.857232+00:00",
+   "last_updated": "2026-11-13T16:38:31.959257+00:00",
    "context": {
     "id": "x"
    }
@@ -4530,8 +4677,8 @@
     "friendly_name": "Shed Door",
     "device_class": "door"
    },
-   "last_changed": "2026-11-13T00:21:37.830417+00:00",
-   "last_updated": "2026-11-13T00:21:37.885404+00:00",
+   "last_changed": "2026-11-13T16:38:31.857236+00:00",
+   "last_updated": "2026-11-13T16:38:31.959262+00:00",
    "context": {
     "id": "x"
    }
@@ -4543,8 +4690,8 @@
     "friendly_name": "Garage Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830422+00:00",
-   "last_updated": "2026-11-13T00:21:37.885408+00:00",
+   "last_changed": "2026-11-13T16:38:31.857241+00:00",
+   "last_updated": "2026-11-13T16:38:31.959268+00:00",
    "context": {
     "id": "x"
    }
@@ -4556,8 +4703,8 @@
     "friendly_name": "Driveway Motion",
     "device_class": "motion"
    },
-   "last_changed": "2026-11-13T00:21:37.830425+00:00",
-   "last_updated": "2026-11-13T00:21:37.885412+00:00",
+   "last_changed": "2026-11-13T16:38:31.857247+00:00",
+   "last_updated": "2026-11-13T16:38:31.959275+00:00",
    "context": {
     "id": "x"
    }
@@ -4569,8 +4716,8 @@
     "friendly_name": "Kitchen Smoke",
     "device_class": "smoke"
    },
-   "last_changed": "2026-11-13T00:21:37.830430+00:00",
-   "last_updated": "2026-11-13T00:21:37.885415+00:00",
+   "last_changed": "2026-11-13T16:38:31.857252+00:00",
+   "last_updated": "2026-11-13T16:38:31.959280+00:00",
    "context": {
     "id": "x"
    }
@@ -4582,8 +4729,8 @@
     "friendly_name": "Hall Smoke",
     "device_class": "smoke"
    },
-   "last_changed": "2026-11-13T00:21:37.830432+00:00",
-   "last_updated": "2026-11-13T00:21:37.885420+00:00",
+   "last_changed": "2026-11-13T16:38:31.857259+00:00",
+   "last_updated": "2026-11-13T16:38:31.959286+00:00",
    "context": {
     "id": "x"
    }
@@ -4595,8 +4742,8 @@
     "friendly_name": "Landing Smoke",
     "device_class": "smoke"
    },
-   "last_changed": "2026-11-13T00:21:37.830436+00:00",
-   "last_updated": "2026-11-13T00:21:37.885441+00:00",
+   "last_changed": "2026-11-13T16:38:31.857263+00:00",
+   "last_updated": "2026-11-13T16:38:31.959313+00:00",
    "context": {
     "id": "x"
    }
@@ -4608,8 +4755,8 @@
     "friendly_name": "Boiler CO",
     "device_class": "carbon_monoxide"
    },
-   "last_changed": "2026-11-13T00:21:37.830439+00:00",
-   "last_updated": "2026-11-13T00:21:37.885425+00:00",
+   "last_changed": "2026-11-13T16:38:31.857269+00:00",
+   "last_updated": "2026-11-13T16:38:31.959292+00:00",
    "context": {
     "id": "x"
    }
@@ -4621,8 +4768,8 @@
     "friendly_name": "Utility Leak",
     "device_class": "moisture"
    },
-   "last_changed": "2026-11-13T00:21:37.830442+00:00",
-   "last_updated": "2026-11-13T00:21:37.885429+00:00",
+   "last_changed": "2026-11-13T16:38:31.857276+00:00",
+   "last_updated": "2026-11-13T16:38:31.959299+00:00",
    "context": {
     "id": "x"
    }
@@ -4634,8 +4781,8 @@
     "friendly_name": "Keypad Tamper",
     "device_class": "tamper"
    },
-   "last_changed": "2026-11-13T00:21:37.830445+00:00",
-   "last_updated": "2026-11-13T00:21:37.885434+00:00",
+   "last_changed": "2026-11-13T16:38:31.857281+00:00",
+   "last_updated": "2026-11-13T16:38:31.959305+00:00",
    "context": {
     "id": "x"
    }
@@ -4646,8 +4793,8 @@
    "attributes": {
     "friendly_name": "Front Door Lock"
    },
-   "last_changed": "2026-11-13T00:21:37.830448+00:00",
-   "last_updated": "2026-11-13T00:21:37.885446+00:00",
+   "last_changed": "2026-11-13T16:38:31.857285+00:00",
+   "last_updated": "2026-11-13T16:38:31.959320+00:00",
    "context": {
     "id": "x"
    }
@@ -4668,8 +4815,8 @@
     "friendly_name": "Ground Floor",
     "supported_features": 63
    },
-   "last_changed": "2026-11-13T00:21:37.864826+00:00",
-   "last_updated": "2026-11-13T00:21:37.864826+00:00",
+   "last_changed": "2026-11-13T16:38:31.904556+00:00",
+   "last_updated": "2026-11-13T16:38:31.904556+00:00",
    "context": {
     "id": "x"
    }
@@ -4690,8 +4837,8 @@
     "friendly_name": "Upstairs",
     "supported_features": 63
    },
-   "last_changed": "2026-11-13T00:21:37.865288+00:00",
-   "last_updated": "2026-11-13T00:21:37.865288+00:00",
+   "last_changed": "2026-11-13T16:38:31.905018+00:00",
+   "last_updated": "2026-11-13T16:38:31.905018+00:00",
    "context": {
     "id": "x"
    }
@@ -4712,8 +4859,8 @@
     "friendly_name": "Garage & Outbuildings",
     "supported_features": 63
    },
-   "last_changed": "2026-11-13T00:21:37.865742+00:00",
-   "last_updated": "2026-11-13T00:21:37.865742+00:00",
+   "last_changed": "2026-11-13T16:38:31.905415+00:00",
+   "last_updated": "2026-11-13T16:38:31.905415+00:00",
    "context": {
     "id": "x"
    }
@@ -4734,8 +4881,8 @@
     "friendly_name": "House",
     "supported_features": 63
    },
-   "last_changed": "2026-11-13T00:21:37.866302+00:00",
-   "last_updated": "2026-11-13T00:21:37.866302+00:00",
+   "last_changed": "2026-11-13T16:38:31.905892+00:00",
+   "last_updated": "2026-11-13T16:38:31.905892+00:00",
    "context": {
     "id": "x"
    }
@@ -4755,21 +4902,21 @@
     "previous_since": null,
     "previous_duration": null,
     "source": "manual",
-    "changed_at": "2026-11-13T00:21:37.916525+00:00",
+    "changed_at": "2026-11-13T16:38:32.021181+00:00",
     "last_result": {
      "result": "changed",
      "mode": "disarmed",
      "requested": "Disarmed",
      "source": "manual",
-     "at": "2026-11-13T00:21:37.930183+00:00"
+     "at": "2026-11-13T16:38:32.040449+00:00"
     },
     "changing_to": null,
     "pending": [],
     "icon": "mdi:shield-lock-open-outline",
     "friendly_name": "House Mode"
    },
-   "last_changed": "2026-11-13T00:21:37.920194+00:00",
-   "last_updated": "2026-11-13T00:21:37.933972+00:00",
+   "last_changed": "2026-11-13T16:38:32.026512+00:00",
+   "last_updated": "2026-11-13T16:38:32.046144+00:00",
    "context": {
     "id": "x"
    }
@@ -4789,8 +4936,8 @@
     "min_color_temp_kelvin": 2000,
     "max_color_temp_kelvin": 6500
    },
-   "last_changed": "2026-11-13T00:21:37.885453+00:00",
-   "last_updated": "2026-11-13T00:21:37.885453+00:00",
+   "last_changed": "2026-11-13T16:38:31.959330+00:00",
+   "last_updated": "2026-11-13T16:38:31.959330+00:00",
    "context": {
     "id": "x"
    }
@@ -4808,8 +4955,8 @@
      80
     ]
    },
-   "last_changed": "2026-11-13T00:21:37.885465+00:00",
-   "last_updated": "2026-11-13T00:21:37.885465+00:00",
+   "last_changed": "2026-11-13T16:38:31.959342+00:00",
+   "last_updated": "2026-11-13T16:38:31.959342+00:00",
    "context": {
     "id": "x"
    }
@@ -4821,8 +4968,8 @@
     "friendly_name": "Living Room Blinds",
     "current_position": 40
    },
-   "last_changed": "2026-11-13T00:21:37.885470+00:00",
-   "last_updated": "2026-11-13T00:21:37.885470+00:00",
+   "last_changed": "2026-11-13T16:38:31.959350+00:00",
+   "last_updated": "2026-11-13T16:38:31.959350+00:00",
    "context": {
     "id": "x"
    }
@@ -4833,8 +4980,8 @@
    "attributes": {
     "friendly_name": "Vista Partition 1"
    },
-   "last_changed": "2026-11-13T00:21:37.885680+00:00",
-   "last_updated": "2026-11-13T00:21:37.885680+00:00",
+   "last_changed": "2026-11-13T16:38:31.959566+00:00",
+   "last_updated": "2026-11-13T16:38:31.959566+00:00",
    "context": {
     "id": "x"
    }
@@ -4848,8 +4995,8 @@
     "device_class": "door",
     "friendly_name": "Front Door"
    },
-   "last_changed": "2026-11-13T00:21:37.885845+00:00",
-   "last_updated": "2026-11-13T00:21:37.885845+00:00",
+   "last_changed": "2026-11-13T16:38:31.959770+00:00",
+   "last_updated": "2026-11-13T16:38:31.959770+00:00",
    "context": {
     "id": "x"
    }
@@ -4863,8 +5010,8 @@
     "device_class": "motion",
     "friendly_name": "Hall Motion"
    },
-   "last_changed": "2026-11-13T00:21:37.885932+00:00",
-   "last_updated": "2026-11-13T00:21:37.885932+00:00",
+   "last_changed": "2026-11-13T16:38:31.959897+00:00",
+   "last_updated": "2026-11-13T16:38:31.959897+00:00",
    "context": {
     "id": "x"
    }
@@ -4878,8 +5025,8 @@
     "device_class": "door",
     "friendly_name": "Back Door"
    },
-   "last_changed": "2026-11-13T00:21:37.886009+00:00",
-   "last_updated": "2026-11-13T00:21:37.886009+00:00",
+   "last_changed": "2026-11-13T16:38:31.960011+00:00",
+   "last_updated": "2026-11-13T16:38:31.960011+00:00",
    "context": {
     "id": "x"
    }
@@ -4893,8 +5040,8 @@
     "device_class": "door",
     "friendly_name": "Patio Door"
    },
-   "last_changed": "2026-11-13T00:21:37.886077+00:00",
-   "last_updated": "2026-11-13T00:21:37.886077+00:00",
+   "last_changed": "2026-11-13T16:38:31.960120+00:00",
+   "last_updated": "2026-11-13T16:38:31.960120+00:00",
    "context": {
     "id": "x"
    }
@@ -4908,8 +5055,8 @@
     "device_class": "window",
     "friendly_name": "Kitchen Window"
    },
-   "last_changed": "2026-11-13T00:21:37.886144+00:00",
-   "last_updated": "2026-11-13T00:21:37.886144+00:00",
+   "last_changed": "2026-11-13T16:38:31.960234+00:00",
+   "last_updated": "2026-11-13T16:38:31.960234+00:00",
    "context": {
     "id": "x"
    }
@@ -4923,8 +5070,8 @@
     "device_class": "window",
     "friendly_name": "Dining Window"
    },
-   "last_changed": "2026-11-13T00:21:37.886210+00:00",
-   "last_updated": "2026-11-13T00:21:37.886210+00:00",
+   "last_changed": "2026-11-13T16:38:31.960340+00:00",
+   "last_updated": "2026-11-13T16:38:31.960340+00:00",
    "context": {
     "id": "x"
    }
@@ -4938,8 +5085,8 @@
     "device_class": "window",
     "friendly_name": "Living Room Window 1"
    },
-   "last_changed": "2026-11-13T00:21:37.886278+00:00",
-   "last_updated": "2026-11-13T00:21:37.886278+00:00",
+   "last_changed": "2026-11-13T16:38:31.960446+00:00",
+   "last_updated": "2026-11-13T16:38:31.960446+00:00",
    "context": {
     "id": "x"
    }
@@ -4953,8 +5100,8 @@
     "device_class": "window",
     "friendly_name": "Living Room Window 2"
    },
-   "last_changed": "2026-11-13T00:21:37.886343+00:00",
-   "last_updated": "2026-11-13T00:21:37.886343+00:00",
+   "last_changed": "2026-11-13T16:38:31.960559+00:00",
+   "last_updated": "2026-11-13T16:38:31.960559+00:00",
    "context": {
     "id": "x"
    }
@@ -4968,8 +5115,8 @@
     "device_class": "window",
     "friendly_name": "Bedroom 1 Window"
    },
-   "last_changed": "2026-11-13T00:21:37.886404+00:00",
-   "last_updated": "2026-11-13T00:21:37.886404+00:00",
+   "last_changed": "2026-11-13T16:38:31.960670+00:00",
+   "last_updated": "2026-11-13T16:38:31.960670+00:00",
    "context": {
     "id": "x"
    }
@@ -4983,8 +5130,8 @@
     "device_class": "window",
     "friendly_name": "Bedroom 2 Window"
    },
-   "last_changed": "2026-11-13T00:21:37.886470+00:00",
-   "last_updated": "2026-11-13T00:21:37.886470+00:00",
+   "last_changed": "2026-11-13T16:38:31.960779+00:00",
+   "last_updated": "2026-11-13T16:38:31.960779+00:00",
    "context": {
     "id": "x"
    }
@@ -4998,8 +5145,8 @@
     "device_class": "smoke",
     "friendly_name": "Smoke Detector"
    },
-   "last_changed": "2026-11-13T00:21:37.886579+00:00",
-   "last_updated": "2026-11-13T00:21:37.886579+00:00",
+   "last_changed": "2026-11-13T16:38:31.960884+00:00",
+   "last_updated": "2026-11-13T16:38:31.960884+00:00",
    "context": {
     "id": "x"
    }
@@ -5010,8 +5157,8 @@
    "attributes": {
     "friendly_name": "Vista Ready"
    },
-   "last_changed": "2026-11-13T00:21:37.886660+00:00",
-   "last_updated": "2026-11-13T00:21:37.886660+00:00",
+   "last_changed": "2026-11-13T16:38:31.960993+00:00",
+   "last_updated": "2026-11-13T16:38:31.960993+00:00",
    "context": {
     "id": "x"
    }
@@ -5024,8 +5171,8 @@
     "armed_bypass": false,
     "ready": false
    },
-   "last_changed": "2026-11-13T00:21:37.886731+00:00",
-   "last_updated": "2026-11-13T00:21:37.886731+00:00",
+   "last_changed": "2026-11-13T16:38:31.961101+00:00",
+   "last_updated": "2026-11-13T16:38:31.961101+00:00",
    "context": {
     "id": "x"
    }
@@ -5036,8 +5183,8 @@
    "attributes": {
     "friendly_name": "Front Door Lock"
    },
-   "last_changed": "2026-11-13T00:21:37.886966+00:00",
-   "last_updated": "2026-11-13T00:21:37.886966+00:00",
+   "last_changed": "2026-11-13T16:38:31.961418+00:00",
+   "last_updated": "2026-11-13T16:38:31.961418+00:00",
    "context": {
     "id": "x"
    }
@@ -5048,8 +5195,8 @@
    "attributes": {
     "friendly_name": "Back Door Lock"
    },
-   "last_changed": "2026-11-13T00:21:37.887098+00:00",
-   "last_updated": "2026-11-13T00:21:37.887098+00:00",
+   "last_changed": "2026-11-13T16:38:31.961618+00:00",
+   "last_updated": "2026-11-13T16:38:31.961618+00:00",
    "context": {
     "id": "x"
    }
@@ -5064,8 +5211,8 @@
     "device_class": "window",
     "friendly_name": "Kitchen Window"
    },
-   "last_changed": "2026-11-13T00:21:37.889631+00:00",
-   "last_updated": "2026-11-13T00:21:37.889631+00:00",
+   "last_changed": "2026-11-13T16:38:31.965143+00:00",
+   "last_updated": "2026-11-13T16:38:31.965143+00:00",
    "context": {
     "id": "x"
    }
@@ -5080,8 +5227,8 @@
     "device_class": "window",
     "friendly_name": "Dining Window"
    },
-   "last_changed": "2026-11-13T00:21:37.890721+00:00",
-   "last_updated": "2026-11-13T00:21:37.890721+00:00",
+   "last_changed": "2026-11-13T16:38:31.966856+00:00",
+   "last_updated": "2026-11-13T16:38:31.966856+00:00",
    "context": {
     "id": "x"
    }
@@ -5096,8 +5243,8 @@
     "device_class": "window",
     "friendly_name": "Living Room Window 1"
    },
-   "last_changed": "2026-11-13T00:21:37.891189+00:00",
-   "last_updated": "2026-11-13T00:21:37.891189+00:00",
+   "last_changed": "2026-11-13T16:38:31.967607+00:00",
+   "last_updated": "2026-11-13T16:38:31.967607+00:00",
    "context": {
     "id": "x"
    }
@@ -5112,8 +5259,8 @@
     "device_class": "window",
     "friendly_name": "Living Room Window 2"
    },
-   "last_changed": "2026-11-13T00:21:37.892224+00:00",
-   "last_updated": "2026-11-13T00:21:37.892224+00:00",
+   "last_changed": "2026-11-13T16:38:31.969254+00:00",
+   "last_updated": "2026-11-13T16:38:31.969254+00:00",
    "context": {
     "id": "x"
    }
@@ -5128,8 +5275,8 @@
     "device_class": "window",
     "friendly_name": "Bedroom 1 Window"
    },
-   "last_changed": "2026-11-13T00:21:37.893262+00:00",
-   "last_updated": "2026-11-13T00:21:37.893262+00:00",
+   "last_changed": "2026-11-13T16:38:31.970906+00:00",
+   "last_updated": "2026-11-13T16:38:31.970906+00:00",
    "context": {
     "id": "x"
    }
@@ -5144,8 +5291,8 @@
     "device_class": "window",
     "friendly_name": "Bedroom 2 Window"
    },
-   "last_changed": "2026-11-13T00:21:37.894314+00:00",
-   "last_updated": "2026-11-13T00:21:37.894314+00:00",
+   "last_changed": "2026-11-13T16:38:31.972544+00:00",
+   "last_updated": "2026-11-13T16:38:31.972544+00:00",
    "context": {
     "id": "x"
    }
@@ -5160,8 +5307,8 @@
     "current": 0,
     "friendly_name": "Lock up and close curtains"
    },
-   "last_changed": "2026-11-13T00:21:38.246607+00:00",
-   "last_updated": "2026-11-13T00:21:38.254852+00:00",
+   "last_changed": "2026-11-13T16:38:32.441594+00:00",
+   "last_updated": "2026-11-13T16:38:32.450936+00:00",
    "context": {
     "id": "x"
    }
@@ -5176,8 +5323,8 @@
     "current": 0,
     "friendly_name": "Lights off when leaving or going to bed"
    },
-   "last_changed": "2026-11-13T00:21:38.246923+00:00",
-   "last_updated": "2026-11-13T00:21:38.246923+00:00",
+   "last_changed": "2026-11-13T16:38:32.442009+00:00",
+   "last_updated": "2026-11-13T16:38:32.442009+00:00",
    "context": {
     "id": "x"
    }
@@ -5192,8 +5339,8 @@
     "current": 0,
     "friendly_name": "Entry light 10 % at night"
    },
-   "last_changed": "2026-11-13T00:21:38.247168+00:00",
-   "last_updated": "2026-11-13T00:21:38.247168+00:00",
+   "last_changed": "2026-11-13T16:38:32.442371+00:00",
+   "last_updated": "2026-11-13T16:38:32.442371+00:00",
    "context": {
     "id": "x"
    }
@@ -5208,8 +5355,8 @@
     "current": 0,
     "friendly_name": "Cameras on when armed"
    },
-   "last_changed": "2026-11-13T00:21:38.247375+00:00",
-   "last_updated": "2026-11-13T00:21:38.247375+00:00",
+   "last_changed": "2026-11-13T16:38:32.442699+00:00",
+   "last_updated": "2026-11-13T16:38:32.442699+00:00",
    "context": {
     "id": "x"
    }
@@ -5224,8 +5371,8 @@
     "current": 0,
     "friendly_name": "Kitchen light when coming home after dark"
    },
-   "last_changed": "2026-11-13T00:21:38.247573+00:00",
-   "last_updated": "2026-11-13T00:21:38.247573+00:00",
+   "last_changed": "2026-11-13T16:38:32.443036+00:00",
+   "last_updated": "2026-11-13T16:38:32.443036+00:00",
    "context": {
     "id": "x"
    }
@@ -5240,8 +5387,8 @@
     "current": 0,
     "friendly_name": "Guest Wi-Fi on"
    },
-   "last_changed": "2026-11-13T00:21:38.247761+00:00",
-   "last_updated": "2026-11-13T00:21:38.247761+00:00",
+   "last_changed": "2026-11-13T16:38:32.443344+00:00",
+   "last_updated": "2026-11-13T16:38:32.443344+00:00",
    "context": {
     "id": "x"
    }
@@ -5256,8 +5403,8 @@
     "current": 0,
     "friendly_name": "Notify on every House Mode change"
    },
-   "last_changed": "2026-11-13T00:21:38.247962+00:00",
-   "last_updated": "2026-11-13T00:21:38.247962+00:00",
+   "last_changed": "2026-11-13T16:38:32.443663+00:00",
+   "last_updated": "2026-11-13T16:38:32.443663+00:00",
    "context": {
     "id": "x"
    }
@@ -5272,8 +5419,8 @@
     "current": 0,
     "friendly_name": "Bedtime at 23:30"
    },
-   "last_changed": "2026-11-13T00:21:38.248293+00:00",
-   "last_updated": "2026-11-13T00:21:38.248293+00:00",
+   "last_changed": "2026-11-13T16:38:32.444104+00:00",
+   "last_updated": "2026-11-13T16:38:32.444104+00:00",
    "context": {
     "id": "x"
    }
@@ -5288,8 +5435,8 @@
     "current": 0,
     "friendly_name": "Smart Repeating Alert - Patio Door left open"
    },
-   "last_changed": "2026-11-13T00:21:38.248975+00:00",
-   "last_updated": "2026-11-13T00:21:38.248975+00:00",
+   "last_changed": "2026-11-13T16:38:32.444900+00:00",
+   "last_updated": "2026-11-13T16:38:32.444900+00:00",
    "context": {
     "id": "x"
    }
@@ -5304,8 +5451,8 @@
     "current": 0,
     "friendly_name": "Smart Repeating Alert - Driveway camera"
    },
-   "last_changed": "2026-11-13T00:21:38.249229+00:00",
-   "last_updated": "2026-11-13T00:21:38.249229+00:00",
+   "last_changed": "2026-11-13T16:38:32.445277+00:00",
+   "last_updated": "2026-11-13T16:38:32.445277+00:00",
    "context": {
     "id": "x"
    }
@@ -5320,8 +5467,8 @@
     "current": 0,
     "friendly_name": "Smart Repeating Alert - Fridge too warm"
    },
-   "last_changed": "2026-11-13T00:21:38.249989+00:00",
-   "last_updated": "2026-11-13T00:21:38.249989+00:00",
+   "last_changed": "2026-11-13T16:38:32.446179+00:00",
+   "last_updated": "2026-11-13T16:38:32.446179+00:00",
    "context": {
     "id": "x"
    }
@@ -5336,8 +5483,8 @@
     "current": 0,
     "friendly_name": "Sleep when the bedroom TV turns off"
    },
-   "last_changed": "2026-11-13T00:21:38.250259+00:00",
-   "last_updated": "2026-11-13T00:21:38.250259+00:00",
+   "last_changed": "2026-11-13T16:38:32.446521+00:00",
+   "last_updated": "2026-11-13T16:38:32.446521+00:00",
    "context": {
     "id": "x"
    }
@@ -5351,8 +5498,8 @@
     "current": 0,
     "friendly_name": "Spa evening"
    },
-   "last_changed": "2026-11-13T00:21:38.252964+00:00",
-   "last_updated": "2026-11-13T00:21:38.252964+00:00",
+   "last_changed": "2026-11-13T16:38:32.449002+00:00",
+   "last_updated": "2026-11-13T16:38:32.449002+00:00",
    "context": {
     "id": "x"
    }
@@ -5366,8 +5513,8 @@
     "current": 0,
     "friendly_name": "Lock up"
    },
-   "last_changed": "2026-11-13T00:21:38.253130+00:00",
-   "last_updated": "2026-11-13T00:21:38.253130+00:00",
+   "last_changed": "2026-11-13T16:38:32.449229+00:00",
+   "last_updated": "2026-11-13T16:38:32.449229+00:00",
    "context": {
     "id": "x"
    }

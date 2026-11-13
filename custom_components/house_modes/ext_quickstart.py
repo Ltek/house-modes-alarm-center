@@ -171,26 +171,27 @@ def _notify_step(house: dict) -> dict:
 
 
 def _automations_step(hass) -> dict:
-    """The user's own House Mode automations, found by reading them (the House Modes tab lists them per mode)."""
+    """The user's own House Mode automations, found by reading them; the ones to check are named (enabled only)."""
+    from .house_checks import automations_to_check  # noqa: PLC0415
     from .ext_house_actions import items_payload  # noqa: PLC0415
 
     try:
         items = items_payload(hass)["items"]
+        check = automations_to_check(hass)
     except Exception:  # never let Quick Start fail on one odd automation
-        items = []
-    sets = [i for i in items if i.get("sets")]
-    reacts = [i for i in items if i.get("reacts")]
-    bypass = [i for i in sets if any(x["via"] in ("selector", "current") for x in i["sets"])
-              or any(x["via"] == "service" and not x["source"] for x in i["sets"])]
+        items, check = [], []
+    sets = [i for i in items if i.get("sets") and i["state"] == "on"]
+    reacts = [i for i in items if i.get("reacts") and i["state"] == "on"]
     link = "/house_modes/house"
     if not sets and not reacts:
         return _step("automations", "What changes the House Mode", "manual",
                      "no automation sets a House Mode yet: add one with the blueprints ⏰ House Mode on a Schedule / "
                      "🏠 House Mode on Presence, or change it from the dashboard card", link)
     detail = f"found your automations: {len(sets)} set a House Mode, {len(reacts)} run when one starts or ends"
-    if bypass:
-        detail += f" · {len(bypass)} to check (they write the selector or leave out the source)"
-    return _step("automations", "Your House Mode automations", "manual" if bypass else "done", detail, link)
+    if check:
+        detail += f" · {len(check)} to check:"
+    return _step("automations", "Your House Mode automations", "manual" if check else "done", detail, link,
+                 automations=check)
 
 
 def _recording_step(ext) -> dict:
@@ -381,24 +382,97 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
 
     steps.append(_step("card", "The dashboard card", "manual", "add it to a dashboard:", None, yaml=CARD_YAML))
     if setup == "panel":
-        steps.append(
-            _step(
-                "live",
-                "Go live",
-                "manual",
-                "when the Shadow logs match your automations: switch the panel link and House Modes to Live and "
-                "turn off the automations they replace (HOUSE-MODES.md)",
-                "/house_modes/activity",
+        links_now = ext.panel.settings.get("links") or {}
+        hm_live = house["enabled"] and house.get("run_mode", "live") == "live"
+        link_live = bool(links_now) and all(lk["mode"] == "live" for lk in links_now.values())
+        if hm_live and link_live:
+            steps.append(
+                _step("live", "Go live", "done", "House Modes and the panel link are Live", "/house_modes/house")
             )
-        )
+        else:
+            left = [w for w, ok in (("House Modes", hm_live), ("the panel link", link_live)) if not ok]
+            steps.append(
+                _step(
+                    "live",
+                    "Go live",
+                    "manual",
+                    f"still in Shadow: {' and '.join(left)}. When the Shadow logs match your automations, switch to "
+                    "Live and turn off the automations they replace (HOUSE-MODES.md)",
+                    "/house_modes/activity",
+                )
+            )
     return _plan(setup, steps)
+
+
+DONE_SECTION = "quickstart_done"  # steps the user marked as done: {step id: when}
+CYCLE_PARTS = {
+    "code_disarm": "a disarm",
+    "code_arm": "an arm",
+    "keypad_arm": "an arm at the panel keypad",
+    "keypad_disarm": "a disarm at the panel keypad",
+}
+
+
+async def _cycle_seen(hass, ext, since: str | None) -> dict[str, bool]:
+    """Which parts of the full test Activity shows since the import (reads the day files)."""
+    from homeassistant.util import dt as dt_util  # noqa: PLC0415
+
+    start = dt_util.parse_datetime(since) if since else None
+    t0 = start.timestamp() if start else 0
+    seen = dict.fromkeys(CYCLE_PARTS, False)
+    rec = ext.recorder
+    try:
+        days = [d for d in rec.days() if not start or d >= start.date().isoformat()]
+        for day in days:
+            for seq in await hass.async_add_executor_job(rec.read_day, day):
+                for e in seq.get("entries") or []:
+                    if (e.get("t") or 0) < t0:
+                        continue
+                    text = str(e.get("text") or "")
+                    if e.get("kind") == "alarm" and "→ disarmed" in text:
+                        seen["code_disarm"] = True
+                    if e.get("kind") == "alarm" and "→ armed_" in text:
+                        seen["code_arm"] = True
+                    if e.get("kind") == "link" and "at its keypad" in text:
+                        if "disarmed at its keypad" in text:
+                            seen["keypad_disarm"] = True
+                        elif "arm" in text:
+                            seen["keypad_arm"] = True
+    except Exception:  # Activity off or unreadable: the user can mark the step
+        return seen
+    return seen
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "house_modes/ext/quickstart/mark",
+        vol.Required("step"): str,
+        vol.Optional("done", default=True): bool,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_quickstart_mark(hass, connection, msg):
+    """Mark a step that can't be measured as done (or not done again)."""
+    from homeassistant.util import dt as dt_util  # noqa: PLC0415
+
+    from .combined_store import async_get_combined  # noqa: PLC0415
+
+    combined = await async_get_combined(hass)
+    marked = dict(combined.get(DONE_SECTION) or {})
+    if msg["done"]:
+        marked[msg["step"]] = dt_util.now().isoformat(timespec="seconds")
+    else:
+        marked.pop(msg["step"], None)
+    await combined.async_save_section(DONE_SECTION, marked)
+    connection.send_result(msg["id"], {"marked": marked})
 
 
 def _plan(setup: str, steps: list[dict]) -> dict[str, Any]:
     return {"setup": setup, "steps": steps, "todo": sum(1 for s in steps if s["status"] == "todo")}
 
 
-async def plan_alarmo(hass) -> dict[str, Any] | None:  # noqa: PLR0912
+async def plan_alarmo(hass) -> dict[str, Any] | None:  # noqa: PLR0912, PLR0915
     """Moving over from Alarmo. None when there is nothing of Alarmo (no files, no entry, never imported)."""
     from . import legacy, references, alarmo_import  # noqa: PLC0415
     from .takeover import SECTION as TAKEOVER  # noqa: PLC0415
@@ -464,14 +538,32 @@ async def plan_alarmo(hass) -> dict[str, Any] | None:  # noqa: PLR0912
         house = ext.house.settings
         cur = next((m["name"] for m in house["modes"] if m["id"] == house.get("current")), None)
         links = ext.panel.settings.get("links") or {}
-        steps.append(_step("check_mode", "Check the House Mode and the panel link", "manual",
-                           f"House Mode {cur or 'unknown'} · House Modes {house.get('run_mode', 'live')}"
-                           + (f" · panel link {next(iter(links.values()))['mode']}" if links else "")
-                           + ": the same as before the move?", "/house_modes/house"))
-        steps.append(_step("check_cycle", "One full test before any Away", "manual",
-                           "disarm and arm once with a code, arm and disarm at the panel keypad, then watch Activity "
-                           "for an hour. Way back: disable this integration, enable Alarmo (MIGRATION.md §2)",
-                           "/house_modes/activity"))
+        marked = (combined.get(DONE_SECTION) or {}) if combined else {}
+        running = all(k in ext.panel.links for k, lk in links.items() if lk["mode"] != "off")
+        state = (f"House Mode {cur or 'unknown'} · House Modes {house.get('run_mode', 'live')}"
+                 + (f" · panel link {next(iter(links.values()))['mode']}" if links else ""))
+        if "check_mode" in marked:
+            steps.append(_step("check_mode", "Check the House Mode and the panel link", "done",
+                               f"{state} · checked {marked['check_mode'][:10]}", "/house_modes/house"))
+        elif cur and running:
+            steps.append(_step("check_mode", "Check the House Mode and the panel link", "done",
+                               f"{state} · the panel link is running", "/house_modes/house"))
+        else:
+            steps.append(_step("check_mode", "Check the House Mode and the panel link", "manual",
+                               state + (": the House Mode is unknown" if not cur else ": the panel link isn't running"),
+                               "/house_modes/house", can_mark=True))
+        seen = await _cycle_seen(hass, ext, st["at"])
+        cycle_left = [k for k, label in CYCLE_PARTS.items() if not seen.get(k)]
+        if "check_cycle" in marked or not cycle_left:
+            when = f"checked {marked['check_cycle'][:10]}" if "check_cycle" in marked else "seen on Activity"
+            steps.append(_step("check_cycle", "One full test before any Away", "done",
+                               f"disarm and arm with a code, arm and disarm at the panel keypad · {when}",
+                               "/house_modes/activity"))
+        else:
+            steps.append(_step("check_cycle", "One full test before any Away", "manual",
+                               "not seen on Activity yet: " + ", ".join(CYCLE_PARTS[k] for k in cycle_left)
+                               + ". Way back: disable this integration, enable Alarmo (MIGRATION.md §2)",
+                               "/house_modes/activity", can_mark=True))
         steps.append(_step("retire", "Remove Alarmo", "optional",
                            "after a few stable days, with a backup of its files: MIGRATION.md §3"))
     return _plan("alarmo", steps)
@@ -616,4 +708,4 @@ async def ws_quickstart_apply(hass, connection, msg):
     connection.send_result(msg["id"], {**res, "status": status(hass)})
 
 
-QUICKSTART_COMMANDS = (ws_quickstart_plan, ws_quickstart_apply)
+QUICKSTART_COMMANDS = (ws_quickstart_plan, ws_quickstart_apply, ws_quickstart_mark)

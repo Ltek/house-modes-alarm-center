@@ -4,6 +4,12 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.13.98 — 2026-11-13
+
+- Ships **Smart Repeating Alerts 2026.11.13.44**: running an alert automation by hand (*Run actions*) now sends the
+  alert with its camera snapshot; it skips the cooldown so you can always test. The integration updates the installed
+  blueprint on the next restart.
+
 ## v2026.11.13.97 — 2026-11-13
 
 Restart Home Assistant after the update.

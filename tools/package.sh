@@ -40,6 +40,8 @@ readme = os.path.join(os.path.dirname(os.path.dirname(cc)), 'README.md')
 assert not re.search(r'Current build|Ext build v|Version: v', open(readme).read()), 'README carries a build number'
 EOF
 
+# node_modules may have been deleted to save space: reinstall from package-lock.json
+if [ ! -d "$FE/node_modules" ]; then echo "installing frontend dependencies (npm ci)"; (cd "$FE" && npm ci > /tmp/npm-ci.log 2>&1) || { tail -20 /tmp/npm-ci.log; echo "npm ci failed"; exit 1; }; fi
 (cd "$FE" && npm run build > /tmp/build.log 2>&1)
 if grep -q "TS[0-9]" /tmp/build.log; then grep "TS[0-9]" /tmp/build.log; echo "TypeScript warnings"; exit 1; fi
 grep -q "$VER" "$FE/dist/house-modes-panel.js"

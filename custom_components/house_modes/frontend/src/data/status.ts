@@ -4,7 +4,14 @@ import type { HomeAssistant } from '../types';
 export type StatusInfo = {
   house: { enabled: boolean; shadow?: boolean; current: string | null; name: string | null; icon: string | null; source: string | null };
   alarms: { key: string; entity_id: string; name: string }[];
-  links: { key: string; panel_entity: string; mode: 'off' | 'shadow' | 'live'; running: boolean; ready_entity: string | null }[];
+  links: {
+    key: string;
+    panel_entity: string;
+    mode: 'off' | 'shadow' | 'live';
+    running: boolean;
+    ready_entity: string | null;
+    exit_mismatch?: { name: string; modes: Record<string, { alarm: number; panel: number; kind: string }> }[];
+  }[];
   rules_pending: number;
   /** the old Alarmo integration is still enabled */
   alarmo_enabled?: boolean;

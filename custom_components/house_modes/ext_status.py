@@ -10,6 +10,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.components import websocket_api
 
 from . import const, legacy
+from .ext_panel_ws import exit_mismatches
 from .house_config import find_mode, open_entities
 
 READY_WORDS = ("ready",)
@@ -64,6 +65,8 @@ def status_payload(hass: HomeAssistant) -> dict[str, Any]:
                 "mode": link["mode"],
                 "running": key in ext.panel.links,
                 "ready_entity": panel_ready_entity(hass, link["panel_entity"]),
+                # the alarm's exit times against the panel's learned exit delays (Match the alarm's exit times)
+                "exit_mismatch": exit_mismatches(ext, key, link),
             }
         )
     return {

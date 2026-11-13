@@ -572,6 +572,34 @@ async def test_match_exit_times(hass: Any, hass_storage: Any, hass_ws_client: An
     assert area["modes"]["armed_home"]["exit_time"] == 29 and area["modes"]["armed_away"]["exit_time"] == 32
 
 
+async def test_exit_time_check_warns(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """Exit times shorter than the panel's learned delay are flagged (status strip, panel tab, Quick Start)."""
+    from custom_components.house_modes.panel_config import exit_mismatch  # noqa: PLC0415
+
+    link = {"commands": {"armed_away": {"method": "service", "accept": ["armed_away"]}},
+            "learned_exit_delay": {"armed_away": 29}}
+    assert exit_mismatch(link, {"armed_away": {"enabled": True, "exit_time": 20}})["armed_away"]["kind"] == "short"
+    assert exit_mismatch(link, {"armed_away": {"enabled": True, "exit_time": 32}}) == {}
+    assert exit_mismatch(link, {"armed_away": {"enabled": True, "exit_time": 30}}) == {}
+    assert exit_mismatch(link, {"armed_away": {"enabled": True, "exit_time": 60}})["armed_away"]["kind"] == "long"
+    assert exit_mismatch(link, {"armed_away": {"enabled": False, "exit_time": 5}}) == {}
+
+    await _setup(hass, hass_storage, tmp_path)
+    await _save(hass, **_link(learned_exit_delay={"armed_away": 90}))
+    client = await hass_ws_client(hass)
+    st = (await _ws(client, 1, type="house_modes/ext/status"))["result"]
+    bad = st["links"][0]["exit_mismatch"]
+    assert bad and bad[0]["modes"]["armed_away"]["panel"] == 90
+    info = (await _ws(client, 2, type="house_modes/ext/panel/get"))["result"]
+    assert info["exit_mismatch"][GF] == bad
+    plan = (await _ws(client, 3, type="house_modes/ext/quickstart/plan", setup="panel"))["result"]["plans"]["panel"]
+    step = next(s for s in plan["steps"] if s["id"] == "exit_times")
+    assert step["status"] == "manual" and "panel 90 s" in step["detail"]
+    await _ws(client, 4, type="house_modes/ext/panel/match_exit", link=GF)
+    st = (await _ws(client, 5, type="house_modes/ext/status"))["result"]
+    assert st["links"][0]["exit_mismatch"] == []
+
+
 async def test_vista_bypas_list_corrects_the_guess(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
     """A zone closed just before Quick Bypass is guessed, but dropped when the panel's BYPAS list doesn't name it."""
     kp = await _honeywell_with_keypad(hass, hass_storage, tmp_path)

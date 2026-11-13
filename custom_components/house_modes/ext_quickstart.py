@@ -26,7 +26,7 @@ from homeassistant.components import websocket_api
 
 from . import const, house_detect
 from .zone_rules import EntityCtx, _default_type
-from .ext_panel_ws import TYPE_DEFAULTS, _discover, _link_targets
+from .ext_panel_ws import TYPE_DEFAULTS, _discover, _link_targets, exit_mismatches
 from .house_config import SOURCES, slug
 
 DATA_EXT = "house_modes_ext"
@@ -282,6 +282,26 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
                     entities=new,
                 )
             )
+            if links:
+                bad = []
+                for key, lk in links.items():
+                    for item in exit_mismatches(ext, key, lk):
+                        for m, v in item["modes"].items():
+                            arm = m.replace("armed_", "").title()
+                            bad.append(f"{item['name']} {arm} {v['alarm']} s (panel {v['panel']} s)")
+                learned = any((lk.get("learned_exit_delay") or {}) for lk in links.values())
+                steps.append(
+                    _step(
+                        "exit_times",
+                        "Exit times match the panel",
+                        "manual" if bad else ("done" if learned else "optional"),
+                        ("not yet: " + ", ".join(bad) + " → Physical Panel → Match the alarm's exit times")
+                        if bad
+                        else ("they match the panel's learned exit delays" if learned
+                              else "learned once the panel has armed (Away, Stay, …); checked then"),
+                        "/house_modes/panel",
+                    )
+                )
             steps.append(
                 _step(
                     "panel_code",

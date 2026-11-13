@@ -88,6 +88,11 @@ export class StatusStrip extends LitElement {
           return this.chip('mdi:alarm-panel-outline', `${pname}: ${pretty(p?.state)}${ready} · ${l.mode}`, `Physical panel link (${l.running ? 'running' : 'not running'})`, '/house_modes/panel', kind);
         })}
         ${i.alarmo_enabled ? this.chip('mdi:alert', 'Alarmo is still enabled', 'Disable the Alarmo integration: the two must never run together. Until then the panel link stays in Shadow.', '/house_modes/backup', 'warn') : nothing}
+        ${i.links.some(l => l.exit_mismatch?.length)
+          ? this.chip('mdi:timer-alert-outline', "Exit times don't match the panel",
+              'The alarm counts as armed at a different time than the physical panel. Physical Panel → Match the alarm\'s exit times.',
+              '/house_modes/panel', 'warn')
+          : nothing}
         ${i.rules_pending ? this.chip('mdi:auto-fix', `${i.rules_pending} zone rule change(s) pending`, 'Review on Zones', '/house_modes/zones', 'warn') : nothing}
         ${draft ? this.chip('mdi:pencil-circle', 'Unsaved zone edits', 'Zones has unsaved changes', '/house_modes/zones', 'warn') : nothing}
         <span class="grow"></span>

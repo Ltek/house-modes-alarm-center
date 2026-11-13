@@ -4,6 +4,16 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.13.99 — 2026-11-13
+
+Restart Home Assistant after the update.
+
+- **Exit time check.** Once the panel link has learned the physical panel's exit delays, the integration checks the
+  alarm's exit time per Arm Mode against them: **shorter than the panel's** (the alarm shows armed while the panel is
+  still counting down, so House Modes and automations act too early) or **more than 10 s longer** than the panel's
+  + 3 s. It shows as a warning on the status strip (*Exit times don't match the panel*), on the Physical Panel tab
+  above *Match the alarm's exit times*, and as the Quick Start step *Exit times match the panel*.
+
 ## v2026.11.13.98 — 2026-11-13
 
 - Ships **Smart Repeating Alerts 2026.11.13.44**: running an alert automation by hand (*Run actions*) now sends the

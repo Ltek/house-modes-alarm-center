@@ -59,7 +59,19 @@ export type PanelInfo = {
   bypassed: string[];
   bypass_unreported?: string[];
   log: LogEntry[];
+  /** per link: partitions whose exit times do not fit the panel's learned exit delays */
+  exit_mismatch?: Record<string, ExitMismatch[]>;
 };
+export type ExitMismatch = {
+  area_id: string;
+  name: string;
+  modes: Record<string, { alarm: number; panel: number; suggested: number; kind: 'short' | 'long' }>;
+};
+/** "Master: Away 20 s, panel 29 s" */
+export const exitMismatchText = (items: ExitMismatch[] = []): string =>
+  items
+    .map(i => `${i.name}: ` + Object.entries(i.modes).map(([m, v]) => `${m.replace('armed_', '').replace(/^\w/, c => c.toUpperCase())} ${v.alarm} s, panel ${v.panel} s`).join(' · '))
+    .join('; ');
 
 export const fetchPanel = (hass: HomeAssistant) => hass.callWS<PanelInfo>({ type: 'house_modes/ext/panel/get' });
 export const savePanel = (hass: HomeAssistant, settings: PanelSettings) =>

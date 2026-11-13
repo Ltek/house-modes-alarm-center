@@ -22,6 +22,7 @@ import {
   settingsWarnings,
   ExitPlan,
   matchExitTimes,
+  exitMismatchText,
 } from '../../data/panel';
 import { extStyles } from './ext-styles';
 import './view-mirrors';
@@ -214,7 +215,16 @@ export class AlarmViewPanel extends LitElement {
         the alarm's exit times can be matched to them.</div>`;
     const plan = this.exitPlan[key];
     const rows = plan ? Object.values(plan) : [];
-    return html`<div class="field-row">
+    const bad = this.info?.exit_mismatch?.[key] || [];
+    const short = bad.some(b => Object.values(b.modes).some(v => v.kind === 'short'));
+    return html`${bad.length
+        ? html`<div class="notice warn" style="margin:0 0 8px">The alarm's exit times don't match the panel: ${exitMismatchText(bad)}.
+            ${short
+              ? 'The alarm shows armed while the panel is still counting down, so House Modes and automations act too early.'
+              : 'The alarm keeps counting down after the panel is armed.'}
+            Match them below (backup first).</div>`
+        : nothing}
+      <div class="field-row">
         <span>Panel exit delays: ${learned.map(s => `${STATE_LABEL[s] || s} ${link.learned_exit_delay[s]} s`).join(' · ')}</span>
         <ha-button appearance="plain" ?disabled=${this.dirty} @click=${() => this.checkExit(key)}>Match the alarm's exit times…</ha-button>
         ${this.dirty ? html`<span class="secondary" style="display:inline">Save first.</span>` : nothing}

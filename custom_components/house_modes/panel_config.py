@@ -97,6 +97,28 @@ def exit_time_plan(link: dict, area_modes: dict, extra: int = 3) -> dict[str, in
     return out
 
 
+# how far the alarm's exit time may be from the panel's learned exit delay + 3 s before it is flagged
+EXIT_TOO_SHORT = 0  # shorter than the panel's own delay: the alarm shows armed while the panel still counts down
+EXIT_TOO_LONG = 10  # more than 10 s longer than the plan: the alarm still counts down after the panel is armed
+
+
+def exit_mismatch(link: dict, area_modes: dict) -> dict[str, dict[str, int]]:
+    """Arm Modes whose exit time does not fit the panel's learned exit delay.
+
+    {mode: {"alarm": exit time, "panel": learned delay, "suggested": learned + 3, "kind": "short" | "long"}}.
+    Only modes the plan covers (enabled, sent to the panel, delay learned).
+    """
+    out: dict[str, dict[str, Any]] = {}
+    for mode, suggested in exit_time_plan(link, area_modes).items():
+        have = int(area_modes[mode].get("exit_time") or 0)
+        panel = suggested - 3
+        if have < panel - EXIT_TOO_SHORT:
+            out[mode] = {"alarm": have, "panel": panel, "suggested": suggested, "kind": "short"}
+        elif have > suggested + EXIT_TOO_LONG:
+            out[mode] = {"alarm": have, "panel": panel, "suggested": suggested, "kind": "long"}
+    return out
+
+
 def follow_mode(cfg: dict, panel_state: str) -> str:
     """Arm Mode that follows the panel arming in ``panel_state``."""
     return (cfg.get("follow_map") or {}).get(panel_state, panel_state)

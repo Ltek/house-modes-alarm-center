@@ -13,7 +13,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from . import const
 from .sensors import ATTR_GROUP
 from .zone_rules import EntityCtx, _default_type
-from .panel_config import MASTER_KEY, zone_number, exit_time_plan, mirror_object_id
+from .panel_config import MASTER_KEY, zone_number, exit_mismatch, exit_time_plan, mirror_object_id
 
 DATA_EXT = "house_modes_ext"
 LABEL_IMPORT = "panel-import"
@@ -124,6 +124,9 @@ async def ws_panel_get(hass, connection, msg):
             "bypass_unreported": mgr.honeywell_zones(),
             "bypassed": sorted(mgr.bypassed),
             "log": list(mgr.log)[-100:],
+            "exit_mismatch": {
+                key: exit_mismatches(_ext(hass), key, link) for key, link in (mgr.settings.get("links") or {}).items()
+            },
         },
     )
 
@@ -240,6 +243,20 @@ async def ws_panel_repoint(hass, connection, msg):
     await ext.store.async_save()
     async_dispatcher_send(hass, "house_modes_update_frontend")
     connection.send_result(msg["id"], {"backup": backup, "changed": len(msg["pairs"])})
+
+
+def exit_mismatches(ext, key: str, link: dict) -> list[dict[str, Any]]:
+    """Per partition of a link: the Arm Modes whose exit time does not fit the panel (panel_config.exit_mismatch)."""
+    areas = ext.store.async_get_areas()
+    keys = list(areas) if key == MASTER_KEY else [key]
+    out = []
+    for aid in keys:
+        area = areas.get(aid)
+        if area:
+            bad = exit_mismatch(link, area["modes"])
+            if bad:
+                out.append({"area_id": aid, "name": area["name"], "modes": bad})
+    return out
 
 
 @websocket_api.websocket_command(

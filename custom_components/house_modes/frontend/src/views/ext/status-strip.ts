@@ -13,6 +13,7 @@ const WARN_ICON: Record<string, string> = {
   exit: 'mdi:timer-alert-outline',
   automations: 'mdi:robot-confused-outline',
   timer: 'mdi:timer-off-outline',
+  missing_action: 'mdi:script-text-outline',
   selector: 'mdi:form-dropdown',
   notify: 'mdi:bell-off-outline',
   rules: 'mdi:auto-fix',

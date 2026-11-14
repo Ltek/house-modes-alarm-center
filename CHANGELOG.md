@@ -4,6 +4,14 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.14.102 — 2026-11-14
+
+Restart Home Assistant after the update.
+
+- **New status-row warning: *Script Action points to a missing script*.** A House Mode Script Action whose script (or
+  scene) no longer exists names the script and the modes that run it, and links to House Modes. Before, it only
+  showed as a grey icon in the locked list, and failed (with a *Failed to arm* message) each time the mode changed.
+
 ## v2026.11.14.101 — 2026-11-14
 
 Restart Home Assistant after the update.

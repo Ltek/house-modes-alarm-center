@@ -259,3 +259,20 @@ async def test_alarmo_cleanup(hass: Any, hass_storage: Any, hass_ws_client: Any,
     assert hass.config_entries.async_entries("alarmo") == []
     info = await _ws(client, 4, type="house_modes/ext/alarmo_import/cleanup_info")
     assert not info["left"] and info["done"]
+
+
+async def test_missing_script_action_warns(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """A Script Action whose script no longer exists is a warning naming the script and its modes."""
+    await setup_real_house_modes(hass, hass_storage, tmp_path, _empty_env())
+    ext = hass.data["house_modes_ext"]
+    hass.states.async_set("script.kept", "off")
+    step = {"when": "enter", "phase": "after", "modes": [], "wait": False}
+    await ext.house.async_save_settings({"enabled": True, "modes": [
+        {"id": "away", "name": "Away", "targets": {}, "steps": [{**step, "entity_id": "script.gone"}, {**step, "entity_id": "script.kept"}]},
+        {"id": "vacation", "name": "Vacation", "targets": {}, "steps": [{**step, "entity_id": "script.gone"}]},
+    ]})
+    client = await hass_ws_client(hass)
+    st = await _ws(client, 1, type="house_modes/ext/status")
+    w = [x for x in st["warnings"] if x["id"].startswith("missing_action:")]
+    assert [x["id"] for x in w] == ["missing_action:script.gone"]
+    assert "(Away, Vacation)" in w[0]["detail"]

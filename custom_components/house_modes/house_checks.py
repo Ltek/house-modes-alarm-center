@@ -101,6 +101,17 @@ def timer_problems(modes: list[dict]) -> list[str]:
     return out
 
 
+def missing_actions(hass: HomeAssistant, modes: list[dict]) -> dict[str, list[str]]:
+    """Script Actions whose script (or scene) no longer exists: {entity_id: [mode names]}."""
+    out: dict[str, list[str]] = {}
+    for m in modes:
+        for st in m.get("steps") or []:
+            eid = st.get("entity_id")
+            if eid and hass.states.get(eid) is None and m["name"] not in out.setdefault(eid, []):
+                out[eid].append(m["name"])
+    return {k: v for k, v in out.items() if v}
+
+
 def selector_missing(hass: HomeAssistant, house: dict) -> list[str]:
     """Mode names the House Mode selector does not offer."""
     sel = house.get("input_select")
@@ -178,6 +189,11 @@ def collect(hass: HomeAssistant) -> list[dict[str, Any]]:
             return
         for i, text in enumerate(timer_problems(h["modes"])):
             out.append(_w(f"timer:{i}", "warn", "A House Mode timer can't work", text, "/house_modes/house"))
+        for eid, names in missing_actions(hass, h["modes"]).items():
+            out.append(_w(f"missing_action:{eid}", "warn", "Script Action points to a missing script",
+                          f"{eid} ({', '.join(names)}) no longer exists, so it fails each time the mode changes. "
+                          "House Modes → Script Actions - All Modes → unlock → remove it (or create the script).",
+                          "/house_modes/house"))
         missing = selector_missing(hass, h)
         if missing:
             out.append(_w("selector", "warn", "The House Mode selector is missing modes",

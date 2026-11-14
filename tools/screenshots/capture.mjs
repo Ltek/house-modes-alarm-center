@@ -262,9 +262,8 @@ const SHOTS = [
     await p.evaluate(async () => {
       const v = document.querySelector('house-modes-panel').shadowRoot.querySelector('hm-view-quick-start');
       await new Promise(r => setTimeout(r, 300));
-      v.shadowRoot.querySelectorAll('details.tab-sec')[1].open = true;
+      v.shadowRoot.querySelectorAll('details.tab-sec').forEach(d => (d.open = true));
       await new Promise(r => setTimeout(r, 100));
-      v.shadowRoot.querySelector('details.zgroup')?.setAttribute('open', '');
     });
   }],
 ];

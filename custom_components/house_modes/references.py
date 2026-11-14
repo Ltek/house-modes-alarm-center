@@ -109,12 +109,15 @@ async def _scan_dashboards(hass: HomeAssistant) -> list[dict]:
             continue
         found: list = []
         legacy.rewrite_data(config, found)
+        cards = text.count(legacy.OLD_CARD)
+        if not found and not cards:
+            continue  # "alarmo" only in some text: nothing to rewrite
         out.append(
             {
                 "url_path": url,
                 "mode": getattr(dash, "mode", "storage"),
                 "hits": [{"old": o, "new": n, "kind": k} for o, n, k in found],
-                "cards": text.count(legacy.OLD_CARD),
+                "cards": cards,
             }
         )
     return out

@@ -151,8 +151,10 @@ def collect(hass: HomeAssistant) -> list[dict[str, Any]]:
                               "/house_modes/panel"))
             for item in exit_mismatches(ext, key, link):
                 short = any(v["kind"] == "short" for v in item["modes"].values())
-                txt = ", ".join(f"{m.replace('armed_', '').title()} {v['alarm']} s (panel {v['panel']} s)"
-                                for m, v in item["modes"].items())
+                txt = ", ".join(
+                    f"{m.replace('armed_', '').replace('_', ' ').title()} {v['alarm']} s (panel {v['panel']} s)"
+                    for m, v in item["modes"].items()
+                )
                 out.append(_w(f"exit:{key}:{item['area_id']}", "error" if short else "warn",
                               "Exit times don't match the panel",
                               f"{item['name']}: {txt}. "

@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 from homeassistant.setup import async_setup_component
+from homeassistant.config_entries import ConfigEntryDisabler
 
 from tests.helpers import advance_time
 from tests.ext_helpers import load_fixture_envelope, setup_real_house_modes
@@ -138,8 +139,9 @@ async def test_alarmo_setup_only_with_alarmo(hass: Any, hass_storage: Any, hass_
     """The "Moving from Alarmo" steps exist only when Alarmo's files or entry are there."""
     await setup_real_house_modes(hass, hass_storage, tmp_path, _empty_env())
     client = await hass_ws_client(hass)
-    plans = (await _ws(client, 1, type="house_modes/ext/quickstart/plan"))["plans"]
-    assert "alarmo" not in plans and {"house", "virtual", "panel"} <= set(plans)
+    res = await _ws(client, 1, type="house_modes/ext/quickstart/plan")
+    plans = res["plans"]
+    assert "alarmo" not in plans and set(plans) == {"use"} and res["parts_guessed"]
     hass_storage["alarmo.storage"] = {"version": 6, "minor_version": 3, "key": "alarmo.storage",
                                       "data": load_fixture_envelope()["data"]}
     plans = (await _ws(client, 2, type="house_modes/ext/quickstart/plan"))["plans"]
@@ -210,3 +212,50 @@ async def test_mark_as_done(hass: Any, hass_storage: Any, hass_ws_client: Any, t
     await _ws(client, 3, type="house_modes/ext/quickstart/mark", step="check_cycle")
     steps = {s["id"]: s for s in (await _ws(client, 4, type="house_modes/ext/quickstart/plan", setup="alarmo"))["plans"]["alarmo"]["steps"]}
     assert steps["check_cycle"]["status"] == "done" and "checked" in steps["check_cycle"]["detail"]
+
+
+async def test_what_do_you_use(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """The chosen parts are saved and make one checklist with each step once; Apply takes the parts."""
+    await setup_real_house_modes(hass, hass_storage, tmp_path, _empty_env())
+    hass.states.async_set("binary_sensor.front", "off", {"device_class": "door", "friendly_name": "Front"})
+    client = await hass_ws_client(hass)
+    res = await _ws(client, 1, type="house_modes/ext/quickstart/plan", parts=["house", "alarm"])
+    assert res["parts"] == ["house", "alarm"] and not res["parts_guessed"]
+    ids = [s["id"] for s in res["plans"]["use"]["steps"]]
+    assert len(ids) == len(set(ids)) and {"zones", "arm_modes", "house_modes", "helpers", "alarm_notify"} <= set(ids)
+    assert "panel_link" not in ids
+    again = await _ws(client, 2, type="house_modes/ext/quickstart/plan")
+    assert again["parts"] == ["house", "alarm"]
+    res = await _ws(client, 3, type="house_modes/ext/quickstart/apply", setup="house+alarm")
+    assert {"arm_modes", "zones", "house_modes"} <= set(res["done"])
+
+
+async def test_alarmo_cleanup(hass: Any, hass_storage: Any, hass_ws_client: Any, tmp_path: Any) -> None:
+    """Clean up Alarmo: refused while it is enabled; then copies every file and removes it; the step is done."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: PLC0415
+
+    await setup_real_house_modes(hass, hass_storage, tmp_path, _empty_env())
+    entry = MockConfigEntry(domain="alarmo", title="Alarmo")
+    entry.add_to_hass(hass)
+    for rel, body in ((".storage/alarmo.storage", "{}"), (".storage/alarmo_extras", "{}"),
+                      ("alarmo/activity/2026-11-10.jsonl", "{}\n"), ("custom_components/alarmo/manifest.json", "{}")):
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(body)
+    client = await hass_ws_client(hass)
+    info = await _ws(client, 1, type="house_modes/ext/alarmo_import/cleanup_info")
+    assert info["blocked"] and len(info["paths"]) == 4
+    await client.send_json({"id": 2, "type": "house_modes/ext/alarmo_import/cleanup"})
+    assert (await client.receive_json())["error"]["code"] == "blocked"
+    await hass.config_entries.async_set_disabled_by(entry.entry_id, ConfigEntryDisabler.USER)
+    await hass.async_block_till_done()
+    res = await _ws(client, 3, type="house_modes/ext/alarmo_import/cleanup")
+    assert sorted(res["removed"]) == sorted([".storage/alarmo.storage", ".storage/alarmo_extras", "alarmo",
+                                             "custom_components/alarmo"])
+    assert not (tmp_path / "alarmo").exists() and not (tmp_path / "custom_components" / "alarmo").exists()
+    copy = tmp_path / res["backup"]
+    assert (copy / "alarmo" / "activity" / "2026-11-10.jsonl").is_file()
+    assert (copy / ".storage" / "alarmo.storage").is_file()
+    assert hass.config_entries.async_entries("alarmo") == []
+    info = await _ws(client, 4, type="house_modes/ext/alarmo_import/cleanup_info")
+    assert not info["left"] and info["done"]

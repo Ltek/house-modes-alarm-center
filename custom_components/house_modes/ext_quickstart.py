@@ -31,7 +31,6 @@ from .house_config import SOURCES, slug
 
 DATA_EXT = "house_modes_ext"
 SETUPS = ("alarmo", "house", "virtual", "panel")
-APPLY_SETUPS = ("house", "virtual", "panel")  # the Alarmo steps have their own buttons
 LABEL = "quick-start"
 ZONE_CLASSES = {"door", "window", "garage_door", "opening", "motion", "occupancy", "presence"}
 HOUSE_ONLY_MODES = ["Home", "Away", "Sleep", "Guest", "Vacation"]
@@ -96,13 +95,48 @@ def _detect_house(hass) -> dict[str, Any]:
     return {"entities": picked, "names": house_detect.mode_names(options)}
 
 
+# the parts a user can tick on Quick Start ("What do you use?"), and the old setup names as sets of parts
+PARTS = ("house", "alarm", "panel")
+SETUP_PARTS = {"house": {"house"}, "virtual": {"alarm"}, "panel": {"house", "panel"}}
+PARTS_SECTION = "quickstart_parts"
+
+
+def parts_of(setup: str) -> set[str]:
+    """Parts of a setup: an old setup name, or parts joined with "+" (e.g. "house+panel")."""
+    if setup in SETUP_PARTS:
+        return set(SETUP_PARTS[setup])
+    out = {p for p in setup.split("+") if p in PARTS}
+    if "panel" in out:
+        out.discard("alarm")  # the panel setup brings the alarm with it
+    return out
+
+
+def _valid_setup(value: str) -> str:
+    if not parts_of(value):
+        raise vol.Invalid(f"unknown setup '{value}'")
+    return value
+
+
+def guess_parts(hass) -> list[str]:
+    """What the user seems to use: a panel link = panel; House Modes on = house; zones without a panel = alarm."""
+    ext = _ext(hass)
+    out = []
+    if ext.house.settings["enabled"]:
+        out.append("house")
+    if ext.panel.settings.get("links"):
+        out.append("panel")
+    elif ext.store.async_get_sensors():
+        out.append("alarm")
+    return out or ["house"]
+
+
 def _house_settings(hass, setup: str, area_key: str | None) -> dict[str, Any]:
     """House Mode settings for a setup: the user's own modes when found (Shadow), else starter modes (Live)."""
     found = _detect_house(hass)
     ents = found["entities"]
     own = bool(found["names"]) and bool(ents["selector"] or ents["current"])
     names = found["names"] or HOUSE_ONLY_MODES
-    if setup == "house":
+    if not parts_of(setup) & {"alarm", "panel"}:
         # House Modes only: the modes describe what is going on; they never arm anything
         suggestions = [{"name": n, "icon": house_detect.rule_for(n)[1], "targets": {}} for n in names]
     else:
@@ -202,7 +236,8 @@ def _recording_step(ext) -> dict:
 
 
 def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
-    """The steps of a setup and their status."""
+    """The steps of a setup (or of the parts joined with "+") and their status."""
+    parts = parts_of(setup)
     ext = _ext(hass)
     area_key, area = _first_area(ext)
     house = ext.house.settings
@@ -220,11 +255,11 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
                 "partition",
                 "A partition",
                 "todo",
-                f'creates "{name}"' + (" (hidden on the card: House Modes only)" if setup == "house" else ""),
+                f'creates "{name}"' + (" (hidden on the card: House Modes only)" if parts == {"house"} else ""),
             )
         )
 
-    if setup in ("virtual",):
+    if "alarm" in parts:
         modes = (area or {}).get("modes") or {}
         want = ["armed_away", "armed_home", "armed_night"]
         missing = [m for m in want if not (modes.get(m) or {}).get("enabled")]
@@ -238,7 +273,7 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
             )
         )
 
-    if setup == "panel":
+    if "panel" in parts:
         panels = _discover(hass)
         links = ext.panel.settings.get("links") or {}
         if links:
@@ -288,7 +323,7 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
                 for key, lk in links.items():
                     for item in exit_mismatches(ext, key, lk):
                         for m, v in item["modes"].items():
-                            arm = m.replace("armed_", "").title()
+                            arm = m.replace("armed_", "").replace("_", " ").title()
                             bad.append(f"{item['name']} {arm} {v['alarm']} s (panel {v['panel']} s)")
                 learned = any((lk.get("learned_exit_delay") or {}) for lk in links.values())
                 steps.append(
@@ -314,7 +349,7 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
                 )
             )
 
-    if setup == "virtual":
+    if "alarm" in parts:
         cands = _zone_candidates(hass, ext, set())
         steps.append(
             _step(
@@ -326,16 +361,16 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
                 candidates=cands,
             )
         )
-    if setup in ("virtual", "panel"):
+    if parts & {"alarm", "panel"}:
         users = ext.store.async_get_users()
         steps.append(
             _step(
                 "user",
                 "A user with a code",
-                "done" if users else ("manual" if setup == "virtual" else "optional"),
+                "done" if users else ("manual" if "alarm" in parts else "optional"),
                 f"{len(users)} user(s)"
                 if users
-                else ("add one on Users, Codes, Keypads (codes are never made up)" if setup == "virtual" else
+                else ("add one on Users, Codes, Keypads (codes are never made up)" if "alarm" in parts else
                       "to arm and disarm from the card or a lock keypad: add one on Users, Codes, Keypads"),
                 "/house_modes/codes",
             )
@@ -354,7 +389,7 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
             )
         )
 
-    if setup in ("house", "panel"):
+    if "house" in parts:
         if house["enabled"] and house["modes"]:
             mode = "Shadow" if house.get("run_mode") == "shadow" else "Live"
             steps.append(
@@ -381,15 +416,17 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
     steps.append(_recording_step(ext))
 
     steps.append(_step("card", "The dashboard card", "manual", "add it to a dashboard:", None, yaml=CARD_YAML))
-    if setup == "panel":
+    if parts & {"house", "panel"}:
         links_now = ext.panel.settings.get("links") or {}
         hm_live = house["enabled"] and house.get("run_mode", "live") == "live"
-        link_live = bool(links_now) and all(lk["mode"] == "live" for lk in links_now.values())
-        if hm_live and link_live:
-            steps.append(
-                _step("live", "Go live", "done", "House Modes and the panel link are Live", "/house_modes/house")
-            )
+        link_live = "panel" not in parts or (bool(links_now) and all(lk["mode"] == "live" for lk in links_now.values()))
+        if (hm_live or "house" not in parts) and link_live:
+            named = (("House Modes", "house" in parts), ("the panel link", "panel" in parts))
+            what = " and ".join(w for w, on in named if on)
+            steps.append(_step("live", "Go live", "done", f"{what} {'are' if ' and ' in what else 'is'} Live",
+                               "/house_modes/house"))
         else:
+            hm_live = hm_live or "house" not in parts
             left = [w for w, ok in (("House Modes", hm_live), ("the panel link", link_live)) if not ok]
             steps.append(
                 _step(
@@ -564,8 +601,17 @@ async def plan_alarmo(hass) -> dict[str, Any] | None:  # noqa: PLR0912, PLR0915
                                "not seen on Activity yet: " + ", ".join(CYCLE_PARTS[k] for k in cycle_left)
                                + ". Way back: disable this integration, enable Alarmo (MIGRATION.md §2)",
                                "/house_modes/activity", can_mark=True))
-        steps.append(_step("retire", "Remove Alarmo", "optional",
-                           "after a few stable days, with a backup of its files: MIGRATION.md §3"))
+        info = await alarmo_import.async_cleanup_info(hass)
+        if info["done"] and not info["left"]:
+            steps.append(_step("retire", "Clean up Alarmo", "done",
+                               f"removed {info['done']['at'][:10]} · copies in {info['done']['backup']}"))
+        elif not info["left"]:
+            steps.append(_step("retire", "Clean up Alarmo", "done", "nothing of Alarmo is left"))
+        else:
+            what = ", ".join(info["paths"] + [f"the Alarmo entry ({e['title']})" for e in info["entries"]])
+            steps.append(_step("retire", "Clean up Alarmo", "optional",
+                               f"after a few stable days: removes {what} (a copy of every file first). Press "
+                               "Clean up Alarmo below", cleanup=True))
     return _plan("alarmo", steps)
 
 
@@ -585,7 +631,7 @@ async def apply(hass, setup: str, entities: list[str] | None = None) -> dict[str
             m: {"enabled": False, "exit_time": 60, "entry_time": 30, "trigger_time": 300}
             for m in ("armed_away", "armed_home", "armed_night", "armed_vacation", "armed_custom_bypass")
         }
-        if setup != "house":
+        if parts_of(setup) & {"alarm", "panel"}:
             for m in ("armed_away", "armed_home", "armed_night"):
                 modes[m]["enabled"] = True
         await coord.async_update_area_config(None, {"name": "House", "modes": modes})
@@ -674,25 +720,41 @@ def status(hass) -> dict[str, Any]:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "house_modes/ext/quickstart/plan", vol.Optional("setup"): vol.In(SETUPS)}
+    {
+        vol.Required("type"): "house_modes/ext/quickstart/plan",
+        vol.Optional("setup"): vol.In(SETUPS),
+        # "What do you use?": saved, then the plan is built from these parts
+        vol.Optional("parts"): [vol.In(PARTS)],
+    }
 )
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_quickstart_plan(hass, connection, msg):
     """The steps of one setup (or all three) and what is configured."""
-    setups = [msg["setup"]] if msg.get("setup") else list(SETUPS)
+    from .combined_store import async_get_combined  # noqa: PLC0415
+
+    combined = await async_get_combined(hass)
+    if msg.get("parts") is not None:
+        await combined.async_save_section(PARTS_SECTION, [p for p in PARTS if p in msg["parts"]])
+    chosen = combined.get(PARTS_SECTION)
+    parts = list(chosen) if chosen else guess_parts(hass)
+    setups = [msg["setup"]] if msg.get("setup") else ["alarmo"]
     plans = {s: plan(hass, s) for s in setups if s != "alarmo"}
+    if not msg.get("setup") and parts:
+        plans["use"] = plan(hass, "+".join(parts))
     if "alarmo" in setups:
         alarmo = await plan_alarmo(hass)
         if alarmo is not None:
             plans["alarmo"] = alarmo
-    connection.send_result(msg["id"], {"status": status(hass), "plans": plans})
+    connection.send_result(msg["id"], {"status": status(hass), "plans": plans, "parts": parts,
+                                       "parts_guessed": not chosen})
 
 
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "house_modes/ext/quickstart/apply",
-        vol.Required("setup"): vol.In(APPLY_SETUPS),
+        # an old setup name, or the parts joined with "+" (e.g. "house+panel")
+        vol.Required("setup"): vol.All(str, _valid_setup),
         vol.Optional("entities"): [cv.entity_id],
     }
 )

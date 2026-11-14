@@ -281,6 +281,85 @@ async def async_start_fresh(hass: HomeAssistant) -> dict[str, Any]:
     return record
 
 
+# ------------------------------------------------------------------ cleanup (the last step of moving over)
+
+CLEANUP_SECTION = "alarmo_cleanup"
+
+
+def _leftover_paths(hass: HomeAssistant) -> list[str]:
+    """Alarmo's files that are still there (relative to /config)."""
+    out = []
+    for rel in (os.path.join(".storage", LEGACY_STORAGE_KEY), os.path.join(".storage", LEGACY_EXTRAS_KEY),
+                OLD_FOLDER, os.path.join("custom_components", OLD_FOLDER)):
+        if os.path.exists(hass.config.path(rel)):
+            out.append(rel)
+    return out
+
+
+async def async_cleanup_info(hass: HomeAssistant) -> dict[str, Any]:
+    """What a cleanup would remove, and whether it may run."""
+    combined = await async_get_combined(hass)
+    paths = await hass.async_add_executor_job(_leftover_paths, hass)
+    entries = legacy.old_entry_info(hass)
+    return {
+        "paths": paths,
+        "entries": entries,
+        "blocked": "Disable Alarmo first" if legacy.old_alarmo_active(hass) else None,
+        "done": combined.get(CLEANUP_SECTION),
+        "left": bool(paths or entries),
+    }
+
+
+def _backup_and_delete(hass: HomeAssistant, paths: list[str], dst: str) -> list[str]:
+    os.makedirs(dst, exist_ok=True)
+    for rel in paths:
+        src = hass.config.path(rel)
+        target = os.path.join(dst, rel)
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        if os.path.isdir(src):
+            shutil.copytree(src, target, ignore=shutil.ignore_patterns("__pycache__", "node_modules"))
+        else:
+            shutil.copy2(src, target)
+    removed = []
+    for rel in paths:  # only after every copy worked
+        src = hass.config.path(rel)
+        if os.path.isdir(src):
+            shutil.rmtree(src)
+        else:
+            os.remove(src)
+        removed.append(rel)
+    return removed
+
+
+async def async_cleanup(hass: HomeAssistant) -> dict[str, Any]:
+    """Remove Alarmo for good: its config entry, .storage files, /config/alarmo/ and custom_components/alarmo/.
+
+    A copy of every file goes to /config/house_modes/backups/alarmo-final_<date>/ first. Refuses while Alarmo is
+    enabled. The entry is removed while its code is still there (Alarmo's own removal runs), then the files.
+    """
+    if legacy.old_alarmo_active(hass):
+        raise ImportBlocked("Disable Alarmo first (Settings → Devices & services → Alarmo → ⋮ → Disable).")
+    stamp = dt_util.now().strftime("%Y-%m-%d_%H%M%S")
+    dst = hass.config.path(NEW_FOLDER, "backups", f"alarmo-final_{stamp}")
+    paths = await hass.async_add_executor_job(_leftover_paths, hass)
+    # the entry first: removing it may make Alarmo write a last backup into /config/alarmo/ (copied next)
+    entries = []
+    for e in legacy.old_entries(hass):
+        try:
+            await hass.config_entries.async_remove(e.entry_id)
+            entries.append(e.title)
+        except Exception as err:
+            _LOGGER.warning("Could not remove the Alarmo entry %s: %s", e.title, err)
+    paths = await hass.async_add_executor_job(_leftover_paths, hass)
+    removed = await hass.async_add_executor_job(_backup_and_delete, hass, paths, dst)
+    record = {"at": dt_util.now().isoformat(timespec="seconds"), "removed": removed, "entries": entries,
+              "backup": os.path.relpath(dst, hass.config.config_dir)}
+    combined = await async_get_combined(hass)
+    await combined.async_save_section(CLEANUP_SECTION, record)
+    _LOGGER.warning("Alarmo removed: entries %s, files %s (copies in %s)", entries, removed, dst)
+    return record
+
+
 # ------------------------------------------------------------------ websocket commands (admin only)
 
 
@@ -320,4 +399,26 @@ async def ws_fresh(hass, connection, msg):
     connection.send_result(msg["id"], await async_start_fresh(hass))
 
 
-IMPORT_COMMANDS = (ws_status, ws_run, ws_fresh)
+@websocket_api.websocket_command({vol.Required("type"): "house_modes/ext/alarmo_import/cleanup_info"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_cleanup_info(hass, connection, msg):
+    """What the cleanup would remove."""
+    connection.send_result(msg["id"], await async_cleanup_info(hass))
+
+
+@websocket_api.websocket_command({vol.Required("type"): "house_modes/ext/alarmo_import/cleanup"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_cleanup(hass, connection, msg):
+    """Remove Alarmo for good (copies first)."""
+    try:
+        connection.send_result(msg["id"], await async_cleanup(hass))
+    except ImportBlocked as err:
+        connection.send_error(msg["id"], "blocked", str(err))
+    except Exception as err:
+        _LOGGER.exception("Alarmo cleanup failed")
+        connection.send_error(msg["id"], "unknown_error", str(err))
+
+
+IMPORT_COMMANDS = (ws_status, ws_run, ws_fresh, ws_cleanup_info, ws_cleanup)

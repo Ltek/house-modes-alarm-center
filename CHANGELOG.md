@@ -4,6 +4,23 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.14.101 — 2026-11-14
+
+Restart Home Assistant after the update.
+
+- **Quick Start → What do you use?** Tick *House Modes*, *Built-in alarm (no physical panel)* and/or *Physical alarm
+  panel* (the last two exclude each other); Quick Start shows **one checklist** for them, each step once, with one
+  *Apply*. The first ticks come from what is set up; the choice is saved. Built-in alarm + House Modes is now a
+  setup of its own.
+- **What's configured** is always shown, as chips at the top of Quick Start (no longer a panel to open).
+- **Moving from Alarmo → Clean up Alarmo**: after a few stable days, removes the Alarmo integration entry,
+  `.storage/alarmo.storage`, `.storage/alarmo_extras`, `/config/alarmo/` and `custom_components/alarmo/`, with a copy
+  of every file in `/config/house_modes/backups/alarmo-final_<date>/` first (refused while Alarmo is enabled). The step
+  is then done and the section folds to *Moved from Alarmo*.
+- Fixed: Quick Start counted *The dashboard card* as not done when the card was on a dashboard, and counted optional
+  steps against you (*All done · 1 optional* now). The Alarmo-names scan no longer lists dashboards with nothing to
+  rewrite.
+
 ## v2026.11.13.100 — 2026-11-13
 
 Restart Home Assistant after the update.

@@ -1,12 +1,14 @@
 """Phase 4: panel link with a simulated Envisalink panel."""
 
 from typing import Any
+from datetime import timedelta
 
 import pytest
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
+    async_fire_time_changed,
 )
 
 from tests.helpers import advance_time
@@ -531,6 +533,67 @@ async def test_panel_leads_unfinished_arming_fails(hass: Any, hass_storage: Any,
     await _settle(hass)
     assert hass.states.get(HOUSE_MODES_GF).state == "disarmed"
     assert any("did not finish arming" in m for m in _log(hass)) and calls["notify"]
+
+
+async def test_retry_accepted_gets_its_own_time(hass: Any, hass_storage: Any, tmp_path: Any, freezer: Any) -> None:
+    """2026-11-16: not ready on try 1, try 2 accepted, the panel finishes after the first try's deadline: success.
+
+    Before the fix the deadline counted from try 1, so the link disarmed the alarm 15 s before the panel finished,
+    then re-armed it as if armed at the keypad (Away → Disarmed → Away).
+    """
+    calls = await _setup(hass, hass_storage, tmp_path)
+    await _save(hass, **_link(retries=3, retry_delay=2, learned_exit_delay={"armed_away": 29}))
+    # like the real system: the alarm's Away exit time 32 s, so the deadline is about 42 s
+    coord = hass.data["house_modes"]["coordinator"]
+    modes = {m: dict(c) for m, c in coord.store.async_get_area(GF)["modes"].items()}
+    modes["armed_away"]["exit_time"] = 32
+    await coord.async_update_area_config(GF, {"modes": modes})
+    await _settle(hass)
+    changes = []
+    hass.bus.async_listen("house_modes_ext_panel", lambda e: changes.append(e.data))
+    elapsed = 0
+
+    async def at(sec: int) -> None:  # seconds after the arm; moves wall and monotonic time together
+        nonlocal elapsed
+        while elapsed < sec:
+            freezer.tick(timedelta(seconds=1))
+            elapsed += 1
+            async_fire_time_changed(hass)
+            await _settle(hass)
+
+    await _arm(hass, "away")
+    assert len(calls["alarm_arm_away"]) == 1
+    await at(26)  # try 1 ignored (panel not ready); after its 20 s wait and the retry delay, try 2 is sent
+    assert len(calls["alarm_arm_away"]) == 2
+    hass.states.async_set(PANEL, "arming")
+    await _settle(hass)
+    await at(50)  # past the old deadline (about 42 s after try 1); the panel is still counting down
+    assert not any(e["type"] == "command_failed" for e in changes), changes
+    hass.states.async_set(PANEL, "armed_away")
+    await _settle(hass)
+    await at(120)
+    assert hass.states.get(HOUSE_MODES_GF).state == "armed_away"
+    assert not calls["alarm_disarm"]
+    log = _log(hass)
+    assert not any("at its keypad" in m for m in log), log
+    assert any("physical panel is armed_away after" in m for m in log)
+
+
+async def test_failure_while_panel_arming_disarms_panel_too(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """The panel accepted but never finishes: the alarm and the panel are disarmed; a late finish isn't 'keypad'."""
+    calls = await _setup(hass, hass_storage, tmp_path)
+    await _save(hass, **_link(retries=0))
+    await _arm(hass, "away")
+    hass.states.async_set(PANEL, "arming")
+    await _settle(hass)
+    await advance_time(hass, 120)
+    await _settle(hass)
+    assert hass.states.get(HOUSE_MODES_GF).state == "disarmed"
+    assert len(calls["alarm_disarm"]) == 1  # the panel was disarmed too
+    assert any("The physical panel was disarmed too" in m for m in _log(hass))
+    hass.states.async_set(PANEL, "disarmed")
+    await _settle(hass)
+    assert hass.states.get(HOUSE_MODES_GF).state == "disarmed"
 
 
 async def test_keypad_arming_followed_from_the_start_with_mapping(hass: Any, hass_storage: Any, tmp_path: Any) -> None:

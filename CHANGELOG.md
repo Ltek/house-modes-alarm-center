@@ -4,6 +4,17 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.16.104 — 2026-11-16
+
+Restart Home Assistant after the update.
+
+- **Fixed: Away → Disarmed → Away when the panel needed a retry.** When the physical panel wasn't ready at the first
+  try (e.g. a zone briefly reporting CHECK) and accepted the retry, the link still counted its time from the first
+  try. It gave up while the panel was counting down, disarmed the alarm, and re-armed it when the panel finished, as
+  if armed at the keypad. Each try now gets the whole confirmation time.
+- When arming does fail while the panel is still counting down, the failure setting *disarm the alarm again* now
+  disarms the physical panel too, so it can't finish arming on its own afterwards.
+
 ## v2026.11.16.103 — 2026-11-16
 
 Restart Home Assistant after the update, then reload the browser.

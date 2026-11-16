@@ -767,8 +767,9 @@ class PanelLink:
         # panel leads: "arming" means the panel accepted; the final state must follow before the deadline
         accept_now = [*cmd["accept"], "arming"] if leading and target != "disarmed" else cmd["accept"]
         attempts = self.cfg["retries"] + 1 if self.live else 1
-        sent_at = time.monotonic()
         for attempt in range(1, attempts + 1):
+            # each try gets the whole confirmation time: a retry the panel accepts starts its exit delay then
+            sent_at = time.monotonic()
             what = f"keys {mask_code(keys, code)}" if keys else f"service {SERVICE_FOR[target]}"
             try:
                 for eid, bkeys in bypass:
@@ -803,7 +804,9 @@ class PanelLink:
                     self.expect_panel = None
                     if self.live:
                         secs = self._confirm_deadline(target, cmd)
-                        await self._failed(target, f"physical panel did not finish arming within {secs} s")
+                        await self._failed(
+                            target, f"physical panel did not finish arming within {secs} s", panel_arming=True
+                        )
                     else:
                         self._log("warning", "physical panel did not finish arming")
                     return
@@ -828,8 +831,12 @@ class PanelLink:
         self.expect_panel = None
         await self._failed(target, f"physical panel did not reach {'/'.join(cmd['accept'])}")
 
-    async def _failed(self, target: str, reason: str) -> None:
-        """All tries failed: notify and apply the failure policy."""
+    async def _failed(self, target: str, reason: str, panel_arming: bool = False) -> None:
+        """All tries failed: notify and apply the failure policy.
+
+        ``panel_arming``: the panel accepted the command and is still counting down. With the "disarm" policy the
+        panel is disarmed too, so a late finish can't re-arm the alarm as if it had been armed at the keypad.
+        """
         self.hass.bus.async_fire(
             EVENT_PANEL,
             {
@@ -852,6 +859,14 @@ class PanelLink:
                     "deadline": time.monotonic() + EXPECT_SECONDS,
                 }
                 await alarm_ent.async_alarm_disarm(code=None, skip_code=True)
+            pstate = self.hass.states.get(self.panel)
+            if panel_arming or (pstate is not None and pstate.state in ("arming", *ARMED)):
+                msg += " The physical panel was disarmed too."
+                self.expect_panel = {"accept": ["disarmed"], "deadline": time.monotonic() + EXPECT_SECONDS}
+                try:
+                    await self._send("service", "disarmed")
+                except Exception as err:  # still notify: the alarm itself is disarmed
+                    self._log("error", f"could not disarm the physical panel: {err}")
         self._log("error", msg)
         await self.mgr.async_notify("Alarm panel did not respond", msg)
 

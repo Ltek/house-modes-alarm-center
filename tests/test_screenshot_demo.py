@@ -234,9 +234,14 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
         }
     )
     await locks.async_save(s)
+    # two phones with the Home Assistant app (Alarm & panel alerts → Send to)
+    for phone in ("Alex's Phone", "Sam's Phone"):
+        pe = MockConfigEntry(domain="mobile_app", data={"device_name": phone, "device_id": phone}, title=phone)
+        pe.add_to_hass(hass)
+        dr.async_get(hass).async_get_or_create(config_entry_id=pe.entry_id, identifiers={("mobile_app", phone)}, name=phone)
     # House Mode notifications (Notifications tab → House Mode)
     await ext.house.async_save_settings({**ext.house.settings, "notifications": {
-        "services": ["notify.mobile_app_phone", "notify.family_phones"], "skip_sources": ["timer"], "replace": True,
+        "services": ["notify.mobile_app_alex_s_phone", "notify.family_phones"], "skip_sources": ["timer"], "replace": True,
         "changed": {"enabled": True, "message": "{change} · was {previous} for {duration}", "buttons": ["undo"]},
         "failed": {"priority": "critical", "buttons": ["retry", "force_arm", "disarm"]},
         "timer": {"buttons": ["cancel", "now"]},
@@ -341,7 +346,7 @@ async def test_capture_demo(hass: Any, hass_storage: Any, hass_ws_client: Any, t
         "house_modes/ext/panel/get", "house_modes/ext/panel/log", "house_modes/ext/house_actions/get", "house_modes/ext/alerts/get", "house_modes/ext/rules/list", "house_modes/ext/rules/preview",
         "house_modes/ext/backup/list", "house_modes/ext/locks/get", "house_modes/ext/locks/legacy", "house_modes/ext/activity/get",
         "config/area_registry/list", "config/floor_registry/list", "config/label_registry/list",
-        "house_modes/ext/card/get", "house_modes/ext/card/permissions", "house_modes/ext/quickstart/plan", "house_modes/ext/house_notify/get",
+        "house_modes/ext/card/get", "house_modes/ext/card/permissions", "house_modes/ext/quickstart/plan", "house_modes/ext/house_notify/get", "house_modes/ext/alert_offers/get",
     ]:
         i += 1
         try:

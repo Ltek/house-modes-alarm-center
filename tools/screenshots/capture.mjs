@@ -62,6 +62,13 @@ const SHOTS = [
       await new Promise(r => setTimeout(r, 100));
     });
   }],
+  ['/house_modes/notifications/open/alerts', '28-alarm-and-panel-alerts', async (p) => {
+    await p.evaluate(async () => {
+      const t = document.querySelector('house-modes-panel').shadowRoot.querySelector('hm-view-actions');
+      const ao = t.shadowRoot.querySelector('hm-alert-offers');
+      for (let i = 0; i < 30 && !ao.shadowRoot.querySelector('.row'); i++) await new Promise(r => setTimeout(r, 100));
+    });
+  }],
   ['/house_modes/notifications/open/house', '27-house-mode-notifications', async (p) => {
     await p.evaluate(async () => {
       const t = document.querySelector('house-modes-panel').shadowRoot.querySelector('hm-view-actions');

@@ -46,6 +46,7 @@ from .ext_status import STATUS_COMMANDS
 from .panel_link import PanelLinkManager
 from .references import REFERENCE_COMMANDS
 from .house_modes import HouseModeManager
+from .alert_offers import OFFER_COMMANDS
 from .ext_house_ws import HOUSE_COMMANDS, register_house_service
 from .ext_panel_ws import PANEL_COMMANDS
 from .ext_rules_ws import RULE_COMMANDS
@@ -554,6 +555,7 @@ COMMANDS = (
     *IMPORT_COMMANDS,
     *REFERENCE_COMMANDS,
     *NOTIFY_COMMANDS,
+    *OFFER_COMMANDS,
 )
 
 

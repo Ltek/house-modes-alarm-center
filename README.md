@@ -180,7 +180,9 @@ Rendered from a demo house with made-up names (see [Development](#development)).
     <td align="center" valign="top" width="50%">
       <a href="screenshots/27-house-mode-notifications.png"><img src="screenshots/27-house-mode-notifications.png" width="100%" alt="House mode notifications"></a><br><sub>House mode notifications</sub>
     </td>
-    <td></td>
+    <td align="center" valign="top" width="50%">
+      <a href="screenshots/28-alarm-and-panel-alerts.png"><img src="screenshots/28-alarm-and-panel-alerts.png" width="100%" alt="Alarm and panel alerts"></a><br><sub>Alarm and panel alerts</sub>
+    </td>
   </tr>
 </table>
 <!-- SCREENSHOTS:END -->

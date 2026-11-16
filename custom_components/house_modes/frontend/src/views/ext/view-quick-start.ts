@@ -8,6 +8,7 @@ import { navigate } from '../../helpers';
 import { extStyles } from './ext-styles';
 import { sectionHead, tabCard, tabSection } from './page-intro';
 import './alarmo-import';
+import './alert-offers';
 
 type Step = {
   id: string;
@@ -20,6 +21,7 @@ type Step = {
   automations?: { entity_id: string; name: string; edit_id: string | null; reasons: string[] }[];
   can_mark?: boolean;
   cleanup?: boolean;
+  offers?: boolean;
 };
 type Plan = { setup: string; steps: Step[]; todo: number };
 type Status = {
@@ -135,6 +137,15 @@ export class AlarmViewQuickStart extends LitElement {
       this.error = '';
     } catch (err) {
       this.error = wsErrorMessage(err);
+    }
+  }
+
+  /** re-read the steps after the alerts changed, without the element reloading itself in a loop */
+  private loaded = 0;
+  private loadQuiet() {
+    if (Date.now() - this.loaded > 2000) {
+      this.loaded = Date.now();
+      this.load();
     }
   }
 
@@ -345,6 +356,9 @@ export class AlarmViewQuickStart extends LitElement {
                 ${a.reasons.map(r => html`<div class="secondary">${r}</div>`)}</div></li>`)}</ul>`
           : nothing}
         ${st.can_mark ? html`<button class="link" @click=${() => this.mark(st.id)}>Mark as done</button>` : nothing}
+        ${st.offers && st.status !== 'done'
+          ? html`<hm-alert-offers compact .hass=${this.hass} @offers-changed=${() => this.loadQuiet()}></hm-alert-offers>`
+          : nothing}
         ${st.cleanup
           ? html`<ha-button appearance="plain" ?disabled=${!!this.busy} @click=${this.cleanup}>
               <ha-icon slot="start" icon="mdi:broom"></ha-icon>${this.busy === 'cleanup' ? 'Cleaning up…' : 'Clean up Alarmo…'}</ha-button>`

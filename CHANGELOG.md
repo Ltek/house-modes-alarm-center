@@ -4,6 +4,23 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.17.105 — 2026-11-17
+
+Restart Home Assistant after the update.
+
+- **Alarm & panel alerts, in one click** (Notifications tab, and a Quick Start step when the alarm or a physical panel
+  is used): ready-made *Smart Repeating Alerts* for real problems, made for this system: **Alarm triggered**,
+  **Failed to arm** (also a House Mode that could not arm), **Panel didn't respond**, and with an Envisalink keypad
+  sensor **Fire**, **Panic** and **Panel trouble** (trouble, battery, bell, zone low battery). Each repeats until the
+  problem ends (disarmed, armed, the panel stops reporting it) or someone presses *Stop alerts*. Alarm, Fire and Panic
+  are critical (alarm stream, through Do Not Disturb), with an optional **Disarm / Silence** button.
+  - Tick the alerts and the phones (the House Mode notification phones are ticked to start with), press **Create**:
+    the integration fills in triggers, clear triggers, message, priority and repeats, and saves normal automations
+    you can change or delete like any other. Nothing is created until you press Create.
+  - Alerts your own automations already cover (e.g. one on the keypad's *fire*, or on `house_modes_failed_to_arm`)
+    are named and start unticked; an imported Alarm notification that only tells you once is mentioned.
+  - After the import from Alarmo, the result points to this step.
+
 ## v2026.11.16.104 — 2026-11-16
 
 Restart Home Assistant after the update.

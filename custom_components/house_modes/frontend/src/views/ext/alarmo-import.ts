@@ -3,6 +3,7 @@
 import { LitElement, html, nothing, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from '../../types';
+import { navigate } from '../../helpers';
 import { toast, wsErrorMessage } from '../../data/ext-websockets';
 import {
   ImportStatus,
@@ -197,6 +198,8 @@ export class HmAlarmoImport extends LitElement {
           <p class="secondary">Copied ${imp.copied.activity} Activity day(s) and ${imp.copied.backups} backup file(s) to /config/house_modes/.
             Backup before the import: ${imp.backup}.</p>` : nothing}
         ${this.renderOldEntry(s)}
+        <p class="secondary">Next: <a href="/house_modes/general" @click=${(e: Event) => { e.preventDefault(); navigate(this, '/house_modes/general'); }}>Quick Start</a>
+          → <em>Alarm &amp; panel alerts</em>: repeating alerts for an alarm, a failed arming or the panel not responding.</p>
       </div>`;
   }
 

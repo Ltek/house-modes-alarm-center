@@ -413,6 +413,17 @@ def plan(hass, setup: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
         steps.append(_automations_step(hass))
         steps.append(_notify_step(house))
 
+    if parts & {"alarm", "panel"}:
+        from .alert_offers import step_status  # noqa: PLC0415
+
+        try:
+            status, detail = step_status(hass)
+        except Exception:  # never let Quick Start fail
+            status, detail = "skip", ""
+        if status != "skip":
+            steps.append(_step("alert_offers", "Alarm & panel alerts", status, detail,
+                               "/house_modes/notifications/open/alerts", offers=True))
+
     steps.append(_recording_step(ext))
 
     steps.append(_step("card", "The dashboard card", "manual", "add it to a dashboard:", None, yaml=CARD_YAML))

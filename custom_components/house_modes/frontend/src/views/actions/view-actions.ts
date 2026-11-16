@@ -30,6 +30,7 @@ import { isLegacyEvent, eventTargets } from '../../data/alarm-events';
 import '../ext/event-migrate';
 import '../ext/smart-alerts';
 import '../ext/house-notifications';
+import '../ext/alert-offers';
 
 const noArea = 'no_area';
 
@@ -143,6 +144,9 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
                 html`<hm-house-notifications .hass=${this.hass}
                   @notify-summary=${(e: CustomEvent) => { this.houseSummary = e.detail; this.requestUpdate(); }}></hm-house-notifications>`,
                 { open: this.path?.params?.open === 'house' })}
+              ${tabSection('alerts', 'Alarm & panel alerts', 'repeating alerts for real problems, in one click',
+                html`<hm-alert-offers .hass=${this.hass}></hm-alert-offers>`,
+                { open: this.path?.params?.open === 'alerts' })}
               ${tabSection('smart-alerts', 'Smart Repeating Alerts', this.alertsSummary,
                 html`<hm-smart-alerts embedded .hass=${this.hass}
                   @alerts-summary=${(e: CustomEvent) => { this.alertsSummary = e.detail; this.requestUpdate(); }}></hm-smart-alerts>`)}

@@ -3,7 +3,8 @@
 // UPPERCASE accent titles, mixed-case group subtitles (§2), sliders for every size, the four-mode color control
 // (§3), three-state selects for boolean style overrides (§5) and byte-stable YAML: a key is written only when set.
 import { LitElement, html, css, nothing, TemplateResult } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
+import { safeElement } from './define';
 import { HomeAssistant } from './alarm/lib/types';
 import { VERSION } from '../../src/const';
 import {
@@ -104,7 +105,7 @@ const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
 /** A swatch seed: #rrggbb only (a theme color or name falls back to gray). */
 const toHex6 = (c: string) => (/^#[0-9a-fA-F]{6}$/.test(c || '') ? c : '#9e9e9e');
 
-@customElement('house-modes-alarm-center-card-editor')
+@safeElement('house-modes-alarm-center-card-editor')
 export class HouseModesAlarmCenterCardEditor extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
   @state() private config?: CardConfig;

@@ -7730,7 +7730,7 @@ var e=function(t,s){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             ${us("title",this.hass.language)}
           </div>
           <div class="version">
-            v${"2026.11.14.102"}
+            v${"2026.11.16.103"}
           </div>
         </div>
 

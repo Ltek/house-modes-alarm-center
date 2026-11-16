@@ -2,7 +2,8 @@
 // House Modes & Alarm Center Card. Changes: element names prefixed hmac- (no clash with an installed hmac-alarm),
 // no editor / card registration of its own (the main card has them).
 import { LitElement, html, TemplateResult, PropertyValues, CSSResult, css } from 'lit';
-import { property, customElement, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
+import { safeElement } from '../define';
 import { STATE_NOT_RUNNING, UnsubscribeFunc } from 'home-assistant-js-websocket';
 
 import {
@@ -45,7 +46,7 @@ const BUTTONS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'clear'];
 type Backend = { area_id: string | number | null | undefined; hmConfig?: HmConfig; ready: AlarmStates[] | null };
 const BACKEND = new Map<string, Backend>();
 
-@customElement('hmac-alarm')
+@safeElement('hmac-alarm')
 export class HmCard extends SubscribeMixin(LitElement) {
   @property({ attribute: false })
   public hass?: HomeAssistant;

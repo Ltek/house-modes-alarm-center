@@ -1,4 +1,5 @@
 // Modified from alarmo-card (github.com/nielsfaber/alarmo-card, Apache License 2.0, see card/LICENSE-alarmo-card) for House Modes & Alarm Center.
+import { defineOnce } from '../../define';
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { ICONS, PENDING_STATES } from '../const';
@@ -232,4 +233,4 @@ class HmStateBadge extends LitElement {
     `;
   }
 }
-customElements.define('hmac-state-badge', HmStateBadge);
+defineOnce('hmac-state-badge', HmStateBadge);

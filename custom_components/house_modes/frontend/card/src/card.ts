@@ -1,8 +1,8 @@
-import './guard';
 // House Modes & Alarm Center Card: House Mode, alarm and physical panel in one card.
 // Added as a Dashboard resource by the integration (extra frontend module in YAML mode). Card type: custom:house-modes-alarm-center-card
 import { LitElement, html, css, nothing, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
+import { safeElement } from './define';
 import { HomeAssistant } from './alarm/lib/types';
 import {
   CardConfig,
@@ -78,7 +78,7 @@ const HISTORY_SHOWN = new Map<string, HistoryKind[]>();
 const HISTORY_CACHE = new Map<string, HistoryRow[]>();
 let DATA_CACHE: CardData | undefined;
 
-@customElement(TAG)
+@safeElement(TAG)
 export class HouseModesAlarmCenterCard extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
   @state() private config?: CardConfig;

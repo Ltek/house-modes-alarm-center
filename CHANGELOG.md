@@ -4,6 +4,16 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.16.103 — 2026-11-16
+
+Restart Home Assistant after the update, then reload the browser.
+
+- **The dashboard card no longer changes the browser's `customElements.define`.** Since v2026.11.06.69 a small wrapper
+  made sure the card could load twice (an old and a new URL right after an update) without an error; it sat in front
+  of every card's element registrations, so other cards' errors listed our file (for example *"the name
+  easy-ring-styler-activity-time has already been used"*). The card now registers only its own elements, each once,
+  and still loads twice without an error.
+
 ## v2026.11.14.102 — 2026-11-14
 
 Restart Home Assistant after the update.

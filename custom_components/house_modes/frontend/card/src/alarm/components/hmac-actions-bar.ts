@@ -1,6 +1,7 @@
 // Modified from alarmo-card (github.com/nielsfaber/alarmo-card, Apache License 2.0, see card/LICENSE-alarmo-card) for House Modes & Alarm Center.
 import { LitElement, html, css, nothing } from 'lit';
-import { property, customElement } from 'lit/decorators.js';
+import { property} from 'lit/decorators.js';
+import { safeElement } from '../../define';
 import { ActionToIcon, ActionToState, AlarmStates, ArmActions } from '../const';
 import { HomeAssistant } from '../lib/types';
 import { fireEvent } from '../lib/fire-event';
@@ -10,7 +11,7 @@ import { calcSupportedActions, computeStateColor } from '../data/entity';
 import { calcStateConfig } from '../data/config';
 
 
-@customElement("hmac-actions-bar")
+@safeElement("hmac-actions-bar")
 export class HmActionsBar extends LitElement {
 
   @property({ attribute: false })

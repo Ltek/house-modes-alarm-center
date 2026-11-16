@@ -1,7 +1,8 @@
 // Modified from alarmo-card (github.com/nielsfaber/alarmo-card, Apache License 2.0, see card/LICENSE-alarmo-card) for House Modes & Alarm Center.
 import { mdiCheck, mdiClose } from "@mdi/js";
 import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
-import { customElement, property, query, state } from "lit/decorators.js";
+import { property, query, state } from "lit/decorators.js";
+import { safeElement } from '../../define';
 import { UnsubscribeFunc } from "home-assistant-js-websocket";
 import { HmEntity, HmEvent } from "../types";
 import { ActionToState, HmEvents, AlarmStates, ArmActions, EVENT, FORMAT_NUMBER } from "../const";
@@ -42,7 +43,7 @@ const BUTTONS = [
   "submit",
 ];
 
-@customElement("hmac-code-dialog")
+@safeElement("hmac-code-dialog")
 export class HmCodeDialog
   extends SubscribeMixin(LitElement)
   implements HassDialog<CodeDialogParams> {

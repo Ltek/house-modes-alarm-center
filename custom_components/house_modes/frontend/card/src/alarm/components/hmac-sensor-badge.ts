@@ -1,4 +1,5 @@
 // Modified from alarmo-card (github.com/nielsfaber/alarmo-card, Apache License 2.0, see card/LICENSE-alarmo-card) for House Modes & Alarm Center.
+import { defineOnce } from '../../define';
 import { LitElement, html, css, PropertyValues, TemplateResult, CSSResult } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { HassEntity } from 'home-assistant-js-websocket';
@@ -129,4 +130,4 @@ class HmSensorBadge extends LitElement {
   }
 }
 
-customElements.define('hmac-sensor-badge', HmSensorBadge);
+defineOnce('hmac-sensor-badge', HmSensorBadge);

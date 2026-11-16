@@ -26,7 +26,7 @@ const files = (dir) =>
   });
 
 const defined = (dir) =>
-  files(dir).flatMap(f => [...readFileSync(f, 'utf8').matchAll(/@customElement\(\s*['"]([a-z0-9-]+)['"]\s*\)/g)].map(m => m[1]));
+  files(dir).flatMap(f => [...readFileSync(f, 'utf8').matchAll(/@(?:customElement|safeElement)\(\s*['"]([a-z0-9-]+)['"]\s*\)/g)].map(m => m[1]));
 
 test('panel elements never clash with an installed Alarmo panel', () => {
   const names = defined(new URL('../src', import.meta.url).pathname);
@@ -44,8 +44,13 @@ test('card elements keep their own names (guarded, defined once)', () => {
     assert.ok(n.startsWith('hmac-') || n.startsWith('house-modes-alarm-center-card'), `card element ${n}`);
     assert.ok(!OLD_PANEL.includes(n), `${n} is also defined by Alarmo`);
   }
-  const guard = readFileSync(new URL('../card/src/guard.ts', import.meta.url), 'utf8');
-  assert.match(guard, /house-modes-alarm-center-card\|hmac-/);
+  // registered once each, without touching the browser's registry (no global define wrapper)
+  for (const f of files(new URL('../card/src', import.meta.url).pathname)) {
+    const text = readFileSync(f, 'utf8');
+    assert.doesNotMatch(text, /@customElement\(/, f);
+    assert.doesNotMatch(text, /(registry|customElements)\.define\s*=/, f);
+    if (!f.endsWith('define.ts')) assert.doesNotMatch(text, /customElements\.define\(/, f);
+  }
 });
 
 test('no websocket command, service or event of the old domain is used', () => {

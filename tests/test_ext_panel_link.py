@@ -780,3 +780,24 @@ async def test_normal_use_cancels_the_check(hass: Any, hass_storage: Any, tmp_pa
     await advance_time(hass, 31)
     assert not any(" check:" in m for m in _log(hass))
     assert len(calls["alarm_arm_home"]) == 1
+
+
+async def test_alarm_disarmed_stops_the_retry(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """2026-11-21: the alarm failed to arm (back to disarmed) while try 1 waited; try 2 must not arm the panel.
+
+    Before the fix try 2 armed the physical panel 8 s after the alarm gave up, so the panel was armed Stay while
+    House Modes showed Disarmed.
+    """
+    calls = await _setup(hass, hass_storage, tmp_path)
+    await _save(hass, **_link(retries=3, retry_delay=2))
+    await _arm(hass, "away")
+    assert len(calls["alarm_arm_away"]) == 1  # the panel ignores it (not ready)
+    await hass.services.async_call(
+        "house_modes", "disarm", {"entity_id": HOUSE_MODES_GF, "code": "1234"}, blocking=True
+    )
+    await _settle(hass)
+    assert hass.states.get(HOUSE_MODES_GF).state == "disarmed"
+    await advance_time(hass, 120)
+    await _settle(hass)
+    assert len(calls["alarm_arm_away"]) == 1, "a retry armed the panel after the alarm disarmed"
+    assert any("stopped sending armed_away" in m for m in _log(hass)), _log(hass)

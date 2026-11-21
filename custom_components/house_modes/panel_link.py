@@ -649,6 +649,12 @@ class PanelLink:
         cmd = self.cfg["commands"][state]
         panel_state = self.hass.states.get(self.panel)
         if panel_state is not None and panel_state.state in cmd["accept"]:
+            if self._task and not self._task.done() and self._target != state:
+                # e.g. the alarm failed to arm and went back to disarmed: a retry still running would
+                #   arm the panel on its own
+                self._task.cancel()
+                self._log("info", f"Alarm {state}: stopped sending {self._target} to the physical panel")
+            self._target = state
             self._log("info", f"Alarm {state}; physical panel already {panel_state.state}")
             return
         self._start(state, leading=False)

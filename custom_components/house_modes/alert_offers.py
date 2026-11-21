@@ -150,7 +150,8 @@ def _triggers(hass: HomeAssistant, oid: str) -> tuple[list[dict], list[dict], st
             [{"trigger": "state", "entity_id": ents, "to": "disarmed"}],
             "{{ state_attr(trigger.entity_id, 'friendly_name') or 'The alarm' }} is in ALARM"
             "{% if trigger.to_state and trigger.to_state.attributes.open_sensors %}: "
-            "{{ trigger.to_state.attributes.open_sensors | list | map('state_attr', 'friendly_name') | join(', ') }}"
+            "{% for e in trigger.to_state.attributes.open_sensors | list %}{{ state_attr(e, 'friendly_name') or e }}"
+            "{{ ', ' if not loop.last }}{% endfor %}"
             "{% endif %}.",
         )
     if oid == "failed_to_arm":
@@ -159,7 +160,8 @@ def _triggers(hass: HomeAssistant, oid: str) -> tuple[list[dict], list[dict], st
              {"trigger": "event", "event_type": "house_modes_house_mode_failed"}],
             [{"trigger": "event", "event_type": "house_modes_command_success"}],
             "{% set d = trigger.event.data %}"
-            "{% if d.sensors is defined %}Open: {{ d.sensors | map('state_attr', 'friendly_name') | join(', ') }}"
+            "{% if d.sensors is defined %}Open: {% for e in d.sensors %}{{ state_attr(e, 'friendly_name') or e }}"
+            "{{ ' (unavailable)' if states(e) in ['unavailable', 'unknown'] }}{{ ', ' if not loop.last }}{% endfor %}"
             "{% elif d.reason is defined and d.name is defined %}House Mode {{ d.name }}: {{ d.reason }}"
             "{% else %}{{ (d.reason | default('refused')) | replace('_', ' ') }}{% endif %}",
         )

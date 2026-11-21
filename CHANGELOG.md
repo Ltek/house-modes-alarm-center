@@ -4,6 +4,24 @@ Based on [Alarmo](https://github.com/nielsfaber/alarmo) v1.10.19 by Niels Faber 
 v2026.11.11.94 are from the Alarmo-based build (domain `alarmo`, repository `Ltek/alarmo-retired`); their names
 (`alarmo.*`, `select.alarmo_house_mode`, `/config/alarmo/`, …) are the names of that time.
 
+## v2026.11.21.106 — 2026-11-21
+
+Restart Home Assistant after the update.
+
+- **No more arming loop after a failed arm.** When the alarm refused to arm at the end of the exit delay (open
+  sensors), the House Mode went back to the earlier mode, whose "back to …" timer then tried the same mode again,
+  and failed again, every few minutes (2026-11-21: every 10½ minutes for six hours, with notifications each time).
+  Now no timer goes back to a House Mode that just failed to arm, and you get one *House Mode … failed*
+  notification (with Retry / Force arm) instead of *changed*. Disarming by hand during the exit delay keeps the
+  normal timer.
+- **The physical panel is no longer armed after the alarm gives up.** If the alarm went back to disarmed while the
+  panel link was still retrying the arm command (the panel was not ready on the first try), the next retry armed
+  the panel anyway: the panel was armed while House Modes showed Disarmed. The retry is now stopped.
+- **Clearer names for sensors that are disabled or unavailable.** Messages say *Garage Door 1 (disabled)* or
+  *(unavailable)* instead of the sensor being "open", and the *Failed to arm* alert from **Alarm & panel alerts**
+  no longer shows "Open: None, None" (it falls back to the entity ID). Alerts created with .105 keep the old
+  message: delete *Repeating Alert - Failed to arm* and create it again from Notifications → Alarm & panel alerts.
+
 ## v2026.11.17.105 — 2026-11-17
 
 Restart Home Assistant after the update.

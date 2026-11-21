@@ -463,3 +463,55 @@ async def test_keypad_action_text(hass: Any, hass_storage: Any, tmp_path: Any) -
     text = ext.recorder._keypad_what({"house_mode": "dis", "targets": {area: "disarmed"}})
     assert text.startswith("House Mode Disarmed · ") and text.endswith(": Disarmed") and "{" not in text, text
     assert area not in text, text
+
+
+def _areas(mgr):
+    return mgr._entity(GF), mgr._entity(GAR)
+
+
+async def test_failed_arm_is_not_retried_by_a_timer(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """2026-11-21: the arm fails at the end of the exit delay; Disarmed's "back to previous" timer must not loop.
+
+    Before the fix: Disarmed → (10 min timer) Sleep → fails (garage door covers disabled by a Sleep action) →
+    Disarmed → timer again, every 10½ minutes for six hours.
+    """
+    modes = _modes()
+    modes[0]["timers"] = [{"after_minutes": 10, "then": "previous"}]
+    mgr = await _setup(hass, hass_storage, tmp_path)
+    await mgr.async_save_settings({"enabled": True, "modes": modes})
+    await _settle(hass)
+    await mgr.async_set_mode("Stay")
+    await _settle(hass)
+    sent = []
+    hass.bus.async_listen("house_modes_house_mode_failed", lambda e: sent.append(e.data))
+    # the alarm refuses to arm at the end of the exit delay and goes back to disarmed
+    gf, gar = _areas(mgr)
+    gar.async_update_state("disarmed")
+    gf.async_update_state("arming")
+    await _settle(hass)
+    gf._revert_state = "disarmed"
+    gf.async_arm_failure({"cover.gdo1_garage_door": "unavailable"})
+    await _settle(hass)
+    assert mgr.settings["current"] == "disarmed"
+    assert mgr.settings["pending"] == [], "a timer goes back to the mode that just failed to arm"
+    assert len(sent) == 1 and sent[0]["name"] == "Stay"
+    assert "cover.gdo1_garage_door (unavailable)" in sent[0]["reason"]
+
+
+async def test_disarm_during_exit_delay_keeps_the_timer(hass: Any, hass_storage: Any, tmp_path: Any) -> None:
+    """Someone disarms while it is still arming (no open sensors): the normal timer back is kept."""
+    modes = _modes()
+    modes[0]["timers"] = [{"after_minutes": 10, "then": "previous"}]
+    mgr = await _setup(hass, hass_storage, tmp_path)
+    await mgr.async_save_settings({"enabled": True, "modes": modes})
+    await _settle(hass)
+    await mgr.async_set_mode("Stay")
+    await _settle(hass)
+    gf, gar = _areas(mgr)
+    gar.async_update_state("disarmed")
+    gf.async_update_state("arming")
+    await _settle(hass)
+    gf.async_update_state("disarmed")
+    await _settle(hass)
+    assert mgr.settings["current"] == "disarmed"
+    assert [p["target"] for p in mgr.settings["pending"]] == ["stay"]

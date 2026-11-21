@@ -298,7 +298,14 @@ class HouseModeManager:
 
     def _name(self, entity_id: str) -> str:
         st = self.hass.states.get(entity_id)
-        return (st.attributes.get("friendly_name") if st else None) or entity_id
+        name = st.attributes.get("friendly_name") if st else None
+        if not name and (ent := er.async_get(self.hass).async_get(entity_id)) is not None:
+            name = ent.name or ent.original_name
+        name = name or entity_id
+        if st is None or st.state in ("unavailable", "unknown"):
+            reg = er.async_get(self.hass).async_get(entity_id)
+            name += " (disabled)" if reg is not None and reg.disabled_by else " (unavailable)"
+        return name
 
     async def _apply(self, target: dict, source: str, bypass: bool = False) -> dict[str, Any]:
         settings = self.settings
@@ -400,8 +407,14 @@ class HouseModeManager:
         return {eid: results.get(eid, False) for eid in waiting}
 
     async def _record(
-        self, mode_id: str | None, source: str, result: str = "changed"
+        self, mode_id: str | None, source: str, result: str = "changed", arm_failed: dict | None = None
     ) -> None:
+        """Record the current House Mode.
+
+        arm_failed: {"mode": <House Mode that did not arm>, "open": [entities]} when the alarm refused to arm at
+        the end of the exit delay. Then no timer goes back to that mode (it would fail the same way, again and
+        again) and a "failed" notification is sent instead of "changed".
+        """
         data = self.settings
         prev = data["current"]
         started = dt_util.parse_datetime(data["changed_at"]) if data.get("changed_at") else None
@@ -432,6 +445,10 @@ class HouseModeManager:
         if mode:
             now = dt_util.now()
             for t in timers_for(mode, prev, now.time()):
+                target = t["then"] if t["then"] != "previous" else (prev or "")
+                if arm_failed and target == arm_failed["mode"]["id"]:
+                    _LOGGER.info("House Mode %s did not arm: no timer back to it", arm_failed["mode"]["name"])
+                    continue
                 new_pending.append(
                     {
                         "id": uuid.uuid4().hex[:12],
@@ -460,7 +477,15 @@ class HouseModeManager:
             previous_name=prev_mode["name"] if prev_mode else None,
             duration=round(lasted) if lasted is not None else None, change=change,
         )
-        if mode_id != prev and result in ("changed", "external"):
+        if arm_failed:
+            failed = arm_failed["mode"]
+            names = ", ".join(self._name(e) for e in arm_failed["open"]) or "a sensor"
+            reason = f"Did not arm, open: {names}. It is not tried again on a timer."
+            self._event(EVENT_FAILED, failed, source, failed=[], policy="exit_delay",
+                        reason=reason)
+            await self._send("failed", failed, source, reason=reason,
+                             args={"retry": failed["id"], "force_arm": failed["id"]})
+        elif mode_id != prev and result in ("changed", "external"):
             await self._send("changed", mode, source, previous=prev_mode, duration=lasted, change=change,
                              args={"undo": prev or ""})
         self._mirror_to_select(mode)
@@ -703,8 +728,14 @@ class HouseModeManager:
             return  # still on its way; the final state change comes later
         derived = derive_mode(s, live, self.overrides)
         if derived != s["current"]:
+            old = _event.data.get("old_state")
+            open_sensors = list(new.attributes.get("open_sensors") or [])
+            arm_failed = None
+            if old is not None and old.state == "arming" and open_sensors and (cur := self.current()):
+                # the alarm refused to arm at the end of the exit delay
+                arm_failed = {"mode": cur, "open": open_sensors}
             self.hass.async_create_task(
-                self._record(derived, "external", result="external")
+                self._record(derived, "external", result="external", arm_failed=arm_failed)
             )
 
     @callback
